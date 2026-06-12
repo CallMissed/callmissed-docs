@@ -27,7 +27,16 @@ jobs:
 
           if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
             echo "Context7 refresh triggered for /callmissed/callmissed-docs"
-          else
-            echo "Refresh returned HTTP $HTTP_CODE"
-            exit 1
+            exit 0
           fi
+
+          # Unclaimed libraries are rate-limited to one refresh per 10 days.
+          # A "too-early" response is expected and not a failure - the docs repo
+          # is already up to date; Context7 will re-index on its own schedule.
+          if echo "$BODY" | grep -q "too-early"; then
+            echo "Refresh throttled (min 10 days between updates) - docs are current, skipping."
+            exit 0
+          fi
+
+          echo "Refresh failed with HTTP $HTTP_CODE"
+          exit 1
