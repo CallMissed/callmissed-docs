@@ -1,6 +1,6 @@
 {
   "$schema": "https://context7.com/schema/context7.json",
-  "projectTitle": "CallMissed API",
+  "projectTitle": "CallMissed",
   "description": "OpenAI-compatible APIs for WhatsApp chatbots and AI voice agents: chat completion, speech-to-text, text-to-speech, image generation, and web search, with Indic-language model support.",
   "branch": "main",
   "folders": ["docs"],
