@@ -14,5 +14,7 @@
     "Use bulbul:v3 for Indian-language text-to-speech (39 voices across 11 languages)",
     "The Anthropic Messages API is available at /v1/messages using the Anthropic SDK",
     "Free-tier models include kimi-k2.5, sarvam-30b, sarvam-105b, saaras:v3, and bulbul:v3"
-  ]
+  ],
+  "url": "https://context7.com/callmissed/callmissed-docs",
+  "public_key": "pk_oB0ul6t09880agH0mZZNn"
 }
