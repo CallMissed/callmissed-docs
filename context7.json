@@ -1,0 +1,17 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "CallMissed API",
+  "description": "AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents. OpenAI-compatible endpoints for chat completion, speech-to-text, text-to-speech, image generation, web search, and real-time voice agents with Indic-language model support.",
+  "folders": ["docs"],
+  "excludeFiles": ["docs/README.md"],
+  "rules": [
+    "Base URL is https://api.callmissed.com",
+    "All endpoints are OpenAI-compatible - use the OpenAI SDK with base_url set to https://api.callmissed.com/v1",
+    "API keys are prefixed with cm_ and passed as Authorization: Bearer cm_your_key",
+    "Use sarvam-30b or sarvam-105b for Indic-language LLM tasks",
+    "Use saaras:v3 for Indian-language speech-to-text (22 Indic languages)",
+    "Use bulbul:v3 for Indian-language text-to-speech (39 voices, 11 languages)",
+    "The Anthropic Messages API is available at /v1/messages using the Anthropic SDK",
+    "Free-tier models include kimi-k2.5, sarvam-30b, sarvam-105b, saaras:v3, bulbul:v3"
+  ]
+}
