@@ -99,7 +99,6 @@ The free tier includes **23 models** across four categories. Use `GET /api/v1/mo
 | `flux-1.1-pro` | Flux 1.1 Pro — fast high-quality *(paid)* |
 | `nano-banana-2` | Google Gemini 3.1 Flash Image — multimodal, highest LM-Arena Elo (paid) |
 | `nano-banana-pro` | Google Gemini 3 Pro Image — flagship typography + fidelity (paid) |
-| `openai-gpt-image-2` | Deprecated alias for `nano-banana-pro` — use `nano-banana-pro` directly (paid) |
 
 All other models — including `kimi-k2.5-fast`, Azure-hosted IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, Azure STT/TTS), slash-prefixed frontier IDs (`openai/*`, `anthropic/*`, `google/*`, `x-ai/*`, `qwen/*`, `mistralai/*`), and paid image models (`flux-2-pro`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
 
