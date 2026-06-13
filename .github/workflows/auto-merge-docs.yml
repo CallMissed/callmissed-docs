@@ -1,0 +1,80 @@
+name: Auto-merge docs sync after refresh window
+
+# Runs daily. When >= 11 days have passed since Context7 last indexed the
+# library (the unclaimed-library refresh throttle is 10 days), it merges the
+# newest open auto-sync PR, closes older superseded ones, and triggers a
+# Context7 refresh inline (a scheduled GITHUB_TOKEN merge cannot chain-trigger
+# the separate refresh workflow, so we call the API here directly).
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # daily at 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      LIB: "/callmissed/callmissed-docs"
+      MIN_DAYS: 11
+    steps:
+      - name: Check Context7 last-index age and merge if window has passed
+        run: |
+          set -e
+
+          # 1. How many days since Context7 last indexed the library?
+          LAST=$(curl -s "https://context7.com/api/v1/search?query=callmissed" \
+            | jq -r --arg id "$LIB" '.results[] | select(.id==$id) | .lastUpdateDate')
+
+          if [ -z "$LAST" ] || [ "$LAST" = "null" ]; then
+            echo "Could not read lastUpdateDate from Context7 - skipping this run."
+            exit 0
+          fi
+
+          LAST_EPOCH=$(date -d "$LAST" +%s)
+          NOW_EPOCH=$(date +%s)
+          DAYS=$(( (NOW_EPOCH - LAST_EPOCH) / 86400 ))
+          echo "Last Context7 index: $LAST  ($DAYS days ago). Threshold: $MIN_DAYS days."
+
+          if [ "$DAYS" -lt "$MIN_DAYS" ]; then
+            echo "Refresh window not reached yet - leaving open PRs untouched."
+            exit 0
+          fi
+
+          # 2. Find open auto-sync PRs (branch prefix auto/sync-docs), newest first.
+          PRS=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open \
+            --json number,headRefName,createdAt \
+            --jq '[.[] | select(.headRefName | startswith("auto/sync-docs"))] | sort_by(.createdAt) | reverse')
+
+          COUNT=$(echo "$PRS" | jq 'length')
+          if [ "$COUNT" -eq 0 ]; then
+            echo "No open auto-sync PRs - nothing to merge."
+            exit 0
+          fi
+
+          NEWEST=$(echo "$PRS" | jq -r '.[0].number')
+          echo "Merging newest sync PR #$NEWEST"
+          gh pr merge "$NEWEST" --repo "$GITHUB_REPOSITORY" --squash --delete-branch
+
+          # 3. Close any older sync PRs - each PR is a full snapshot, so older ones are superseded.
+          echo "$PRS" | jq -r '.[1:][].number' | while read -r OLD; do
+            [ -n "$OLD" ] || continue
+            echo "Closing superseded sync PR #$OLD"
+            gh pr close "$OLD" --repo "$GITHUB_REPOSITORY" --delete-branch \
+              --comment "Superseded by #$NEWEST (newer full docs snapshot)."
+          done
+
+          # 4. Trigger Context7 refresh inline (>=11 days, so it will not be throttled).
+          RESP=$(curl -s -w "\n%{http_code}" -X POST "https://context7.com/api/v1/refresh" \
+            -H "Authorization: Bearer ${{ secrets.CONTEXT7_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"libraryName\": \"$LIB\"}")
+          CODE=$(echo "$RESP" | tail -n1)
+          BODY=$(echo "$RESP" | head -n-1)
+          echo "Context7 refresh -> HTTP $CODE: $BODY"
