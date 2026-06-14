@@ -65,6 +65,7 @@ The free tier includes **23 models** across four categories. Use `GET /api/v1/mo
 | `sarvam-105b` | 105B MoE — complex reasoning, Indic languages |
 | `kimi-k2.5` | Moonshot K2.5 — 262K context, reasoning |
 | `kimi-k2.6` | Moonshot K2.6 — improved reasoning + coding, 262K context |
+| `kimi-k2.7-code` | Moonshot K2.7 Code — frontier 1T-param agentic coding, 262K context, vision + tools |
 | `glm-4.7-flash` | GLM 4.7 Flash — fast inference |
 | `gpt-oss-120b` | GPT-OSS 120B — open-weights large model |
 | `nemotron-3-super` | Nvidia Nemotron 3 Super |
@@ -99,7 +100,6 @@ The free tier includes **23 models** across four categories. Use `GET /api/v1/mo
 | `flux-1.1-pro` | Flux 1.1 Pro — fast high-quality *(paid)* |
 | `nano-banana-2` | Google Gemini 3.1 Flash Image — multimodal, highest LM-Arena Elo (paid) |
 | `nano-banana-pro` | Google Gemini 3 Pro Image — flagship typography + fidelity (paid) |
-| `openai-gpt-image-2` | Deprecated alias for `nano-banana-pro` — use `nano-banana-pro` directly (paid) |
 
 All other models — including `kimi-k2.5-fast`, Azure-hosted IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, Azure STT/TTS), slash-prefixed frontier IDs (`openai/*`, `anthropic/*`, `google/*`, `x-ai/*`, `qwen/*`, `mistralai/*`), and paid image models (`flux-2-pro`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
 
@@ -187,7 +187,7 @@ For low-latency English / Spanish voice agents, see `aura-2-en` / `aura-2-es`. F
 | `sarvam-30b` | 30B MoE (2.4B active) | 64K tokens | Real-time chat, Indic languages, cost-efficient |
 | `sarvam-105b` | 105B MoE | 128K tokens | Complex reasoning, agentic tasks, long documents |
 
-Both `sarvam-30b` and `sarvam-105b` support **hybrid thinking mode** via `reasoning_effort: "low" | "medium" | "high"`. `"none"` and `"minimal"` are mapped down to `"low"` (verified 2026-05-01) so OpenAI-style clients sending `reasoning_effort: "none"` for thinking-off still get a 200. Full thinking-disable is available on the direct-routed `kimi-k2.5` / `kimi-k2.6` / `gemma-4-26b-a4b-it` models.
+Both `sarvam-30b` and `sarvam-105b` support **hybrid thinking mode** via `reasoning_effort: "low" | "medium" | "high"`. `"none"` and `"minimal"` are mapped down to `"low"` (verified 2026-05-01) so OpenAI-style clients sending `reasoning_effort: "none"` for thinking-off still get a 200. Full thinking-disable is available on the direct-routed `kimi-k2.5` / `kimi-k2.6` / `kimi-k2.7-code` / `gemma-4-26b-a4b-it` models.
 
 ## Audio Models
 
@@ -223,6 +223,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 |----------|---------|---------|
 | `kimi-k2.5` | Moonshot AI | 262K |
 | `kimi-k2.6` | Moonshot AI | 262K |
+| `kimi-k2.7-code` | Moonshot AI | 262K |
 | `gpt-oss-120b` | OpenAI (open-weights) | 128K |
 | `gemma-4-26b-a4b-it` | Google | 128K |
 | `glm-4.7-flash` | Zhipu | 128K |
@@ -312,6 +313,7 @@ Authoritative list of all **56** models in `GET /api/v1/models` as of the latest
 | `kimi-k2.5` | Moonshot AI's latest model. 256K context, strong on coding and math. | 262K | Yes | $0.81 in / $4.05 out per 1M |
 | `kimi-k2.5-fast` *(maintenance)* | Kimi K2.5 tuned for sub-second latency — 414 tok/s inference, 256K co… | 262K | No | $0.81 in / $4.05 out per 1M |
 | `kimi-k2.6` | Moonshot AI's latest K2.6 release. 256K context, improved reasoning a… | 262K | Yes | $1.28 in / $5.40 out per 1M |
+| `kimi-k2.7-code` | Moonshot AI's frontier 1T-param agentic-coding model. 262K context, t… | 262K | Yes | $1.28 in / $5.40 out per 1M |
 | `glm-4.7-flash` | Z.ai's fast, cost-efficient bilingual model. Strong tool use and 128K… | 131K | Yes | $0.50 in / $2.00 out per 1M |
 | `gpt-oss-120b` | OpenAI's open-weight 120B MoE. Reasoning-grade quality, lower cost th… | 131K | Yes | $1.00 in / $4.00 out per 1M |
 | `nemotron-3-super` | NVIDIA Nemotron 3 — 120B MoE tuned for long-context reasoning. 1M-tok… | 1M | Yes | $1.50 in / $6.00 out per 1M |

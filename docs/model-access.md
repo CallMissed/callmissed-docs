@@ -31,9 +31,9 @@ GET /api/v1/models/access
 {
   "plans": {
     "free": {
-      "models": ["auto", "sarvam-30b", "sarvam-105b", "kimi-k2.5", "kimi-k2.6", "glm-4.7-flash", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1", "saaras:v3", "whisper-large-v3-turbo", "nova-3", "bulbul:v3", "aura-2-en", "aura-2-es", "melotts", "flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm"],
+      "models": ["auto", "sarvam-30b", "sarvam-105b", "kimi-k2.5", "kimi-k2.6", "kimi-k2.7-code", "glm-4.7-flash", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1", "saaras:v3", "whisper-large-v3-turbo", "nova-3", "bulbul:v3", "aura-2-en", "aura-2-es", "melotts", "flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm"],
       "by_category": {
-        "llm": ["auto", "sarvam-30b", "sarvam-105b", "kimi-k2.5", "kimi-k2.6", "glm-4.7-flash", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1"],
+        "llm": ["auto", "sarvam-30b", "sarvam-105b", "kimi-k2.5", "kimi-k2.6", "kimi-k2.7-code", "glm-4.7-flash", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1"],
         "stt": ["saaras:v3", "whisper-large-v3-turbo", "nova-3"],
         "tts": ["bulbul:v3", "aura-2-en", "aura-2-es", "melotts"],
         "image": ["flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm"]
@@ -101,7 +101,7 @@ The free tier includes **23 models**:
 
 | Category | Models |
 |----------|--------|
-| LLM (10) | `auto`, `sarvam-30b`, `sarvam-105b`, `kimi-k2.5`, `kimi-k2.6`, `glm-4.7-flash`, `gpt-oss-120b`, `nemotron-3-super`, `gemma-4-26b-a4b-it`, `mistral-small-3.1` |
+| LLM (11) | `auto`, `sarvam-30b`, `sarvam-105b`, `kimi-k2.5`, `kimi-k2.6`, `kimi-k2.7-code`, `glm-4.7-flash`, `gpt-oss-120b`, `nemotron-3-super`, `gemma-4-26b-a4b-it`, `mistral-small-3.1` |
 | STT (3) | `saaras:v3`, `whisper-large-v3-turbo`, `nova-3` |
 | TTS (4) | `bulbul:v3`, `aura-2-en`, `aura-2-es`, `melotts` |
 | Image (6) | `flux-2-klein-9b`, `flux-2-dev`, `lucid-origin`, `phoenix-1.0`, `sdxl-lightning`, `dreamshaper-8-lcm` |

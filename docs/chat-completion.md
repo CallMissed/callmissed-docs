@@ -200,7 +200,7 @@ Current vision-capable models: `openai/gpt-5.4-pro`, `openai/gpt-5.4`,
 `anthropic/claude-sonnet-4.6`, `anthropic/claude-haiku-4.5`,
 `google/gemini-3.1-pro-preview`, `google/gemini-3-flash-preview`, `google/gemini-3.1-flash-lite`,
 `x-ai/grok-4.20`, `qwen/qwen3.5-plus`, `qwen/qwen3.5-flash`, `kimi-k2.5`,
-`kimi-k2.6`, `gemma-4-26b-a4b-it`, `mistral-small-3.1`,
+`kimi-k2.6`, `kimi-k2.7-code`, `gemma-4-26b-a4b-it`, `mistral-small-3.1`,
 `mistralai/mistral-small-2603`, `auto` (free plan), `openrouter/auto`.
 Check the live `GET /v1/models` response for the authoritative list — it's
 computed from the same set the runtime guard uses.
@@ -235,7 +235,7 @@ source — the table below is a snapshot):
 | `nemotron-3-super` | 1,048,576 |
 | `x-ai/grok-4.20` | 262,144 |
 | `qwen/qwen3.5-plus`, `qwen/qwen3.5-flash` | 262,144 |
-| `kimi-k2.5`, `kimi-k2.5-fast`, `kimi-k2.6` | 262,144 |
+| `kimi-k2.5`, `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code` | 262,144 |
 | `sarvam-105b`, `gpt-oss-120b`, `glm-4.7-flash`, `gemma-4-26b-a4b-it`, `mistralai/mistral-small-2603` | 131,072 |
 | `sarvam-30b` | 65,536 |
 

@@ -96,6 +96,7 @@ Behaviour per model — verified live against each upstream on 2026-05-01:
 | --- | --- | --- | --- | --- | --- |
 | `kimi-k2.5` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
 | `kimi-k2.6` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
+| `kimi-k2.7-code` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
 | `gemma-4-26b-a4b-it` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
 | `gpt-oss-120b` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `nemotron-3-super` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"low"` |
