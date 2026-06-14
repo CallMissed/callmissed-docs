@@ -71,12 +71,12 @@ Same prompt, three different routes — measured first-token and total times:
 
 | Model | Route | TTFB | Total |
 | --- | --- | --- | --- |
-| `gpt-oss-120b` | Cloudflare Workers AI | ~50ms | ~1.5s |
-| `auto` | OpenRouter free | ~90ms | ~2.0s |
-| `anthropic/claude-sonnet-4.6` | OpenRouter | ~70ms | ~4.8s |
-| `anthropic/claude-haiku-4.5` | OpenRouter | ~80ms | ~2.0s |
+| `gpt-oss-120b` | Direct-routed | ~50ms | ~1.5s |
+| `auto` | Auto-router | ~90ms | ~2.0s |
+| `anthropic/claude-sonnet-4.6` | Frontier | ~70ms | ~4.8s |
+| `anthropic/claude-haiku-4.5` | Frontier | ~80ms | ~2.0s |
 
-For latency-sensitive integrations (autocomplete, agent tool loops), prefer **`gpt-oss-120b`** or **`kimi-k2.6`** — both Cloudflare-hosted, both OpenAI-compatible, both sub-2s on small prompts.
+For latency-sensitive integrations (autocomplete, agent tool loops), prefer **`gpt-oss-120b`** or **`kimi-k2.6`** — both direct-routed, both OpenAI-compatible, both sub-2s on small prompts.
 
 ## 3. Reasoning_effort matrix (per model — verified empirically)
 
@@ -96,13 +96,14 @@ Behaviour per model — verified live against each upstream on 2026-05-01:
 | --- | --- | --- | --- | --- | --- |
 | `kimi-k2.5` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
 | `kimi-k2.6` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
+| `kimi-k2.7-code` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
 | `gemma-4-26b-a4b-it` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
 | `gpt-oss-120b` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `nemotron-3-super` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `glm-4.7-flash` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `sarvam-30b` / `sarvam-105b` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `mistral-small-3.1` | (no reasoning surface — silently dropped) | | | | |
-| OpenRouter (`openai/*`, `anthropic/*`, …) | forwarded as-is — underlying model gates valid values | | | | |
+| Frontier (`openai/*`, `anthropic/*`, …) | forwarded as-is — underlying model gates valid values | | | | |
 
 Legend: ✅ = sent to upstream verbatim · ↓ = the API maps it to the next-supported value before forwarding.
 

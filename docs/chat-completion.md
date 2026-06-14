@@ -29,12 +29,12 @@ Every chat completion takes the same path through the platform — your app neve
 :::flow
 icon:app | Your app | Send `POST /v1/chat/completions` with `model` + `messages`
 icon:gateway | CallMissed gateway | Authenticate the `cm_` key, check credits, route by model id
-icon:provider | Provider | Run inference on Clarifai, Sarvam, or OpenRouter — picked from the model id
+icon:provider | Provider | Run inference on the best-fit backend — picked from the model id
 icon:gateway | CallMissed gateway | Stream tokens back and deduct credits when the response completes
 icon:done | Your app | Receive the completion (all at once, or token-by-token when streaming)
 :::
 
-> **Tip:** The model id decides the provider automatically — no slash → Sarvam, `clarifai/…` → Clarifai, `vendor/model` → OpenRouter. See [How CallMissed Works](/docs/how-it-works).
+> **Tip:** The model id decides routing automatically — bare ids and slash-prefixed ids are routed to the right backend for you. See [How CallMissed Works](/docs/how-it-works).
 
 ## Make your first request
 
@@ -163,7 +163,7 @@ When using slash-prefixed frontier models, these additional parameters are suppo
 >     model="openai/gpt-5.4",
 >     messages=[...],
 >     extra_body={
->         "provider": {"sort": "throughput", "order": ["OpenAI", "Azure"]},
+>         "provider": {"sort": "throughput", "order": ["openai"]},
 >         "models": ["openai/gpt-5.4-mini"],
 >     },
 > )
@@ -200,7 +200,7 @@ Current vision-capable models: `openai/gpt-5.4-pro`, `openai/gpt-5.4`,
 `anthropic/claude-sonnet-4.6`, `anthropic/claude-haiku-4.5`,
 `google/gemini-3.1-pro-preview`, `google/gemini-3-flash-preview`, `google/gemini-3.1-flash-lite`,
 `x-ai/grok-4.20`, `qwen/qwen3.5-plus`, `qwen/qwen3.5-flash`, `kimi-k2.5`,
-`kimi-k2.6`, `gemma-4-26b-a4b-it`, `mistral-small-3.1`,
+`kimi-k2.6`, `kimi-k2.7-code`, `gemma-4-26b-a4b-it`, `mistral-small-3.1`,
 `mistralai/mistral-small-2603`, `auto` (free plan), `openrouter/auto`.
 Check the live `GET /v1/models` response for the authoritative list — it's
 computed from the same set the runtime guard uses.
@@ -235,9 +235,44 @@ source — the table below is a snapshot):
 | `nemotron-3-super` | 1,048,576 |
 | `x-ai/grok-4.20` | 262,144 |
 | `qwen/qwen3.5-plus`, `qwen/qwen3.5-flash` | 262,144 |
-| `kimi-k2.5`, `kimi-k2.5-fast`, `kimi-k2.6` | 262,144 |
+| `kimi-k2.5`, `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code` | 262,144 |
 | `sarvam-105b`, `gpt-oss-120b`, `glm-4.7-flash`, `gemma-4-26b-a4b-it`, `mistralai/mistral-small-2603` | 131,072 |
 | `sarvam-30b` | 65,536 |
+
+## Responses API
+
+For clients built on OpenAI's newer **Responses API**, CallMissed exposes a compatible `POST /v1/responses` endpoint. It accepts a Responses-shaped body and translates to the same chat engine under the hood — so you can point an OpenAI Responses client at `https://api.callmissed.com/v1` without changes.
+
+**Endpoint:** `POST /v1/responses`
+
+:::tabs
+```python [Python]
+from openai import OpenAI
+
+client = OpenAI(api_key="cm_your_key", base_url="https://api.callmissed.com/v1")
+
+resp = client.responses.create(
+    model="gpt-4.1",
+    input="Write a haiku about databases.",
+)
+print(resp.output_text)
+```
+```bash [cURL]
+curl https://api.callmissed.com/v1/responses \
+  -H "Authorization: Bearer cm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4.1",
+    "input": "Write a haiku about databases."
+  }'
+```
+:::
+
+- `input` accepts a plain string or the Responses message-array form.
+- Streaming is supported (`stream: true`) and emits Responses-style SSE events.
+- The same models, pricing, vision, and tool-calling support as `/v1/chat/completions` apply — this is a request/response-shape adapter, not a different model set.
+
+If you're starting fresh, `/v1/chat/completions` is the most widely-supported surface; use `/v1/responses` when porting an existing Responses-API integration.
 
 ## Error Format
 

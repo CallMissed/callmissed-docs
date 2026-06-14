@@ -1,7 +1,7 @@
 ---
 title: "Frontier Models"
 description: "300+ frontier LLM models from OpenAI, Anthropic, Google, and more."
-slug: "models-openrouter"
+slug: "models-frontier"
 breadcrumb: "Models"
 ---
 
@@ -25,15 +25,15 @@ All frontier models are accessible via `POST /v1/chat/completions` using the mod
 | `x-ai/grok-4.20` | xAI | 256K |
 | `qwen/qwen3.5-plus` | Qwen | 128K |
 | `moonshotai/kimi-k2` | Moonshot | 128K |
-| `openrouter/auto` | Auto Router | — |
+| `auto` | Auto Router | — |
 
 ## Auto Router
 
-`openrouter/auto` uses NotDiamond to automatically select the best model for your prompt:
+`auto` automatically selects the best model for your prompt:
 
 ```python
 response = client.chat.completions.create(
-    model="openrouter/auto",
+    model="auto",
     messages=[{"role": "user", "content": "Your prompt here"}]
 )
 ```
@@ -48,9 +48,9 @@ Control which upstream serves your request via the `provider` parameter (raw HTT
   "messages": [...],
   "provider": {
     "sort": "price",
-    "order": ["OpenAI", "Azure"],
+    "order": ["openai"],
     "only": ["OpenAI"],
-    "ignore": ["Azure"],
+    "ignore": [],
     "max_price": {"input": 5, "output": 15}
   }
 }
@@ -62,7 +62,7 @@ Control which upstream serves your request via the `provider` parameter (raw HTT
 > client.chat.completions.create(
 >     model="openai/gpt-5.4",
 >     messages=[...],
->     extra_body={"provider": {"sort": "throughput", "order": ["OpenAI", "Azure"]}},
+>     extra_body={"provider": {"sort": "throughput", "order": ["openai"]}},
 > )
 > ```
 

@@ -1,7 +1,7 @@
 ---
 title: "Indic Models"
 description: "Indic STT, TTS, and LLM models — optimized for Indian languages."
-slug: "models-sarvam"
+slug: "models-indic"
 breadcrumb: "Models"
 ---
 
@@ -49,7 +49,7 @@ The `sarvam-*` models reject `"none"` and `"minimal"`; the API maps both
 of those values down to `"low"` so an OpenAI-style client that sends
 `reasoning_effort: "none"` for thinking-off still works. Full
 thinking-disable is available on the direct-routed `kimi-k2.5` / `kimi-k2.6` /
-`gemma-4-26b-a4b-it` models — see the [reasoning_effort matrix](/docs/api-speed#3-reasoning-effort-matrix-per-model-verified-empirically).
+`kimi-k2.7-code` / `gemma-4-26b-a4b-it` models — see the [reasoning_effort matrix](/docs/api-speed#3-reasoning-effort-matrix-per-model-verified-empirically).
 
 ## Speech to Text
 

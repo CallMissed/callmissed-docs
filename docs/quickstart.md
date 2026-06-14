@@ -206,6 +206,6 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 :::cards
 /docs/models | Models | boxes | LLM, STT, TTS, and image models across every major provider
 /docs/chat-completion | Chat Completion | message-square | Streaming, tools, and frontier model routing
-/docs/voice-agent | Voice Agent | phone | LiveKit WebRTC voice agents with Sarvam STT/TTS
+/docs/voice-agent | Voice Agent | phone | LiveKit WebRTC voice agents with Indic STT/TTS
 /docs/call-analytics | Cookbooks | bar-chart | Step-by-step tutorials for production workflows
 :::
