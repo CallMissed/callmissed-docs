@@ -18,7 +18,7 @@ The same endpoint powers the dashboard playground and your production code, so b
 :::flow
 icon:app | Your app | One SDK, one base URL, one `cm_` key for every capability
 icon:gateway | CallMissed gateway | Authenticate, enforce tenant isolation + rate limits, route by model id
-icon:provider | Best provider | Clarifai, Sarvam, OpenRouter, or Cloudflare — chosen automatically
+icon:provider | Best provider | the best-fit backend for each model — chosen automatically
 icon:db | Credits & logs | Deduct from one credit balance and record usage for every request
 :::
 
@@ -28,10 +28,10 @@ We pick the upstream provider from the model id, so you never manage multiple SD
 
 | Model id shape | Routed to |
 | --- | --- |
-| `clarifai/...` or default | **Clarifai** (Kimi K2.5 Fast, ~414 tok/s) |
-| no slash (e.g. `sarvam-30b`, `saaras:v3`) | **Sarvam AI** (Indic LLM/STT/TTS) |
-| has a slash (e.g. `openai/gpt-5.4`, `anthropic/claude-sonnet-4.6`) | **OpenRouter** |
-| audio / image models | **Cloudflare Workers AI**, Deepgram, and others |
+| default fast tier | Kimi K2.5 Fast (~414 tok/s) |
+| no slash (e.g. `sarvam-30b`, `saaras:v3`) | Indic LLM/STT/TTS |
+| has a slash (e.g. `openai/gpt-5.4`, `anthropic/claude-sonnet-4.6`) | Frontier catalog |
+| audio / image models | Audio/Image backends |
 
 You get one API surface, one key, and one bill regardless of which provider ultimately serves the request.
 

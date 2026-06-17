@@ -102,15 +102,15 @@ curl -X POST https://api.callmissed.com/v1/images/generations \
 |----|----------|---------|-------|----------|
 | `nano-banana-pro` | Google (direct) | Flagship | Medium | Marketing infographics, accurate typography, brand-true visuals |
 | `nano-banana-2` | Google (direct) | High | Fast | Multimodal (text + reference images), highest LM-Arena Elo |
-| `flux-2-dev` | Black Forest Labs (Cloudflare) | Flagship | Slow | Maximum fidelity, hero imagery |
-| `flux-2-klein-9b` | Black Forest Labs (Cloudflare) | Highest | Slow | Final output, print, marketing |
-| `lucid-origin` | Leonardo (Cloudflare) | High | Medium | Cinematic, concept art |
-| `phoenix-1.0` | Leonardo (Cloudflare) | High | Medium | Photorealistic portraits |
-| `sdxl-lightning` | ByteDance (Cloudflare) | Medium | Fast | Prototyping, iteration |
-| `dreamshaper-8-lcm` | Lykon (Cloudflare) | Medium | Fast | Stylised illustrations |
+| `flux-2-dev` | Black Forest Labs | Flagship | Slow | Maximum fidelity, hero imagery |
+| `flux-2-klein-9b` | Black Forest Labs | Highest | Slow | Final output, print, marketing |
+| `lucid-origin` | Leonardo | High | Medium | Cinematic, concept art |
+| `phoenix-1.0` | Leonardo | High | Medium | Photorealistic portraits |
+| `sdxl-lightning` | ByteDance | Medium | Fast | Prototyping, iteration |
+| `dreamshaper-8-lcm` | Lykon | Medium | Fast | Stylised illustrations |
 
-The `nano-banana-*` models are routed direct to Google AI Studio (no
-markup). They are paid-only — the Cloudflare-hosted rows above stay on
+The `nano-banana-*` models are routed direct (no
+markup). They are paid-only — the free-tier image rows above stay on
 the free plan. See [Pricing](#pricing) below for exact per-image rates.
 
 ## Sizes
@@ -134,9 +134,71 @@ Flat per-image price, converted to credits at 1 credit = ₹1.
 | `sdxl-lightning` | $0.04 | 4 |
 | `dreamshaper-8-lcm` | $0.04 | 4 |
 
-Both `nano-banana-*` models are routed direct to Google AI Studio. Pricing is pass-through — exactly what Google charges for a standard-resolution (1K) image.
+Both `nano-banana-*` models are routed direct. Pricing is pass-through for a standard-resolution (1K) image.
 
 Credits are deducted **after** the upstream call returns successfully. A failed generation does not cost credits.
+
+## List History
+
+Retrieve images previously generated with your API key, newest first. Useful for galleries and audit trails.
+
+**Endpoint:** `GET /v1/images/history`
+
+:::tabs
+```python [Python]
+import requests
+
+resp = requests.get(
+    "https://api.callmissed.com/v1/images/history",
+    headers={"Authorization": "Bearer cm_your_key"},
+    params={"limit": 20},
+)
+data = resp.json()
+for item in data["data"]:
+    print(item["id"], item["model"], item["url"])
+
+# Paginate with the returned cursor
+if data["next_cursor"]:
+    next_page = requests.get(
+        "https://api.callmissed.com/v1/images/history",
+        headers={"Authorization": "Bearer cm_your_key"},
+        params={"limit": 20, "before": data["next_cursor"]},
+    ).json()
+```
+```bash [cURL]
+curl "https://api.callmissed.com/v1/images/history?limit=20" \
+  -H "Authorization: Bearer cm_your_key"
+```
+:::
+
+| Query param | Type | Default | Description |
+|-------------|------|---------|-------------|
+| `limit` | integer | `20` | Rows to return (1–100). |
+| `before` | string | — | ISO-8601 cursor — return rows created before this timestamp. Use `next_cursor` from the previous page. |
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": "a1b2c3d4-...",
+      "url": "https://...signed-url...",
+      "model": "nano-banana-pro",
+      "size": "1024x1024",
+      "prompt": "a red bicycle on a beach",
+      "negative_prompt": null,
+      "revised_prompt": null,
+      "seed": 42,
+      "steps": 28,
+      "created": 1760000000
+    }
+  ],
+  "next_cursor": "2026-04-12T10:00:00+00:00"
+}
+```
+
+`url` is a short-lived signed link — download or re-host promptly. The API key must have `image` permission (otherwise `403 permission_denied`). `next_cursor` is `null` on the last page.
 
 ## Errors
 

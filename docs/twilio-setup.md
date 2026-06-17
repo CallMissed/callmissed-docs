@@ -91,9 +91,9 @@ Call your Twilio number. The real-time path is:
 :::flow
 icon:phone | Caller | Dials your Twilio number
 icon:gateway | Twilio | POSTs to `/webhooks/twilio/voice`; CallMissed returns TwiML opening a media stream
-icon:stt | Sarvam STT (saaras:v3) | Transcribes the caller's audio in real time
+icon:stt | STT (saaras:v3) | Transcribes the caller's audio in real time
 icon:llm | LLM | Generates the reply from the bot's system prompt + conversation history
-icon:tts | Sarvam TTS (bulbul:v3) | Synthesizes speech — playback starts before generation finishes
+icon:tts | TTS (bulbul:v3) | Synthesizes speech — playback starts before generation finishes
 icon:done | Caller | Hears the AI agent respond
 :::
 
