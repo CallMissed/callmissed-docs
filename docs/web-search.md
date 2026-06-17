@@ -113,9 +113,9 @@ Responses are **normalised across providers** — same keys regardless of which 
   "provider": "serper",
   "results": [
     {
-      "title": "Sarvam AI raises $...",
+      "title": "Acme AI raises $...",
       "url": "https://example.com/article",
-      "snippet": "Sarvam AI announced a funding round led by...",
+      "snippet": "Acme AI announced a funding round led by...",
       "content": "Full text if include_content=true, else null",
       "published_date": "2026-04-10T00:00:00.000Z",
       "score": 0.92,

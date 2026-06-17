@@ -1,24 +1,24 @@
 ---
 title: "Speech to Text"
-description: "Transcribe audio to text using Sarvam AI's saaras model with 22 Indic language support."
+description: "Transcribe audio to text with our Indic saaras model and 22 Indic language support."
 slug: "speech-to-text"
 breadcrumb: "API Guides & Tutorials"
 ---
 
 # Speech to Text
 
-Transcribe audio to text using Sarvam AI's saaras model with 22 Indic language support.
+Transcribe audio to text with our Indic saaras model and 22 Indic language support.
 
 :::cards
 /docs/stt-realtime | Real-time STT | play | Stream audio for live transcription
 /docs/stt-translation | Translation | settings | Transcribe and translate in one call
 /docs/stt-batch | Batch | file-text | Process large audio files asynchronously
-/docs/models-sarvam | Sarvam Models | mic | saaras:v3 and other Indic STT models
+/docs/models-indic | Indic Models | mic | saaras:v3 and other Indic STT models
 :::
 
 ## Overview
 
-The Speech to Text API transcribes audio files into text. Powered by Sarvam AI's saaras:v3 model with support for 22 Indian languages + English. Supports auto language detection.
+The Speech to Text API transcribes audio files into text. Uses our saaras:v3 model with support for 22 Indian languages + English. Supports auto language detection.
 
 **Endpoint:** `POST /v1/audio/transcriptions`
 
@@ -27,7 +27,7 @@ The Speech to Text API transcribes audio files into text. Powered by Sarvam AI's
 :::flow
 icon:app | Your app | Upload an audio file (WAV/MP3) to `POST /v1/audio/transcriptions`
 icon:gateway | CallMissed gateway | Validate the key, detect language (or use `language`), apply `mode`
-icon:stt | Sarvam saaras:v3 | Run speech recognition across 22 Indic languages + English
+icon:stt | saaras:v3 | Run speech recognition across 22 Indic languages + English
 icon:done | Your app | Receive `text` (plus word timestamps in `verbose_json`)
 :::
 

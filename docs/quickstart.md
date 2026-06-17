@@ -41,7 +41,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 
 :::cards
 /docs/sdks | SDKs & Libraries | package | Install the OpenAI SDK in your language
-/docs/models | Model Catalog | boxes | 56 models — LLM, STT, TTS, and image
+/docs/models | Model Catalog | boxes | 61 models — LLM, STT, TTS, and image
 :::
 
 ## Get started
@@ -206,6 +206,6 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 :::cards
 /docs/models | Models | boxes | LLM, STT, TTS, and image models across every major provider
 /docs/chat-completion | Chat Completion | message-square | Streaming, tools, and frontier model routing
-/docs/voice-agent | Voice Agent | phone | LiveKit WebRTC voice agents with Sarvam STT/TTS
+/docs/voice-agent | Voice Agent | phone | LiveKit WebRTC voice agents with Indic STT/TTS
 /docs/call-analytics | Cookbooks | bar-chart | Step-by-step tutorials for production workflows
 :::
