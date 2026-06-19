@@ -80,6 +80,8 @@ curl -X POST https://api.callmissed.com/v1/search \
 | `detailed` | [Exa](https://exa.ai) neural search | semantic / conceptual queries, optional page content + highlights | ~1–3s |
 | `auto` | tenant default → platform default | let CallMissed pick | depends |
 
+You can also set `provider: "firecrawl"` for our managed search backend, which returns the same normalised shape; with `include_content: true` it returns full page content alongside each result.
+
 You can also override with `provider: "exa" | "serper"` directly. When both `mode` and `provider` are set, `provider` wins.
 
 Operators can set the **tenant default** from **Settings → Web search default**.
@@ -90,7 +92,7 @@ Operators can set the **tenant default** from **Settings → Web search default*
 |---|---|---|---|
 | `query` | string | (required) | 1–2000 chars |
 | `mode` | string | `"auto"` | `auto` / `shorter` / `detailed` |
-| `provider` | string | — | Optional raw override: `exa` / `serper`. Wins over `mode` |
+| `provider` | string | — | Optional raw override: `exa` / `serper` / `firecrawl`. Wins over `mode` |
 | `num_results` | int | `10` | 1–50 |
 | `search_type` | string | mode default | Exa: `auto`/`fast`/`instant`/`deep-lite`/`deep`. Serper: `search`/`news`/`images` |
 | `include_domains` | string[] | — | detailed mode only |
@@ -113,9 +115,9 @@ Responses are **normalised across providers** — same keys regardless of which 
   "provider": "serper",
   "results": [
     {
-      "title": "Sarvam AI raises $...",
+      "title": "Acme AI raises $...",
       "url": "https://example.com/article",
-      "snippet": "Sarvam AI announced a funding round led by...",
+      "snippet": "Acme AI announced a funding round led by...",
       "content": "Full text if include_content=true, else null",
       "published_date": "2026-04-10T00:00:00.000Z",
       "score": 0.92,

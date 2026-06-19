@@ -11,8 +11,8 @@ CallMissed provides AI-powered communication APIs to deploy WhatsApp chatbots an
 
 :::cards
 /docs/quickstart | Quickstart | play | Make your first API call in under a minute
-/docs/models | Models | boxes | 56 models — Indic STT/TTS, frontier LLMs, image gen
-/docs/voice-agent | Voice Agent | phone | LiveKit WebRTC agents with Sarvam pipeline
+/docs/models | Models | boxes | 61 models — Indic STT/TTS, frontier LLMs, image gen
+/docs/voice-agent | Voice Agent | phone | LiveKit WebRTC agents with Indic speech pipeline
 :::
 
 ## Overview
@@ -22,7 +22,7 @@ CallMissed is an AI Communication Infrastructure platform. Use our APIs to:
 - Deploy **WhatsApp chatbots** with custom knowledge bases
 - Build **AI voice call agents** for inbound calls
 - Create **Smart IVR** flows with AI escalation
-- Access **300+ LLM models** from every major creator (OpenAI, Anthropic, Google, xAI, and more) — a curated catalog plus full OpenRouter passthrough
+- Access **300+ LLM models** from every major creator (OpenAI, Anthropic, Google, xAI, and more) — a curated catalog plus full frontier-model passthrough
 - Use **OpenAI-compatible APIs** — same SDK, just change the base URL
 - Manage **multi-tenant** deployments for your customers
 
