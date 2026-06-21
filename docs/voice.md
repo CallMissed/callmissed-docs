@@ -26,9 +26,9 @@ Incoming call → Twilio
   → POST /api/v1/webhooks/twilio/voice
   → Returns TwiML to open WebSocket stream
   → WebSocket /ws/call/{call_id} receives audio
-  → Audio chunks → Sarvam STT → text
-  → Text → Sarvam LLM → response
-  → Response → Sarvam TTS → audio
+  → Audio chunks → STT → text
+  → Text → LLM → response
+  → Response → TTS → audio
   → Audio streamed back to caller
 ```
 
@@ -43,9 +43,9 @@ wss://api.callmissed.com/ws/call/{call_id}?api_key=cm_your_key
 The WebSocket implements a full STT → LLM → TTS pipeline:
 
 1. **Audio in** — Twilio sends 8kHz mulaw audio chunks
-2. **STT** — Sarvam saaras:v3 transcribes in real-time
+2. **STT** — saaras:v3 transcribes in real-time
 3. **LLM** — Generates response using bot's system prompt + conversation history
-4. **TTS** — Sarvam bulbul:v3 synthesizes speech (MP3 at 24kHz)
+4. **TTS** — bulbul:v3 synthesizes speech (MP3 at 24kHz)
 5. **Audio out** — Streamed back to the caller
 
 LLM and TTS run concurrently for minimum latency — audio playback begins while the LLM is still generating.

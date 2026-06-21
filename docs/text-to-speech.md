@@ -1,23 +1,23 @@
 ---
 title: "Text to Speech"
-description: "Convert text to natural-sounding speech using Sarvam AI."
+description: "Convert text to natural-sounding speech with our Indic TTS."
 slug: "text-to-speech"
 breadcrumb: "API Guides & Tutorials"
 ---
 
 # Text to Speech
 
-Convert text to natural-sounding speech using Sarvam AI.
+Convert text to natural-sounding speech with our Indic TTS.
 
 ## Overview
 
-The Text to Speech API converts text into audio via Sarvam AI — Indic languages, 39 voices across 11 languages.
+The Text to Speech API converts text into audio — Indic languages, 37 voices across 11 languages.
 
 **Endpoint:** `POST /v1/audio/speech`
 
 :::flow
 icon:app | Your app | Send text + a `voice` and `language` to `POST /v1/audio/speech`
-icon:tts | Sarvam bulbul:v3 | Synthesize speech in the chosen voice and `response_format`
+icon:tts | bulbul:v3 | Synthesize speech in the chosen voice and `response_format`
 icon:done | Your app | Receive the audio stream and play or save it
 :::
 
@@ -71,11 +71,11 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `model` | string | `bulbul:v3` (Sarvam) |
+| `model` | string | `bulbul:v3` |
 | `input` | string | Text to synthesize |
-| `voice` | string | Voice ID — default `shubh` for Sarvam (39 voices available) |
+| `voice` | string | Voice ID — default `shubh` (37 voices available) |
 | `language` | string | Language code (e.g. `hi-IN`, `ta-IN`) |
-| `speed` | number | Speech speed 0.5–2.0 (default 1.0) — maps to Sarvam's `pace` |
+| `speed` | number | Speech speed 0.5–2.0 (default 1.0) |
 | `speech_sample_rate` | integer | 8000, 16000, 22050, 24000, or 48000 Hz |
 | `response_format` | string | Output format — see below |
 
