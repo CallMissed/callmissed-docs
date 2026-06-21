@@ -1,17 +1,17 @@
 ---
-title: "OpenRouter Plugins & Routing"
+title: "Gateway Plugins & Routing"
 description: "Advanced request features on the gateway — file parsing, response healing, context compression, provider routing, and generation lookup."
-slug: "openrouter-plugins"
+slug: "gateway-plugins"
 breadcrumb: "Guides"
 ---
 
-# OpenRouter Plugins & Routing
+# Gateway Plugins & Routing
 
 Advanced request features on the gateway — file parsing, response healing, context compression, provider routing, and generation lookup.
 
 ## Overview
 
-When a request routes through the OpenRouter overlay (any model id with a slash, e.g. `openai/gpt-5.4`), you can opt into extra processing via the `plugins` array on a chat completion request.
+When a request targets a frontier model (any model id with a slash, e.g. `openai/gpt-5.4`), you can opt into extra processing via the `plugins` array on a chat completion request.
 
 ## Plugins
 
@@ -35,7 +35,7 @@ When a request routes through the OpenRouter overlay (any model id with a slash,
 | `response-healing` | Repairs malformed/truncated structured output |
 | `context-compression` | Compresses long context to fit the model window |
 
-You can also influence which upstream provider serves an OpenRouter model via provider-routing preferences in the request body.
+You can also influence which upstream serves a frontier model via routing preferences in the request body.
 
 ## Generation Lookup
 
