@@ -186,13 +186,13 @@ event: message_stop          → stream complete
 
 ## Model Aliasing
 
-On the Anthropic endpoint, bare model names are automatically prefixed with `anthropic/` for routing through OpenRouter:
+On the Anthropic endpoint, bare model names are automatically prefixed with `anthropic/` for routing to the frontier catalog:
 
 | You send | Routed as |
 |----------|-----------|
 | `claude-sonnet-4.6` | `anthropic/claude-sonnet-4.6` |
 | `claude-opus-4.6` | `anthropic/claude-opus-4.6` |
-| `sarvam-30b` | `sarvam-30b` (Sarvam native, no prefix) |
+| `sarvam-30b` | `sarvam-30b` (Indic model, no prefix) |
 | `openai/gpt-5.4` | `openai/gpt-5.4` (already has prefix) |
 
 You can use **any model** from our [Models](/docs/models) catalog — not just Anthropic models.

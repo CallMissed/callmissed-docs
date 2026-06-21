@@ -11,7 +11,7 @@ Search the live web through a single endpoint. Two modes — shorter (Serper / G
 
 ## Overview
 
-One endpoint, two modes. Pick **shorter** (Serper — Google SERP, sub-second) or **detailed** (Exa — neural search with optional page content + highlights). We route for you, charge a flat ₹1 per search, and return a normalised response shape.
+One endpoint. By default we serve **Google grounded search** (accurate, citation-backed results); you can also pick **shorter** or **detailed** modes, or set an explicit `provider`. We route for you, charge a flat ₹1 per search, and return a normalised response shape.
 
 **Endpoint:** `POST /v1/search`
 
@@ -22,7 +22,7 @@ One endpoint, two modes. Pick **shorter** (Serper — Google SERP, sub-second) o
 :::flow
 icon:app | Your app | Send a `query` + `mode` to `POST /v1/search`
 icon:gateway | CallMissed gateway | Check the `search` permission and pick the provider for the mode
-icon:search | Search provider | **shorter** → Serper (Google SERP) · **detailed** → Exa (neural)
+icon:search | Search provider | Default **Google** grounded search · override with `provider`
 icon:done | Your app | Receive a normalized result list and get charged ₹1 only on success
 :::
 
@@ -76,11 +76,11 @@ curl -X POST https://api.callmissed.com/v1/search \
 
 | `mode` | Underlying | Best for | p50 latency |
 |------|------|------|------|
-| `shorter` | [Serper](https://serper.dev) Google SERP | freshness, location-aware, familiar Google-style results | ~1s |
-| `detailed` | [Exa](https://exa.ai) neural search | semantic / conceptual queries, optional page content + highlights | ~1–3s |
-| `auto` | tenant default → platform default | let CallMissed pick | depends |
+| `shorter` | Google grounded search | fast, current, citation-backed results | ~1–2s |
+| `detailed` | Google grounded search | richer answers with cited sources | ~1–3s |
+| `auto` | tenant default → platform default (Google) | let CallMissed pick | depends |
 
-You can also override with `provider: "exa" | "serper"` directly. When both `mode` and `provider` are set, `provider` wins.
+By default all modes use **Google grounded search** (runs on Google's own infrastructure). You can override with `provider: "google" | "exa" | "serper" | "firecrawl"` directly; when both `mode` and `provider` are set, `provider` wins. `exa`/`serper`/`firecrawl` remain available and act as automatic fallbacks for resilience. All providers return the same normalised shape and the same flat ₹1 per search.
 
 Operators can set the **tenant default** from **Settings → Web search default**.
 
@@ -90,7 +90,7 @@ Operators can set the **tenant default** from **Settings → Web search default*
 |---|---|---|---|
 | `query` | string | (required) | 1–2000 chars |
 | `mode` | string | `"auto"` | `auto` / `shorter` / `detailed` |
-| `provider` | string | — | Optional raw override: `exa` / `serper`. Wins over `mode` |
+| `provider` | string | — | Optional raw override: `google` / `exa` / `serper` / `firecrawl`. Wins over `mode` |
 | `num_results` | int | `10` | 1–50 |
 | `search_type` | string | mode default | Exa: `auto`/`fast`/`instant`/`deep-lite`/`deep`. Serper: `search`/`news`/`images` |
 | `include_domains` | string[] | — | detailed mode only |
@@ -113,9 +113,9 @@ Responses are **normalised across providers** — same keys regardless of which 
   "provider": "serper",
   "results": [
     {
-      "title": "Sarvam AI raises $...",
+      "title": "Acme AI raises $...",
       "url": "https://example.com/article",
-      "snippet": "Sarvam AI announced a funding round led by...",
+      "snippet": "Acme AI announced a funding round led by...",
       "content": "Full text if include_content=true, else null",
       "published_date": "2026-04-10T00:00:00.000Z",
       "score": 0.92,

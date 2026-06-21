@@ -76,9 +76,9 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 |-------|------|---------|-------|
 | `bot_id` | uuid | — | Optional bot to load prompt/knowledge from |
 | `system_prompt` | string | "You are a helpful voice assistant..." | Max 4096 chars. Overrides bot's prompt if both set |
-| `voice` | string | `shubh` | Sarvam TTS voice ID (39 voices) |
+| `voice` | string | `shubh` | TTS voice ID (37 voices) |
 | `language` | string | `en-IN` | BCP-47 language for STT + TTS |
-| `llm_model` | string | `kimi-k2.5` | Any catalog model (`sarvam-30b`, `sarvam-105b`, `openrouter/*`, etc.). `kimi-k2.5-fast` is currently under maintenance. |
+| `llm_model` | string | `kimi-k2.5` | Any catalog model (`sarvam-30b`, `sarvam-105b`, `openai/*`, etc.). `kimi-k2.5-fast` is currently under maintenance. |
 | `tts_provider` | string | `sarvam` | Currently `sarvam` only |
 | `max_duration_seconds` | int | `300` | 30–3600 |
 | `webhook_url` | string | — | Receives session events (see below) |
