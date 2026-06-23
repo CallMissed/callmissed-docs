@@ -14,6 +14,7 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Overview](introduction.md)
 - [Quickstart](quickstart.md)
 - [SDKs & Libraries](sdks.md)
+- [Docs MCP Server](mcp-server.md)
 
 ## Core Concepts
 
@@ -55,7 +56,7 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 
 ## Advanced
 
-- [Plugins & Routing](openrouter-plugins.md)
+- [Plugins & Routing](gateway-plugins.md)
 
 ## WhatsApp
 
