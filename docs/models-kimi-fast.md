@@ -1,7 +1,7 @@
 ---
 title: "Kimi K2.5 Fast (Maintenance)"
 description: "High-throughput Kimi K2.5 inference tier — currently under maintenance. Use kimi-k2.5 in the meantime."
-slug: "models-clarifai"
+slug: "models-kimi-fast"
 breadcrumb: "Getting Started > Models"
 ---
 

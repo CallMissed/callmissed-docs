@@ -14,16 +14,16 @@ Latest updates, new features, and improvements to the CallMissed API.
 ### v1.6.0 — LiveKit Voice, Image Generation & Web Search
 
 - **LiveKit voice sessions** — `POST /v1/voice/sessions` returns a LiveKit token + URL; the server-side agent runs the STT→LLM→TTS pipeline. List, fetch, fetch transcript (`json | txt | srt`), and end sessions under `/v1/voice/sessions`. A public, capped browser demo lives at `POST /v1/voice/demo`. The legacy `/ws/voice-agent` WebSocket still works for backward compatibility. See [Voice Session API](/docs/voice-sessions-api).
-- **Image Generation API** — `POST /v1/images/generations` (OpenAI-compatible). Free models include `flux-2-klein-9b`, `flux-2-dev`, `lucid-origin`, `phoenix-1.0`, `sdxl-lightning`, `dreamshaper-8-lcm`; paid models include `flux-2-pro`, `flux-1.1-pro`, `nano-banana-2`, `nano-banana-pro`, and `openai-gpt-image-2`. See [Image Generation](/docs/image-generation).
-- **Web Search API** — `POST /v1/search` with Serper or Exa providers; 1 credit per query (Exa adds 0.1 credit per result above 10). See [Web Search](/docs/web-search).
+- **Image Generation API** — `POST /v1/images/generations` (OpenAI-compatible). Free models include `flux-2-klein-9b`, `flux-2-dev`, `lucid-origin`, `phoenix-1.0`, `sdxl-lightning`, `dreamshaper-8-lcm`; paid models include `flux-2-pro`, `flux-1.1-pro`, `nano-banana-2`, and `nano-banana-pro`. See [Image Generation](/docs/image-generation).
+- **Web Search API** — `POST /v1/search` defaults to Google grounded search (Exa, Serper, Firecrawl also available); flat 1 credit per query. See [Web Search](/docs/web-search).
 - **Knowledge RAG** — vector knowledge sources at `/api/v1/knowledge/sources` (ingest text, URL, or PDF; chunked + embedded) with semantic search at `POST /api/v1/knowledge/search`.
 
 ## May 2026
 
-### v1.5.0 — Azure Models, Account Security & WhatsApp Platform
+### v1.5.0 — First-Party Models, Account Security & WhatsApp Platform
 
-- **Azure-hosted models** — first-party deployments callable by bare ID: `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash`, plus Azure STT (`whisper`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, `gpt-4o-transcribe-diarize`) and TTS (`gpt-4o-mini-tts`).
-- **More STT/TTS** — `whisper-large-v3-turbo` (99 langs), Deepgram `nova-3` (diarization), Deepgram `aura-2-en` / `aura-2-es`, and `melotts` — all free-tier.
+- **First-party models** — deployments callable by bare ID: `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash`, plus first-party STT (`whisper`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, `gpt-4o-transcribe-diarize`) and TTS (`gpt-4o-mini-tts`).
+- **More STT/TTS** — `whisper-large-v3-turbo` (99 langs),  `nova-3` (diarization), `aura-2-en` / `aura-2-es`, and `melotts` — all free-tier.
 - **Kimi K2.6** — `kimi-k2.6` added to the direct-routed free tier alongside `kimi-k2.5`.
 - **TOTP 2FA & passkeys** — `/api/v1/auth/2fa/*` (authenticator apps + backup codes) and WebAuthn passkeys at `/api/v1/auth/passkey/*`. Active sessions are listable and revocable at `/api/v1/auth/sessions`.
 - **WhatsApp platform** — Embedded Signup onboarding, message templates, broadcast campaigns, and delivery analytics under `/api/v1/whatsapp/*`. See [WhatsApp API](/docs/whatsapp-api).
@@ -64,7 +64,7 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ### v1.1.0 — Platform Playground & SEO
 
-- **Playground rebuild** — LLM (streaming + non-streaming), STT (file upload + mic), TTS (39 voices across 11 Indian languages), Voice Agent demo
+- **Playground rebuild** — LLM (streaming + non-streaming), STT (file upload + mic), TTS (37 voices across 11 Indian languages), Voice Agent demo
 - **Call Analytics API** — Upload audio files for batch STT with diarization and LLM-powered analysis
 - **SEO pages** — 6 product pages, legal pages, company pages on the landing site
 - **Sitemaps** — All 4 apps have sitemap.ts for SEO
@@ -73,7 +73,7 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 - **Chat Completion API** — OpenAI-compatible endpoint with streaming, tool calls, and function calling
 - **Speech to Text** — `saaras:v3` with 22 Indic language support
-- **Text to Speech** — `bulbul:v3` (39 voices across 11 Indian languages)
+- **Text to Speech** — `bulbul:v3` (37 voices across 11 Indian languages)
 - **WhatsApp Bot** — Full WhatsApp Business API integration
 - **Voice Calling** — Twilio-based inbound voice with WebSocket streaming
 - **Multi-tenant** — Complete tenant isolation with role-based access
