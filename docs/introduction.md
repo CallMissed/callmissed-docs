@@ -34,12 +34,6 @@ All API requests go to:
 https://api.callmissed.com
 ```
 
-For local development:
-
-```
-http://localhost:8000
-```
-
 ## Key Features
 
 - **Indic Models** — STT, TTS, and LLM purpose-built for 22 Indic languages
