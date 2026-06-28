@@ -199,7 +199,7 @@ Both `sarvam-30b` and `sarvam-105b` support **hybrid thinking mode** via `reason
 
 ## Audio Models
 
-Free-tier on every plan. Source-of-truth pricing lives in `backend/app/services/credit_service.py`.
+Free-tier on every plan. See the [Pricing](/docs/pricing) page for current rates.
 
 ### Speech to Text
 
@@ -221,7 +221,7 @@ Free-tier on every plan. Source-of-truth pricing lives in `backend/app/services/
 | `melotts` | English + French | 1 per language | $0.05 / 10K chars |
 | `gpt-4o-mini-tts` | Multilingual steerable | 6 OpenAI voices | $0.20 / 10K chars |
 
-[Inference] Aura 2 returns linear16 PCM streamed at 24 kHz; LiveKit's voice agent plays it without an MP3 decode in the hot path. MeloTTS returns base64 MP3 and is decoded by pyav. AI behavior is not guaranteed and may vary as upstreams update their schemas.
+Aura 2 returns linear16 PCM streamed at 24 kHz for low-latency playback. MeloTTS returns base64 MP3. Output formats may vary as models are updated.
 
 ## Direct-Routed LLMs
 

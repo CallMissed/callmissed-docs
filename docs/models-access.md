@@ -77,7 +77,7 @@ Object.entries(free.by_category).forEach(([cat, ids]) => {
 
 ## Free Plan Models
 
-The free plan includes 25 models. Source of truth: `FREE_TIER_MODELS` in `backend/app/api/v1/services.py`.
+The free plan includes 25 models. Call `GET /v1/models` to fetch the current free-tier list programmatically (each model's `free` flag).
 
 **LLM (12):**
 
