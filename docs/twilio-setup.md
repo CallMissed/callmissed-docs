@@ -82,7 +82,7 @@ In the Twilio Console, open your number (**Phone Numbers → Manage → Active n
 https://api.callmissed.com/api/v1/webhooks/twilio/voice
 ```
 
-Save. Twilio will now POST to CallMissed on every inbound call, and CallMissed returns TwiML that opens a media stream into its STT → LLM → TTS pipeline.
+Save. Twilio will now POST to CallMissed on every inbound call, and CallMissed handles the call with its real-time voice AI pipeline.
 
 ## Test the call
 
