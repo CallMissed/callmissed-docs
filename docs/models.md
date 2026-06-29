@@ -132,12 +132,14 @@ All models are pay-per-use. Pricing is in USD.
 | STT Model | Price |
 |-----------|-------|
 | `saaras:v3` | $0.53 / hour (₹45/hr) |
+| `gnani-prisma-v2.5` | $0.27 / hour |
 | `whisper-large-v3-turbo` | $0.06 / hour |
 | `nova-3` | $0.50 / hour |
 
 | TTS Model | Price |
 |-----------|-------|
 | `bulbul:v3` | $0.53 / 10K chars (₹45/10K) |
+| `gnani-timbre-v2.0` | $0.27 / 10K chars |
 | `aura-2-en` | $0.40 / 10K chars |
 | `aura-2-es` | $0.40 / 10K chars |
 | `melotts` | $0.05 / 10K chars |
@@ -177,6 +179,7 @@ response = client.chat.completions.create(
 | Model | Description | Languages |
 |-------|-------------|-----------|
 | `saaras:v3` | Latest STT — best accuracy on Indian + code-mixed | 23 languages (22 Indic + English) |
+| `gnani-prisma-v2.5` | India-first telephony STT — code-switching, sub-4% WER on Indian English | 10 Indian languages |
 
 For 99-language general-purpose transcription, see `whisper-large-v3-turbo`. For diarization + smart-format on calls, see `nova-3`. Both are free-tier and live under the [audio model routes](#audio-models).
 
@@ -185,6 +188,7 @@ For 99-language general-purpose transcription, see `whisper-large-v3-turbo`. For
 | Model | Description | Voices |
 |-------|-------------|--------|
 | `bulbul:v3` | Natural TTS — 37 voices, 11 Indian languages | shubh (default) + 36 more |
+| `gnani-timbre-v2.0` | India-first neural TTS — context-aware tone, low-latency | 24 voices (English + Hindi) |
 
 For low-latency English / Spanish voice agents, see `aura-2-en` / `aura-2-es`. For ultra-cheap en/fr notification audio, see `melotts`. All three are free-tier.
 
@@ -199,7 +203,7 @@ Both `sarvam-30b` and `sarvam-105b` support **hybrid thinking mode** via `reason
 
 ## Audio Models
 
-Free-tier on every plan. Source-of-truth pricing lives in `backend/app/services/credit_service.py`.
+Free-tier on every plan. See the [Pricing](/docs/pricing) page for current rates.
 
 ### Speech to Text
 
@@ -221,7 +225,7 @@ Free-tier on every plan. Source-of-truth pricing lives in `backend/app/services/
 | `melotts` | English + French | 1 per language | $0.05 / 10K chars |
 | `gpt-4o-mini-tts` | Multilingual steerable | 6 OpenAI voices | $0.20 / 10K chars |
 
-[Inference] Aura 2 returns linear16 PCM streamed at 24 kHz; LiveKit's voice agent plays it without an MP3 decode in the hot path. MeloTTS returns base64 MP3 and is decoded by pyav. AI behavior is not guaranteed and may vary as upstreams update their schemas.
+Aura 2 returns linear16 PCM streamed at 24 kHz for low-latency playback. MeloTTS returns base64 MP3. Output formats may vary as models are updated.
 
 ## Direct-Routed LLMs
 
@@ -243,7 +247,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 Access frontier models via the same `/v1/chat/completions` endpoint. Use the slash-prefixed model ID as the `model` field.
 
-> **"300+ models" — what that means.** CallMissed maintains a curated catalog of ~65 first-party models (Indic STT/TTS/LLM, direct-routed fast models, realtime speech-to-speech voice, image, and the popular frontier IDs below). On top of that, *any* of 300+ and growing frontier models is reachable as a passthrough by sending its slash-prefixed ID (e.g. `openai/gpt-5.4`) even if it isn't in our curated list. Passthrough models are billed at the listed per-model rate and aren't guaranteed to appear in `GET /v1/models`.
+> **"300+ models" — what that means.** CallMissed maintains a curated catalog of ~67 first-party models (Indic STT/TTS/LLM, direct-routed fast models, realtime speech-to-speech voice, image, and the popular frontier IDs below). On top of that, *any* of 300+ and growing frontier models is reachable as a passthrough by sending its slash-prefixed ID (e.g. `openai/gpt-5.4`) even if it isn't in our curated list. Passthrough models are billed at the listed per-model rate and aren't guaranteed to appear in `GET /v1/models`.
 
 ### Popular Models
 
@@ -346,11 +350,12 @@ Authoritative list of all **63** models in `GET /api/v1/models` as of the latest
 | `gpt-realtime-2` | Newest realtime with stronger tool calling. 128K text context. | 128K | No | $4.00 in / $24.00 out per 1M • $0.375/min |
 | `gpt-realtime-1.5` | Pinned 1.5 snapshot of gpt-realtime. Use when you want version stability. | 32K | No | $4.00 in / $16.00 out per 1M • $0.375/min |
 
-### Speech to Text (7 models)
+### Speech to Text (8 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
 | `saaras:v3` | Latest Indic STT model. 23 languages (22 Indic + English), best ac… | — | Yes | $0.53 / hr |
+| `gnani-prisma-v2.5` | India-first telephony STT. 10 Indian languages, code-switching… | — | No | $0.27 / hr |
 | `whisper-large-v3-turbo` | OpenAI's Whisper Large v3 Turbo. 100+ languages with auto-detect, tra… | — | Yes | $0.06 / hr |
 | `nova-3` | Nova 3 — production-grade STT with diarization, punctuation,… | — | Yes | $0.50 / hr |
 | `whisper` | OpenAI Whisper. 99 languages, transcription + translation to… | — | No | $0.40 / hr |
@@ -358,11 +363,12 @@ Authoritative list of all **63** models in `GET /api/v1/models` as of the latest
 | `gpt-4o-mini-transcribe` | Cheaper, faster gpt-4o-mini-transcribe. Streaming transcript… | — | No | $0.24 / hr |
 | `gpt-4o-transcribe-diarize` | gpt-4o-transcribe with speaker diarization — labels who spok… | — | No | $0.40 / hr |
 
-### Text to Speech (5 models)
+### Text to Speech (6 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
 | `bulbul:v3` | Natural Indic TTS. 37 voices, 11 Indic languages. | — | Yes | — |
+| `gnani-timbre-v2.0` | India-first neural TTS. 24 voices, English + Hindi, context-aware… | — | No | $0.27 / 10K chars |
 | `aura-2-en` | Aura 2 — natural, conversational English TTS. 40 voices incl… | — | Yes | — |
 | `aura-2-es` | Aura 2 Spanish — 10 native voices including aquila, sirio, d… | — | Yes | — |
 | `melotts` | MyShell MeloTTS — fast, lightweight multilingual TTS. English + Frenc… | — | Yes | — |

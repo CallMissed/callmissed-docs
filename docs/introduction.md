@@ -11,7 +11,7 @@ CallMissed provides AI-powered communication APIs to deploy WhatsApp chatbots an
 
 :::cards
 /docs/quickstart | Quickstart | play | Make your first API call in under a minute
-/docs/models | Models | boxes | 65 models — Indic STT/TTS, frontier LLMs, realtime voice, image gen
+/docs/models | Models | boxes | 67 models — Indic STT/TTS, frontier LLMs, realtime voice, image gen
 /docs/voice-agent | Voice Agent | phone | LiveKit WebRTC agents with Indic speech pipeline
 :::
 
@@ -32,12 +32,6 @@ All API requests go to:
 
 ```
 https://api.callmissed.com
-```
-
-For local development:
-
-```
-http://localhost:8000
 ```
 
 ## Key Features
