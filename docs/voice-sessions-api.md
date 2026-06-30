@@ -16,7 +16,7 @@ The Voice Session API provides a two-step flow for voice agent interactions:
 1. **Create a session** via REST — returns a LiveKit room URL + JWT
 2. **Connect via LiveKit WebRTC** — stream audio with the `livekit-client` SDK; the agent joins automatically and handles STT → LLM → TTS
 
-The voice pipeline runs inside a LiveKit agent process. The backend's role is session metadata, token issuance, usage tracking, and transcript storage. There is **no direct WebSocket between the browser and the CallMissed API** — audio flows over WebRTC to the LiveKit server.
+Audio flows over WebRTC to the LiveKit room. There is **no direct WebSocket between the browser and the CallMissed API** — the REST endpoints handle session metadata, token issuance, usage tracking, and transcript storage.
 
 **Authentication:** All REST endpoints accept both **JWT** (`Authorization: Bearer <jwt>`) and **API key** (`Authorization: Bearer cm_<key>`). API keys must have `stt`, `tts`, and `llm` permissions to create a session.
 
