@@ -96,3 +96,37 @@ curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
 | `verbatim` | Exact transcription including filler words |
 | `translit` | Transliteration to Latin script |
 | `codemix` | Code-mixed output (Indic + English) |
+
+## Deepgram feature parameters
+
+When you select a Deepgram model (`deepgram-nova-3`, `deepgram-nova-2`, `deepgram-flux-general-en`, etc.), these extra form fields are accepted. They are ignored for non-Deepgram models. Model-restricted features are dropped automatically when the chosen model doesn't support them.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `diarize` | boolean | Label each speaker (`[Speaker 0]`, `[Speaker 1]`, …) |
+| `utterances` | boolean | Segment the transcript into utterances |
+| `utt_split` | number | Silence gap (seconds) used to split utterances |
+| `paragraphs` | boolean | Split the transcript into paragraphs |
+| `numerals` | boolean | Write numbers as digits (e.g. "five" → "5") |
+| `measurements` | boolean | Abbreviate measurement units (English) |
+| `dictation` | boolean | Convert spoken "comma"/"period" to punctuation (English) |
+| `profanity_filter` | boolean | Mask recognized profanity with `****` |
+| `filler_words` | boolean | Keep "uh"/"um" (Nova / Nova-2 / Nova-3) |
+| `multichannel` | boolean | Transcribe each audio channel independently |
+| `detect_entities` | boolean | Tag entities like names and locations (English) |
+| `detect_language` | string | `true` to auto-detect, or repeat with codes to restrict |
+| `redact` | string | `pci`, `pii`, `phi`, `numbers`, or a specific entity type (repeatable) |
+| `keyterm` | string | Boost recognition of a term/phrase (Nova-3 + Flux; repeatable) |
+| `keywords` | string | `keyword:intensifier` boost/suppress (Nova-2 / legacy; repeatable) |
+| `search` | string | Phonetically search the audio for a term (repeatable) |
+| `replace` | string | `find:replacement` substitution (repeatable) |
+
+### Dialects & locales
+
+Deepgram models accept locale-specific language codes so you can pin a dialect for best accuracy. Pass the code in the `language` field. Each model's exact dialect list is published in the `dialects` array on `GET /v1/models`. Examples:
+
+- **English:** `en-US`, `en-GB`, `en-IN`, `en-AU`, `en-NZ`, `en-CA`, `en-IE`
+- **Spanish:** `es`, `es-419` (Latin America)
+- **Portuguese:** `pt-BR`, `pt-PT`
+- **Chinese:** `zh-CN`, `zh-TW`, `zh-HK` (Cantonese)
+- **Multilingual code-switching:** `multi` (Nova-3, Nova-2, Flux multilingual)
