@@ -102,7 +102,7 @@ The free tier includes **25 models** across four categories. Use `GET /api/v1/mo
 | `nano-banana-2` | Google Gemini 3.1 Flash Image — multimodal, highest LM-Arena Elo (paid) |
 | `nano-banana-pro` | Google Gemini 3 Pro Image — flagship typography + fidelity (paid) |
 
-All other models — including `kimi-k2.5-fast`, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `nova-sonic*`, first-party STT/TTS), slash-prefixed frontier IDs (`openai/*`, `anthropic/*`, `google/*`, `x-ai/*`, `qwen/*`, `mistralai/*`), and paid image models (`flux-2-pro`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
+All other models — including `kimi-k2.5-fast`, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `nova-sonic*`, first-party STT/TTS), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, Deepgram Voice Agent `deepgram-voice-*` ids, and the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features), slash-prefixed frontier IDs (`openai/*`, `anthropic/*`, `google/*`, `x-ai/*`, `qwen/*`, `mistralai/*`), and paid image models (`flux-2-pro`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
 
 ### Pricing
 
@@ -128,19 +128,36 @@ All models are pay-per-use. Pricing is in USD.
 | `gpt-realtime-mini` | $0.60 | $2.40 |
 | `gpt-realtime-2` | $4.00 | $24.00 |
 | `gpt-realtime-1.5` | $4.00 | $16.00 |
+| `deepgram-voice-*` | per-minute Voice Agent tier | Standard $0.075/min, Advanced $0.163/min *(voice-agent only; runtime bridge in progress)* |
 
 | STT Model | Price |
 |-----------|-------|
 | `saaras:v3` | $0.53 / hour (₹45/hr) |
+| `gnani-prisma-v2.5` | $0.27 / hour |
 | `whisper-large-v3-turbo` | $0.06 / hour |
 | `nova-3` | $0.50 / hour |
+| `deepgram-nova-3` | $0.29 / hour |
+| `deepgram-nova-3-medical` | $0.29 / hour |
+| `deepgram-flux-general-en` | $0.39 / hour |
+| `deepgram-flux-general-multi` | $0.47 / hour |
+| `deepgram-nova-2` (+ domain variants) | $0.35 / hour |
+| `deepgram-nova` / `deepgram-whisper-*` | $0.35 / hour |
+| `deepgram-enhanced` (+ variants) | $0.99 / hour |
+| `deepgram-base` (+ variants) | $0.87 / hour |
 
 | TTS Model | Price |
 |-----------|-------|
 | `bulbul:v3` | $0.53 / 10K chars (₹45/10K) |
+| `gnani-timbre-v2.0` | $0.27 / 10K chars |
 | `aura-2-en` | $0.40 / 10K chars |
 | `aura-2-es` | $0.40 / 10K chars |
+| `deepgram-aura-2` | $0.30 / 10K chars |
 | `melotts` | $0.05 / 10K chars |
+
+| Audio / Text Intelligence (Deepgram) | Price |
+|-------------------------------|-------|
+| `deepgram-summarize` / `-topics` / `-sentiment` / `-intents` (audio) | $0.0003 / 1K input + $0.0006 / 1K output tokens |
+| `deepgram-text-summarize` / `-text-topics` / `-text-sentiment` / `-text-intents` | $0.0003 / 1K input + $0.0006 / 1K output tokens |
 
 Full pricing for all models is available via the API: `GET /api/v1/models`
 
@@ -177,6 +194,7 @@ response = client.chat.completions.create(
 | Model | Description | Languages |
 |-------|-------------|-----------|
 | `saaras:v3` | Latest STT — best accuracy on Indian + code-mixed | 23 languages (22 Indic + English) |
+| `gnani-prisma-v2.5` | India-first telephony STT — code-switching, sub-4% WER on Indian English | 10 Indian languages |
 
 For 99-language general-purpose transcription, see `whisper-large-v3-turbo`. For diarization + smart-format on calls, see `nova-3`. Both are free-tier and live under the [audio model routes](#audio-models).
 
@@ -185,6 +203,7 @@ For 99-language general-purpose transcription, see `whisper-large-v3-turbo`. For
 | Model | Description | Voices |
 |-------|-------------|--------|
 | `bulbul:v3` | Natural TTS — 37 voices, 11 Indian languages | shubh (default) + 36 more |
+| `gnani-timbre-v2.0` | India-first neural TTS — context-aware tone, low-latency | 24 voices (English + Hindi) |
 
 For low-latency English / Spanish voice agents, see `aura-2-en` / `aura-2-es`. For ultra-cheap en/fr notification audio, see `melotts`. All three are free-tier.
 
@@ -199,7 +218,7 @@ Both `sarvam-30b` and `sarvam-105b` support **hybrid thinking mode** via `reason
 
 ## Audio Models
 
-Free-tier on every plan. Source-of-truth pricing lives in `backend/app/services/credit_service.py`.
+Free-tier on every plan. See the [Pricing](/docs/pricing) page for current rates.
 
 ### Speech to Text
 
@@ -212,16 +231,65 @@ Free-tier on every plan. Source-of-truth pricing lives in `backend/app/services/
 | `gpt-4o-mini-transcribe` | Streaming | Low-cost OpenAI transcription | $0.24 / hour |
 | `gpt-4o-transcribe-diarize` | Streaming + diarization | Multi-speaker meetings / calls | $0.40 / hour |
 
+**Deepgram (direct)** — the full Deepgram speech-to-text line, billed pass-through at Deepgram's published rates:
+
+| Model | Languages | Best for | Price |
+|-------|-----------|----------|-------|
+| `deepgram-flux-general-en` | English | Conversational voice agents — model-native turn detection, ultra-low latency | $0.39 / hour |
+| `deepgram-flux-general-multi` | 10 (multilingual) | Multilingual voice agents with code-switching | $0.47 / hour |
+| `deepgram-nova-3` | 45+ incl. `multi` | Flagship general-purpose ASR, keyterm prompting, PII redaction | $0.29 / hour |
+| `deepgram-nova-3-medical` | English | Clinical / medical terminology | $0.29 / hour |
+| `deepgram-nova-2` | 36 incl. `multi` | High-accuracy ASR + filler-word detection | $0.35 / hour |
+| `deepgram-nova-2-{meeting,phonecall,finance,conversationalai,voicemail,video,medical,drivethru,automotive,atc}` | English | Domain-tuned Nova-2 variants | $0.35 / hour |
+| `deepgram-nova` / `-phonecall` / `-medical` | en/es/hi | Legacy Nova-1 | $0.35 / hour |
+| `deepgram-enhanced` (+ meeting/phonecall/finance) | 13 | Legacy, keyword boosting | $0.99 / hour |
+| `deepgram-base` (+ 6 variants) | 17 | Legacy, high-volume batch | $0.87 / hour |
+| `deepgram-whisper-{tiny,base,small,medium,large}` | 99 | Deepgram-managed Whisper Cloud | $0.35 / hour |
+
 ### Text to Speech
 
 | Model | Languages | Voices | Price |
 |-------|-----------|--------|-------|
 | `aura-2-en` | English | 39 (luna default) | $0.40 / 10K chars |
 | `aura-2-es` | Spanish | 10 (aquila default) | $0.40 / 10K chars |
+| `deepgram-aura-2` | en/es/de/fr/nl/it/ja | 90+ (thalia default) | $0.30 / 10K chars |
 | `melotts` | English + French | 1 per language | $0.05 / 10K chars |
 | `gpt-4o-mini-tts` | Multilingual steerable | 6 OpenAI voices | $0.20 / 10K chars |
 
-[Inference] Aura 2 returns linear16 PCM streamed at 24 kHz; LiveKit's voice agent plays it without an MP3 decode in the hot path. MeloTTS returns base64 MP3 and is decoded by pyav. AI behavior is not guaranteed and may vary as upstreams update their schemas.
+Aura 2 returns linear16 PCM streamed at 24 kHz for low-latency playback. MeloTTS returns base64 MP3. Output formats may vary as models are updated.
+
+### Audio Intelligence (Deepgram)
+
+Deepgram Audio Intelligence runs analysis over an uploaded audio file via `POST /v1/audio/intelligence` (English only, 150K input-token limit). Token-billed at $0.0003/1K input + $0.0006/1K output.
+
+| Feature | Model ID | Returns |
+|---------|----------|---------|
+| Summarization | `deepgram-summarize` | A concise `summary` of the audio |
+| Topic Detection | `deepgram-topics` | Per-segment `topics` with confidence |
+| Sentiment Analysis | `deepgram-sentiment` | Per-segment + average `sentiments` |
+| Intent Recognition | `deepgram-intents` | Per-segment `intents` with confidence |
+
+Request multiple features in one call with a comma-separated `features` form field (e.g. `features=deepgram-summarize,deepgram-sentiment`).
+
+### Text Intelligence (Deepgram)
+
+Deepgram Text Intelligence runs the same four analyses over **text** input (a string or a hosted text URL) via `POST /v1/text/intelligence` (English only, 150K input-token limit). Token-billed at $0.0003/1K input + $0.0006/1K output. Requires the `llm` key permission.
+
+| Feature | Model ID | Returns |
+|---------|----------|---------|
+| Summarization | `deepgram-text-summarize` | A concise `summary` of the text |
+| Topic Detection | `deepgram-text-topics` | Per-segment `topics` with confidence |
+| Sentiment Analysis | `deepgram-text-sentiment` | Per-segment + average `sentiments` |
+| Intent Recognition | `deepgram-text-intents` | Per-segment `intents` with confidence |
+
+Send a JSON body with `features` (array or comma-separated string) and exactly one of `text` or `url`:
+
+```json
+{
+  "features": ["deepgram-text-summarize", "deepgram-text-sentiment"],
+  "text": "Your text to analyze here."
+}
+```
 
 ## Direct-Routed LLMs
 
@@ -243,7 +311,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 Access frontier models via the same `/v1/chat/completions` endpoint. Use the slash-prefixed model ID as the `model` field.
 
-> **"300+ models" — what that means.** CallMissed maintains a curated catalog of ~65 first-party models (Indic STT/TTS/LLM, direct-routed fast models, realtime speech-to-speech voice, image, and the popular frontier IDs below). On top of that, *any* of 300+ and growing frontier models is reachable as a passthrough by sending its slash-prefixed ID (e.g. `openai/gpt-5.4`) even if it isn't in our curated list. Passthrough models are billed at the listed per-model rate and aren't guaranteed to appear in `GET /v1/models`.
+> **"300+ models" — what that means.** CallMissed maintains a curated catalog of ~67 first-party models (Indic STT/TTS/LLM, direct-routed fast models, realtime speech-to-speech voice, image, and the popular frontier IDs below). On top of that, *any* of 300+ and growing frontier models is reachable as a passthrough by sending its slash-prefixed ID (e.g. `openai/gpt-5.4`) even if it isn't in our curated list. Passthrough models are billed at the listed per-model rate and aren't guaranteed to appear in `GET /v1/models`.
 
 ### Popular Models
 
@@ -346,11 +414,12 @@ Authoritative list of all **63** models in `GET /api/v1/models` as of the latest
 | `gpt-realtime-2` | Newest realtime with stronger tool calling. 128K text context. | 128K | No | $4.00 in / $24.00 out per 1M • $0.375/min |
 | `gpt-realtime-1.5` | Pinned 1.5 snapshot of gpt-realtime. Use when you want version stability. | 32K | No | $4.00 in / $16.00 out per 1M • $0.375/min |
 
-### Speech to Text (7 models)
+### Speech to Text (8 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
 | `saaras:v3` | Latest Indic STT model. 23 languages (22 Indic + English), best ac… | — | Yes | $0.53 / hr |
+| `gnani-prisma-v2.5` | India-first telephony STT. 10 Indian languages, code-switching… | — | No | $0.27 / hr |
 | `whisper-large-v3-turbo` | OpenAI's Whisper Large v3 Turbo. 100+ languages with auto-detect, tra… | — | Yes | $0.06 / hr |
 | `nova-3` | Nova 3 — production-grade STT with diarization, punctuation,… | — | Yes | $0.50 / hr |
 | `whisper` | OpenAI Whisper. 99 languages, transcription + translation to… | — | No | $0.40 / hr |
@@ -358,11 +427,12 @@ Authoritative list of all **63** models in `GET /api/v1/models` as of the latest
 | `gpt-4o-mini-transcribe` | Cheaper, faster gpt-4o-mini-transcribe. Streaming transcript… | — | No | $0.24 / hr |
 | `gpt-4o-transcribe-diarize` | gpt-4o-transcribe with speaker diarization — labels who spok… | — | No | $0.40 / hr |
 
-### Text to Speech (5 models)
+### Text to Speech (6 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
 | `bulbul:v3` | Natural Indic TTS. 37 voices, 11 Indic languages. | — | Yes | — |
+| `gnani-timbre-v2.0` | India-first neural TTS. 24 voices, English + Hindi, context-aware… | — | No | $0.27 / 10K chars |
 | `aura-2-en` | Aura 2 — natural, conversational English TTS. 40 voices incl… | — | Yes | — |
 | `aura-2-es` | Aura 2 Spanish — 10 native voices including aquila, sirio, d… | — | Yes | — |
 | `melotts` | MyShell MeloTTS — fast, lightweight multilingual TTS. English + Frenc… | — | Yes | — |
