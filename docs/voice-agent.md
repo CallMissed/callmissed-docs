@@ -24,34 +24,34 @@ The Voice Agent is a real-time conversational AI powered by **LiveKit** (open-so
 Mic (WebRTC) → Nova 2 Sonic (speech-to-speech) → Speaker (WebRTC)
 ```
 
-Nova 2 Sonic handles speech understanding, reasoning, turn-taking, function calling, and speech output in one model. If the speech-to-speech model is unavailable, the agent falls back to the cascaded STT→LLM→TTS stack automatically so sessions still connect.
+Nova 2 Sonic handles speech understanding, reasoning, turn-taking, function calling, and speech output in one model. If the speech-to-speech model is unavailable, the agent falls back to a cascaded STT→LLM→TTS stack automatically so sessions still connect.
 
 **Default stack:**
-- **LLM / voice:** nova-sonic-2 (Amazon Nova 2 Sonic, speech-to-speech, 16 voices)
-- **Fallback STT:** saaras:v3 (streaming WebSocket, 23 languages)
-- **Fallback LLM:** gpt-oss-120b (fast no-think pipeline model)
-- **Fallback TTS:** bulbul:v3 (streaming WebSocket, 37 voices)
-- **Transport:** LiveKit (WebRTC, self-hosted)
+- **LLM / voice:** `nova-sonic-2` (Amazon Nova 2 Sonic, speech-to-speech, 16 voices)
+- **Fallback STT:** `saaras:v3` (streaming, 23 languages)
+- **Fallback LLM:** `gpt-oss-120b` (fast no-think pipeline model)
+- **Fallback TTS:** `bulbul:v3` (streaming, 37 voices)
+- **Transport:** LiveKit (WebRTC)
 
 ## Architecture
 
-The backend's role is session management — it creates sessions, generates LiveKit tokens, and tracks usage. The actual voice processing happens in the LiveKit agent process:
+You create a session over REST and receive a LiveKit room URL + token. Your client connects to that room with the `livekit-client` SDK; the CallMissed voice agent joins automatically and handles the speech pipeline. Audio flows over WebRTC — there is no direct WebSocket between your client and the CallMissed API.
 
 :::flow
 icon:app | Browser (livekit-client SDK) | Captures mic audio and streams it over WebRTC
-icon:server | LiveKit server | Self-hosted WebRTC server (port 7880) — dispatches the room to an agent
- icon:bot | LiveKit agent process | `backend/agent.py` runs Nova Sonic speech-to-speech, or falls back to the STT → LLM → TTS loop
+icon:server | LiveKit room | WebRTC transport that connects your client to the voice agent
+icon:bot | CallMissed voice agent | Runs Nova Sonic speech-to-speech, or falls back to the STT → LLM → TTS loop
 icon:done | Browser | Receives synthesized speech back over WebRTC and plays it
 :::
 
 ### One conversational turn
 
-With Nova Sonic selected, every turn stays in one speech-to-speech model. With a cascaded model selected (or when realtime credentials are missing), every turn streams through three providers concurrently to minimize time-to-first-audio:
+With Nova Sonic selected, every turn stays in one speech-to-speech model. With a cascaded model selected (or when the speech-to-speech model is unavailable), every turn streams through STT, LLM, and TTS concurrently to minimize time-to-first-audio:
 
 :::flow
-icon:stt | STT (saaras:v3) | Streams partial transcripts as the user speaks, finalizes on end-of-speech
-icon:llm | Kimi K2.5 | Generates the reply at up to ~414 tok/s and pushes sentence chunks downstream
-icon:tts | TTS (bulbul:v3) | Synthesizes each sentence chunk as it arrives — playback starts before generation finishes
+icon:stt | STT | Streams partial transcripts as the user speaks, finalizes on end-of-speech
+icon:llm | LLM | Generates the reply at high throughput and pushes sentence chunks downstream
+icon:tts | TTS | Synthesizes each sentence chunk as it arrives — playback starts before generation finishes
 :::
 
 ## Quickstart
@@ -74,7 +74,7 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 ```json
 {
   "id": "uuid",
-  "ws_url": "ws://livekit-server:7880",
+  "ws_url": "wss://livekit.callmissed.com",
   "token": "eyJhbGciOi...",
   "status": "created"
 }
