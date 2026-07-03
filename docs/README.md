@@ -58,6 +58,10 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 
 - [Plugins & Routing](gateway-plugins.md)
 
+## Dashboard
+
+- [AI Assistant (Copilot)](assistant.md)
+
 ## WhatsApp
 
 - [WhatsApp Bot](whatsapp.md)
