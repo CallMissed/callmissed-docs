@@ -88,7 +88,7 @@ The free tier includes **25 models** across four categories. Use `GET /api/v1/mo
 | `aura-2-es` | Aura 2 — 10 Spanish voices, low-latency streaming |
 | `melotts` | MeloTTS — en + fr, cheapest TTS available |
 
-### Image (6 free + 5 paid)
+### Image (6 free + 6 paid)
 | Model ID | Description |
 |----------|-------------|
 | `flux-2-klein-9b` | Flux 2 Klein — highest quality |
@@ -99,10 +99,12 @@ The free tier includes **25 models** across four categories. Use `GET /api/v1/mo
 | `dreamshaper-8-lcm` | DreamShaper 8 LCM — fast |
 | `flux-2-pro` | Flux 2 Pro — flagship BFL quality *(paid)* |
 | `flux-1.1-pro` | Flux 1.1 Pro — fast high-quality *(paid)* |
-| `nano-banana-2` | Google Gemini 3.1 Flash Image — multimodal, highest LM-Arena Elo (paid) |
-| `nano-banana-pro` | Google Gemini 3 Pro Image — flagship typography + fidelity (paid) |
+| `gpt-image-2` | OpenAI GPT Image 2 — accurate on-image text *(paid)* |
+| `gpt-image-1.5` | OpenAI GPT Image 1.5 — precise image editing, strong logo/face preservation *(paid)* |
+| `nano-banana-2` | Google Gemini 3.1 Flash Image — multimodal, highest LM-Arena Elo *(paid · maintenance)* |
+| `nano-banana-pro` | Google Gemini 3 Pro Image — flagship typography + fidelity *(paid · maintenance)* |
 
-All other models — including `kimi-k2.5-fast`, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `nova-sonic*`, first-party STT/TTS), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), slash-prefixed frontier IDs (`openai/*`, `anthropic/*`, `google/*`, `x-ai/*`, `qwen/*`, `mistralai/*`), and paid image models (`flux-2-pro`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
+All other models — including `kimi-k2.5-fast`, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `nova-sonic*`, first-party STT/TTS), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), slash-prefixed frontier IDs (`openai/*`, `anthropic/*`, `google/*`, `x-ai/*`, `qwen/*`, `mistralai/*`), and paid image models (`flux-2-pro`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
 
 ### Pricing
 
@@ -118,10 +120,10 @@ All models are pay-per-use. Pricing is in USD.
 | `openai/gpt-5.4-pro` | $40.00 | $240.00 |
 | `anthropic/claude-sonnet-4.6` | $4.00 | $20.00 |
 | `anthropic/claude-opus-4.6` | $7.00 | $35.00 |
-| `google/gemini-3.1-pro-preview` | $2.00 | $12.00 |
-| `google/gemini-3-flash-preview` | $0.50 | $3.00 |
-| `google/gemini-3.5-flash` | $1.50 | $9.00 |
-| `google/gemini-3.1-flash-lite` | $0.25 | $1.50 |
+| `google/gemini-3.1-pro-preview` *(maintenance)* | $2.00 | $12.00 |
+| `google/gemini-3-flash-preview` *(maintenance)* | $0.50 | $3.00 |
+| `google/gemini-3.5-flash` *(maintenance)* | $1.50 | $9.00 |
+| `google/gemini-3.1-flash-lite` *(maintenance)* | $0.25 | $1.50 |
 | `nova-sonic-2` | $4.00 | $15.00 |
 | `nova-sonic` | $4.50 | $17.00 |
 | `gpt-realtime` | $4.00 | $16.00 |
@@ -324,10 +326,10 @@ Access frontier models via the same `/v1/chat/completions` endpoint. Use the sla
 | `anthropic/claude-opus-4.6` | Anthropic | 1M |
 | `anthropic/claude-sonnet-4.6` | Anthropic | 1M |
 | `anthropic/claude-haiku-4.5` | Anthropic | 200K |
-| `google/gemini-3.1-pro-preview` | Google | 1M |
-| `google/gemini-3-flash-preview` | Google | 1M |
-| `google/gemini-3.5-flash` | Google | 1M |
-| `google/gemini-3.1-flash-lite` | Google | 1M |
+| `google/gemini-3.1-pro-preview` *(maintenance)* | Google | 1M |
+| `google/gemini-3-flash-preview` *(maintenance)* | Google | 1M |
+| `google/gemini-3.5-flash` *(maintenance)* | Google | 1M |
+| `google/gemini-3.1-flash-lite` *(maintenance)* | Google | 1M |
 | `x-ai/grok-4.20` | xAI | 256K |
 | `qwen/qwen3.5-plus` | Qwen | 256K |
 | `qwen/qwen3.5-flash` | Qwen | 256K |
@@ -365,7 +367,7 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **131** models (71 LLM · 42 STT · 7 TTS · 11 image) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **132** models (71 LLM · 42 STT · 7 TTS · 12 image) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
 ### LLM (42 models)
 
@@ -387,10 +389,10 @@ A curated, representative slice of the **131** models (71 LLM · 42 STT · 7 TTS
 | `anthropic/claude-opus-4.6` | Anthropic's most capable model. 1M context, excellent for coding and … | 1M | No | $7.00 in / $35.00 out per 1M |
 | `anthropic/claude-sonnet-4.6` | Fast and intelligent. 1M-token context — best balance of speed and ca… | 1M | No | $4.00 in / $20.00 out per 1M |
 | `anthropic/claude-haiku-4.5` | Anthropic's fastest, most cost-efficient model. 200K context, strong … | 200K | No | $1.35 in / $6.75 out per 1M |
-| `google/gemini-3.1-pro-preview` | Google's flagship model. 1M context, agentic reasoning, multimodal. P… | 1M | No | $2.00 in / $12.00 out per 1M |
-| `google/gemini-3-flash-preview` | Google's fast frontier model. 1M context, optimized for low latency. … | 1M | No | $0.50 in / $3.00 out per 1M |
-| `google/gemini-3.5-flash` | Google's latest fast frontier model. 1M context, multimodal, tools + reasoning + caching. | 1M | No | $1.50 in / $9.00 out per 1M |
-| `google/gemini-3.1-flash-lite` | Most affordable Gemini 3.x model. 1M context, low-latency. Pass-throu… | 1M | No | $0.25 in / $1.50 out per 1M |
+| `google/gemini-3.1-pro-preview` *(maintenance)* | Google's flagship model. 1M context, agentic reasoning, multimodal. P… | 1M | No | $2.00 in / $12.00 out per 1M |
+| `google/gemini-3-flash-preview` *(maintenance)* | Google's fast frontier model. 1M context, optimized for low latency. … | 1M | No | $0.50 in / $3.00 out per 1M |
+| `google/gemini-3.5-flash` *(maintenance)* | Google's latest fast frontier model. 1M context, multimodal, tools + reasoning + caching. | 1M | No | $1.50 in / $9.00 out per 1M |
+| `google/gemini-3.1-flash-lite` *(maintenance)* | Most affordable Gemini 3.x model. 1M context, low-latency. Pass-throu… | 1M | No | $0.25 in / $1.50 out per 1M |
 | `x-ai/grok-4.20` | xAI's flagship model. 256K context, strong on reasoning and real-time… | 262K | No | $1.69 in / $3.38 out per 1M |
 | `qwen/qwen3.5-plus` | Alibaba's flagship model. 256K native context, excellent multilingual… | 262K | No | $0.40 in / $2.40 out per 1M |
 | `qwen/qwen3.5-flash` | Fast Qwen model. 256K native context, optimized for speed and cost. | 262K | No | $0.09 in / $0.35 out per 1M |
@@ -438,7 +440,7 @@ A curated, representative slice of the **131** models (71 LLM · 42 STT · 7 TTS
 | `melotts` | MyShell MeloTTS — fast, lightweight multilingual TTS. English + Frenc… | — | Yes | — |
 | `gpt-4o-mini-tts` | Steerable TTS — accepts an `instructions` field to control t… | — | No | — |
 
-### Image Generation (11 models)
+### Image Generation (12 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
@@ -446,12 +448,14 @@ A curated, representative slice of the **131** models (71 LLM · 42 STT · 7 TTS
 | `flux-2-pro` | Black Forest Labs' FLUX.2 Pro — flagship text-to-image with high fide… | — | No | $0.10 / image |
 | `flux-1.1-pro` | Black Forest Labs' FLUX 1.1 Pro — fast, production-grade text-to-imag… | — | No | $0.05 / image |
 | `flux-2-dev` | Black Forest Labs' Flux 2 Dev — higher fidelity, 50-step inference. | — | Yes | $0.12 / image |
+| `gpt-image-2` | OpenAI GPT Image 2 — accurate on-image text rendering. | — | No | $0.25 / image |
+| `gpt-image-1.5` | OpenAI GPT Image 1.5 — precise image editing, strong logo/face preser… | — | No | $0.25 / image |
 | `lucid-origin` | Leonardo Lucid Origin — vibrant, cinematic compositions. Great for ma… | — | Yes | $0.08 / image |
 | `phoenix-1.0` | Leonardo Phoenix 1.0 — strong prompt adherence, photorealistic portra… | — | Yes | $0.10 / image |
 | `sdxl-lightning` | ByteDance distilled SDXL — 4-step inference, fastest for iterative pr… | — | Yes | $0.04 / image |
 | `dreamshaper-8-lcm` | Lykon Dreamshaper 8 via LCM — stylised illustrations, fast generation. | — | Yes | $0.04 / image |
-| `nano-banana-2` | Google Gemini 3.1 Flash Image — fast multimodal image generation with… | — | No | $0.07 / image |
-| `nano-banana-pro` | Google Gemini 3 Pro Image — flagship image model with the highest qua… | — | No | $0.134 / image |
+| `nano-banana-2` *(maintenance)* | Google Gemini 3.1 Flash Image — fast multimodal image generation with… | — | No | $0.07 / image |
+| `nano-banana-pro` *(maintenance)* | Google Gemini 3 Pro Image — flagship image model with the highest qua… | — | No | $0.134 / image |
 
 > **Tip:** Filter programmatically — `GET /api/v1/models?category=llm`, `?category=stt`, `?category=tts`, `?category=image`, or `?free=true` for free-plan models only.
 

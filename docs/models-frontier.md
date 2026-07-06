@@ -19,10 +19,10 @@ All frontier models are accessible via `POST /v1/chat/completions` using the mod
 | `openai/gpt-5.4-mini` | OpenAI | 1M |
 | `anthropic/claude-sonnet-4.6` | Anthropic | 1M |
 | `anthropic/claude-opus-4.6` | Anthropic | 1M |
-| `google/gemini-3.1-pro-preview` | Google | 1M |
-| `google/gemini-3-flash-preview` | Google | 1M |
-| `google/gemini-3.5-flash` | Google | 1M |
-| `google/gemini-3.1-flash-lite` | Google | 1M |
+| `google/gemini-3.1-pro-preview` *(maintenance)* | Google | 1M |
+| `google/gemini-3-flash-preview` *(maintenance)* | Google | 1M |
+| `google/gemini-3.5-flash` *(maintenance)* | Google | 1M |
+| `google/gemini-3.1-flash-lite` *(maintenance)* | Google | 1M |
 | `x-ai/grok-4.20` | xAI | 256K |
 | `qwen/qwen3.5-plus` | Qwen | 128K |
 | `moonshotai/kimi-k2` | Moonshot | 128K |
