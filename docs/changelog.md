@@ -13,7 +13,7 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ### v1.6.0 — LiveKit Voice, Image Generation & Web Search
 
-- **LiveKit voice sessions** — `POST /v1/voice/sessions` returns a LiveKit token + URL; the server-side agent runs the STT→LLM→TTS pipeline. List, fetch, fetch transcript (`json | txt | srt`), and end sessions under `/v1/voice/sessions`. A public, capped browser demo lives at `POST /v1/voice/demo`. The legacy `/ws/voice-agent` WebSocket still works for backward compatibility. See [Voice Session API](/docs/voice-sessions-api).
+- **LiveKit voice sessions** — `POST /v1/voice/sessions` returns a LiveKit token + URL; CallMissed handles the STT→LLM→TTS pipeline. List, fetch, fetch transcript (`json | txt | srt`), and end sessions under `/v1/voice/sessions`. A public, capped browser demo lives at `POST /v1/voice/demo`. The legacy `/ws/voice-agent` WebSocket still works for backward compatibility. See [Voice Session API](/docs/voice-sessions-api).
 - **Image Generation API** — `POST /v1/images/generations` (OpenAI-compatible). Free models include `flux-2-klein-9b`, `flux-2-dev`, `lucid-origin`, `phoenix-1.0`, `sdxl-lightning`, `dreamshaper-8-lcm`; paid models include `flux-2-pro`, `flux-1.1-pro`, `nano-banana-2`, and `nano-banana-pro`. See [Image Generation](/docs/image-generation).
 - **Web Search API** — `POST /v1/search` defaults to Google grounded search (Exa, Serper, Firecrawl also available); flat 1 credit per query. See [Web Search](/docs/web-search).
 - **Knowledge RAG** — vector knowledge sources at `/api/v1/knowledge/sources` (ingest text, URL, or PDF; chunked + embedded) with semantic search at `POST /api/v1/knowledge/search`.

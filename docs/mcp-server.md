@@ -140,7 +140,7 @@ The server reads one optional environment variable:
 |----------|---------|-------------|
 | `CALLMISSED_DOCS_API` | `https://api.callmissed.com/api/v1/docs/export` | Docs export endpoint the server fetches on startup |
 
-To point the server at a self-hosted or staging docs export, set the variable in your MCP client's `env` block:
+To point the server at a different docs export endpoint, set the variable in your MCP client's `env` block:
 
 ```json
 {
@@ -149,7 +149,7 @@ To point the server at a self-hosted or staging docs export, set the variable in
       "command": "npx",
       "args": ["-y", "callmissed-docs-mcp"],
       "env": {
-        "CALLMISSED_DOCS_API": "https://staging-api.callmissed.com/api/v1/docs/export"
+        "CALLMISSED_DOCS_API": "https://api.callmissed.com/api/v1/docs/export"
       }
     }
   }
