@@ -92,21 +92,25 @@ Reasoning models can spend 100+ tokens "thinking" before producing visible conte
 
 Behaviour per model — verified live against each upstream on 2026-05-01:
 
-| Model | `"none"` | `"low"` | `"medium"` | `"high"` | `"minimal"` |
-| --- | --- | --- | --- | --- | --- |
-| `kimi-k2.5` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
-| `kimi-k2.6` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
-| `kimi-k2.7-code` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
-| `gemma-4-26b-a4b-it` | ✅ off | ✅ | ✅ | ✅ | ↓ `"none"` |
-| `gpt-oss-120b` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"low"` |
-| `nemotron-3-super` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"low"` |
-| `glm-4.7-flash` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"low"` |
-| `glm-5.2` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"low"` |
-| `sarvam-30b` / `sarvam-105b` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"low"` |
-| `mistral-small-3.1` | (no reasoning surface — silently dropped) | | | | |
-| Frontier (`openai/*`, `anthropic/*`, …) | forwarded as-is — underlying model gates valid values | | | | |
+| Model | `"none"` | `"low"` | `"medium"` | `"high"` | `"xhigh"` | `"minimal"` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `gpt-5.6-sol` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
+| `gpt-5.6-terra` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
+| `gpt-5.6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
+| `gpt-5.5` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
+| `kimi-k2.5` | ✅ off | ✅ | ✅ | ✅ | — | ↓ `"none"` |
+| `kimi-k2.6` | ✅ off | ✅ | ✅ | ✅ | — | ↓ `"none"` |
+| `kimi-k2.7-code` | ✅ off | ✅ | ✅ | ✅ | — | ↓ `"none"` |
+| `gemma-4-26b-a4b-it` | ✅ off | ✅ | ✅ | ✅ | — | ↓ `"none"` |
+| `gpt-oss-120b` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
+| `nemotron-3-super` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
+| `glm-4.7-flash` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
+| `glm-5.2` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
+| `sarvam-30b` / `sarvam-105b` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
+| `mistral-small-3.1` | (no reasoning surface — silently dropped) | | | | | |
+| Frontier (`openai/*`, `anthropic/*`, …) | forwarded as-is — underlying model gates valid values | | | | | |
 
-Legend: ✅ = sent to upstream verbatim · ↓ = the API maps it to the next-supported value before forwarding.
+Legend: ✅ = sent to upstream verbatim · ↓ = the API maps it to the next-supported value before forwarding · — = value not accepted by that model. The GPT-5.6 family (`sol`/`terra`/`luna`) and `gpt-5.5` accept OpenAI's full `none`/`low`/`medium`/`high`/`xhigh` ladder; `"minimal"` is not supported on these models and is mapped down to `"low"`.
 
 Concrete numbers on `kimi-k2.6` answering "What is 2+2?":
 

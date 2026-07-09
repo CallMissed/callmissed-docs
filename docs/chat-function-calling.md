@@ -82,6 +82,19 @@ Send the tool result back as a `tool` role message:
 }
 ```
 
+## Counting Tool Calls
+
+Every response includes a `usage.tool_call_count` field — the number of tool calls the model made in that response (`0` when none). It is present on both streaming and non-streaming responses, so you can track tool usage per request:
+
+```json
+{
+  "choices": [{ "finish_reason": "tool_calls", "message": { "tool_calls": [/* ... */] } }],
+  "usage": { "prompt_tokens": 18, "completion_tokens": 25, "total_tokens": 43, "tool_call_count": 2 }
+}
+```
+
+When streaming, each chunk that carries a `delta.tool_calls` fragment also includes a top-level `tool_call_count` that increments as new tool calls begin — useful for showing a live "tools called" counter in your UI. The definitive total is always in the final `usage` chunk (requires `stream_options: {"include_usage": true}`).
+
 ## Full Example
 
 ```python
