@@ -37,10 +37,12 @@ data: [DONE]
 To get token usage in the stream, set `stream_options: {"include_usage": true}`. A final chunk with a `usage` field is sent before `[DONE]`:
 
 ```json
-data: {"id":"...","choices":[],"usage":{"prompt_tokens":12,"completion_tokens":34,"total_tokens":46}}
+data: {"id":"...","choices":[],"usage":{"prompt_tokens":12,"completion_tokens":34,"total_tokens":46,"tool_call_count":0}}
 
 data: [DONE]
 ```
+
+The `usage.tool_call_count` field is the number of tool calls the model made in this response (`0` when none). It is always present in the usage chunk. While the response streams, any chunk that carries a `delta.tool_calls` fragment also includes a running `tool_call_count` at the top level, so you can show a live counter as tools are invoked.
 
 ## Code Example
 

@@ -141,7 +141,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 | `response_format` | object | `{"type": "json_object"}` or `{"type": "json_schema", "json_schema": {...}}` |
 | `structured_outputs` | boolean | Enforce strict JSON schema |
 | `stream_options` | object | `{"include_usage": true}` to get token counts in stream |
-| `reasoning_effort` | string | `"none"` / `"minimal"` / `"low"` / `"medium"` / `"high"` — see the per-model matrix below |
+| `reasoning_effort` | string | `"none"` / `"minimal"` / `"low"` / `"medium"` / `"high"` / `"xhigh"` — see the per-model matrix below. `"xhigh"` (maximum reasoning) is accepted by the GPT-5.5 / GPT-5.6 family; other models map it down to their highest supported value. |
 
 ## Frontier Parameters
 
@@ -229,6 +229,7 @@ source — the table below is a snapshot):
 
 | Model | context_window |
 |-------|----------------|
+| `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna` | 1,050,000 |
 | `openai/gpt-5.4`, `openai/gpt-5.4-pro`, `openai/gpt-5.4-mini`, `openai/gpt-5.4-nano` | 1,048,576 |
 | `anthropic/claude-opus-4.6`, `anthropic/claude-sonnet-4.6` | 1,048,576 |
 | `google/gemini-3.1-pro-preview`, `google/gemini-3-flash-preview`, `google/gemini-3.5-flash`, `google/gemini-3.1-flash-lite` | 1,048,576 |
