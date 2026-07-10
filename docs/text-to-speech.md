@@ -86,7 +86,7 @@ Supported values for `response_format`: `mp3`, `opus`, `aac`, `flac`, `wav`, `pc
 
 ## Streaming (Deepgram Aura-2)
 
-For `deepgram-aura-2`, set `"stream": true` to receive audio frames as they're synthesized over Deepgram's low-latency WebSocket, relayed to you as a chunked HTTP response. Ideal for real-time playback where you want the first audio bytes as fast as possible.
+For `deepgram-aura-2` and `deepgram-aura-1`, set `"stream": true` to receive audio frames as they're synthesized over Deepgram's low-latency WebSocket, relayed to you as a chunked HTTP response. Ideal for real-time playback where you want the first audio bytes as fast as possible.
 
 Streaming supports **raw encodings only** — `response_format` must be `linear16` (or `pcm`/`wav`), `mulaw`, or `alaw`. Compressed formats (`mp3`, `opus`, `aac`, `flac`) are not WebSocket-streamable; if you request one with `stream:true`, the full audio is returned in one buffered response instead.
 
