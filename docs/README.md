@@ -72,6 +72,7 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 
 - [Voice Calling](voice.md)
 - [Twilio Voice Setup](twilio-setup.md)
+- [Telephony API](telephony-api.md)
 
 ## Authentication
 
