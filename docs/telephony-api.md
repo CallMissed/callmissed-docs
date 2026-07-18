@@ -115,22 +115,21 @@ The `confirm=true` query parameter is **required** — releasing a number is per
 
 Every rented Indian number must be backed by an accepted KYC application. Submit one, then poll or sync its status until it is `accepted` before buying.
 
+Submission is a **multipart form** carrying your business details plus the two **mandatory** documents: the registration certificate (Certificate of Incorporation or Udyam certificate) and the GST certificate. Files must be PDF, JPEG, or PNG, up to 5 MB each — and the legal business name must match **exactly** on both documents or the application is rejected.
+
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/telephony/compliance \
   -H "Authorization: Bearer cm_your_api_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "alias": "Acme India KYC",
-    "business_name": "Acme Technologies Pvt Ltd",
-    "registration_number": "U72900KA2020PTC000000",
-    "end_user": {
-      "name": "Acme Technologies Pvt Ltd",
-      "type": "business"
-    },
-    "documents": [
-      { "type": "business_registration", "file_id": "doc_abc123" }
-    ]
-  }'
+  -F 'alias=Acme India KYC' \
+  -F 'business_name=ACME TECHNOLOGIES PRIVATE LIMITED' \
+  -F 'registration_number=U72900KA2020PTC000000' \
+  -F 'email=compliance@acme.in' \
+  -F 'address_line1=123 MG Road' \
+  -F 'city=Bengaluru' \
+  -F 'state=Karnataka' \
+  -F 'postal_code=560001' \
+  -F 'registration_cert=@certificate-of-incorporation.pdf' \
+  -F 'gst_cert=@gst-certificate.pdf'
 ```
 
 | Endpoint | Purpose |
