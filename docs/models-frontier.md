@@ -99,13 +99,14 @@ Extend model capabilities with plugins:
 
 ## Model Fallbacks
 
-Specify fallback models if the primary is unavailable:
+CallMissed never silently substitutes your model. If you send only `model` and its upstream is briefly unavailable, you get that model or a clean error (`429`/`503` with `Retry-After`) — never a different model (and a different price) you didn't choose.
+
+Fallback is **opt-in and caller-controlled**: supply a `models` array and CallMissed tries them in order on a retryable failure (`429`/`5xx`/transport), billing the model that actually served. A non-retryable `4xx` (bad request, content filter) stops the chain immediately — it would fail identically on every model. Each fallback must be allowed by your key and plan; tool-calling and `response_format`/`structured_outputs` requests are never auto-switched (a swap would change the behavior you pinned).
 
 ```json
 {
-  "model": "anthropic/claude-opus-4.6",
-  "models": ["anthropic/claude-opus-4.6", "openai/gpt-5.4"],
-  "route": "fallback"
+  "model": "gpt-5.6-sol",
+  "models": ["gpt-5.6-sol", "gpt-5.6-terra", "kimi-k2.6"]
 }
 ```
 

@@ -80,7 +80,7 @@ curl -X POST https://api.callmissed.com/v1/search \
 | `detailed` | Exa search | richer answers with cited sources | ~1–3s |
 | `auto` | tenant default → platform default (Serper) | let CallMissed pick | depends |
 
-By default all modes use **Serper web search**. You can override with `provider: "serper" | "exa" | "firecrawl"` directly; when both `mode` and `provider` are set, `provider` wins. `exa`/`serper`/`firecrawl` are all available and act as automatic fallbacks for resilience. All providers return the same normalised shape and the same flat ₹1 per search.
+By default all modes use **Serper web search**. You can override with `provider: "serper" | "exa" | "firecrawl" | "linkup"` directly; when both `mode` and `provider` are set, `provider` wins. `exa`/`serper`/`firecrawl`/`linkup` are all available and act as automatic fallbacks for resilience — if one provider errors, the request transparently retries another so you always get a result. All providers return the same normalised shape and the same flat ₹1 per search.
 
 Operators can set the **tenant default** from **Settings → Web search default**.
 
@@ -90,7 +90,7 @@ Operators can set the **tenant default** from **Settings → Web search default*
 |---|---|---|---|
 | `query` | string | (required) | 1–2000 chars |
 | `mode` | string | `"auto"` | `auto` / `shorter` / `detailed` |
-| `provider` | string | — | Optional raw override: `serper` / `exa` / `firecrawl`. Wins over `mode` |
+| `provider` | string | — | Optional raw override: `serper` / `exa` / `firecrawl` / `linkup`. Wins over `mode` |
 | `num_results` | int | `10` | 1–50 |
 | `search_type` | string | mode default | Exa: `auto`/`fast`/`instant`/`deep-lite`/`deep`. Serper: `search`/`news`/`images` |
 | `include_domains` | string[] | — | detailed mode only |
