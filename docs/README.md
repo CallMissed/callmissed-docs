@@ -46,6 +46,10 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Image Generation](image-generation.md)
 - [Web Search](web-search.md)
 
+## Email
+
+- [Email API](email.md)
+
 ## Voice Agents
 
 - [Voice Agent](voice-agent.md)
