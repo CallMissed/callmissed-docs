@@ -313,7 +313,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 | `gemma-4-26b-a4b-it` | Google | 128K |
 | `glm-4.7-flash` | Zhipu | 128K |
 | `glm-5.2` | Z.ai | 262K |
-| `nemotron-3-super` | NVIDIA | 128K |
+| `nemotron-3-super` | NVIDIA | 256K |
 | `mistral-small-3.1` | Mistral | 128K |
 
 ## Frontier Models
@@ -328,8 +328,8 @@ Access frontier models via the same `/v1/chat/completions` endpoint. Use the sla
 |----------|---------|---------|
 | `openai/gpt-5.4-pro` | OpenAI | 1M |
 | `openai/gpt-5.4` | OpenAI | 1M |
-| `openai/gpt-5.4-nano` | OpenAI | 1M |
-| `openai/gpt-5.4-mini` | OpenAI | 1M |
+| `openai/gpt-5.4-nano` | OpenAI | 400K |
+| `openai/gpt-5.4-mini` | OpenAI | 400K |
 | `anthropic/claude-opus-4.6` | Anthropic | 1M |
 | `anthropic/claude-sonnet-4.6` | Anthropic | 1M |
 | `anthropic/claude-haiku-4.5` | Anthropic | 200K |
@@ -389,8 +389,8 @@ A curated, representative slice of the **138** models (76 LLM · 42 STT · 8 TTS
 | `sarvam-105b` | 105B MoE, 128K context. Flagship model for complex reasoning and agen… | 131K | Yes | $0.35 in / $0.35 out per 1M |
 | `openai/gpt-5.4-pro` | OpenAI's most capable model. 1M context, best for complex multi-step … | 1M | No | $40.00 in / $240.00 out per 1M |
 | `openai/gpt-5.4` | OpenAI's flagship model. 1M context, strong general-purpose performance. | 1M | No | $3.50 in / $20.00 out per 1M |
-| `openai/gpt-5.4-mini` | Fast and affordable. Great balance of speed and quality. | 1M | No | $1.00 in / $6.00 out per 1M |
-| `openai/gpt-5.4-nano` | Fastest and cheapest OpenAI model. Best for simple tasks. | 1M | No | $0.27 in / $1.70 out per 1M |
+| `openai/gpt-5.4-mini` | Fast and affordable. Great balance of speed and quality. | 400K | No | $1.00 in / $6.00 out per 1M |
+| `openai/gpt-5.4-nano` | Fastest and cheapest OpenAI model. Best for simple tasks. | 400K | No | $0.27 in / $1.70 out per 1M |
 | `gpt-4o` | OpenAI GPT-4o. Multimodal (text + vision), 128K context. Hos… | 128K | No | $2.50 in / $10.00 out per 1M |
 | `gpt-4.1` | OpenAI GPT-4.1. Long-context (1M) multimodal model with stro… | 1M | No | $2.00 in / $8.00 out per 1M |
 | `gpt-5-mini` | OpenAI GPT-5 Mini. Fast, affordable reasoning model. 400K co… | 400K | No | $0.25 in / $2.00 out per 1M |
@@ -418,7 +418,7 @@ A curated, representative slice of the **138** models (76 LLM · 42 STT · 8 TTS
 | `glm-4.7-flash` | Z.ai's fast, cost-efficient bilingual model. Strong tool use and 128K… | 131K | Yes | $0.50 in / $2.00 out per 1M |
 | `glm-5.2` | Z.ai's flagship agentic coding model. 262K context, tools + reasoning. | 262K | Yes | $1.89 in / $5.94 out per 1M |
 | `gpt-oss-120b` | OpenAI's open-weight 120B MoE. Reasoning-grade quality, lower cost th… | 131K | Yes | $1.00 in / $4.00 out per 1M |
-| `nemotron-3-super` | NVIDIA Nemotron 3 — 120B MoE tuned for long-context reasoning. 1M-tok… | 1M | Yes | $1.50 in / $6.00 out per 1M |
+| `nemotron-3-super` | NVIDIA Nemotron 3 — 120B MoE tuned for long-context reasoning. 256K-tok… | 256K | Yes | $1.50 in / $6.00 out per 1M |
 | `gemma-4-26b-a4b-it` | Google Gemma 4 — 26B MoE (4B active). Efficient instruct model for ge… | 131K | Yes | $0.40 in / $1.60 out per 1M |
 | `mistral-small-3.1` | Mistral Small 3.1 — 24B instruct, 128K context. Strong tool use, fast… | 131K | Yes | $0.47 in / $0.76 out per 1M |
 | `mistralai/mistral-small-2603` | Mistral's efficient model. Fast and cost-effective for everyday tasks. | 131K | No | $0.20 in / $0.80 out per 1M |

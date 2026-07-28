@@ -16,7 +16,7 @@ All frontier models are accessible via `POST /v1/chat/completions` using the mod
 | Model ID | Provider | Context |
 |----------|----------|---------|
 | `openai/gpt-5.4` | OpenAI | 1M |
-| `openai/gpt-5.4-mini` | OpenAI | 1M |
+| `openai/gpt-5.4-mini` | OpenAI | 400K |
 | `anthropic/claude-sonnet-4.6` | Anthropic | 1M |
 | `anthropic/claude-opus-4.6` | Anthropic | 1M |
 | `google/gemini-3.1-pro-preview` *(maintenance)* | Google | 1M |
@@ -24,7 +24,7 @@ All frontier models are accessible via `POST /v1/chat/completions` using the mod
 | `google/gemini-3.5-flash` *(maintenance)* | Google | 1M |
 | `google/gemini-3.1-flash-lite` *(maintenance)* | Google | 1M |
 | `x-ai/grok-4.20` | xAI | 256K |
-| `qwen/qwen3.5-plus` | Qwen | 128K |
+| `qwen/qwen3.5-plus` | Qwen | 262K |
 | `moonshotai/kimi-k2` | Moonshot | 128K |
 | `auto` | Auto Router | — |
 
