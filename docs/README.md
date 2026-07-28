@@ -46,6 +46,10 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Image Generation](image-generation.md)
 - [Web Search](web-search.md)
 
+## Email
+
+- [Email API](email.md)
+
 ## Voice Agents
 
 - [Voice Agent](voice-agent.md)
@@ -80,25 +84,24 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Auth API](auth-api.md)
 - [API Keys](keys.md)
 
-## Platform
+## Platform APIs
 
 - [Bots](bots.md)
 - [Conversations](conversations.md)
 - [Knowledge Base](knowledge.md)
 - [Webhooks](webhooks.md)
+
+## Account & Dashboard
+
 - [Team & Tenants](team.md)
 - [Integration Settings](settings-api.md)
 - [Audit & Usage Logs](audit-logs.md)
+- [Billing & Credits](billing.md)
+- [Payments & Invoices](payments.md)
 
 ## Operations
 
 - [Status API](status-api.md)
-- [Voice Demo API](voice-demo.md)
-
-## Billing
-
-- [Billing & Credits](billing.md)
-- [Payments & Invoices](payments.md)
 
 ## Cookbook
 
