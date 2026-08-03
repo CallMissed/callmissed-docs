@@ -2,7 +2,7 @@
 title: "Call Analytics Pipeline"
 description: "A production-ready call analytics pipeline on the CallMissed API — batch STT with diarization, speaker-wise parsing, and LLM-powered analysis."
 slug: "call-analytics"
-breadcrumb: "Cookbooks"
+breadcrumb: "Resources"
 ---
 
 # Call Analytics Pipeline

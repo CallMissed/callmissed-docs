@@ -35,6 +35,32 @@ The server runs through `npx`, so no global install is required. To install it g
 npm install -g callmissed-docs-mcp
 ```
 
+## Install via CLI (one command)
+
+The fastest way in. Several coding agents can add an MCP server from a single terminal command — no config file to hand-edit.
+
+**Any agent (Cursor, Claude Code, Codex, Windsurf, VS Code, and more)** — the cross-agent installer detects the agents on your machine and writes the right config for each:
+
+```bash
+npx add-mcp "npx -y callmissed-docs-mcp" --name callmissed-docs
+```
+
+**Claude Code:**
+
+```bash
+claude mcp add callmissed-docs -- npx -y callmissed-docs-mcp
+```
+
+**Codex CLI:**
+
+```bash
+codex mcp add callmissed-docs -- npx -y callmissed-docs-mcp
+```
+
+After it runs, restart the agent — the CallMissed docs tools appear alongside your other tools. Verify with `claude mcp list` or `codex mcp list`.
+
+> Cursor, VS Code, Windsurf, OpenCode and Kilo Code are configured through their MCP config file (no dedicated `mcp add` command). Use the JSON below, or the cross-agent `npx add-mcp` one-liner above.
+
 ## Connect Your Client
 
 Add the server to your client's MCP configuration.

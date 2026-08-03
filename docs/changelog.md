@@ -2,7 +2,7 @@
 title: "Changelog"
 description: "Latest updates, new features, and improvements to the CallMissed API."
 slug: "changelog"
-breadcrumb: "Getting Started"
+breadcrumb: "Resources"
 ---
 
 # Changelog

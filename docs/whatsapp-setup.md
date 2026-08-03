@@ -2,7 +2,7 @@
 title: "WhatsApp Business Setup"
 description: "Connect your Meta WhatsApp Business account to CallMissed and deploy a bot in five steps."
 slug: "whatsapp-setup"
-breadcrumb: "Channels"
+breadcrumb: "WhatsApp"
 ---
 
 # WhatsApp Business Setup

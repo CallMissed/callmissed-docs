@@ -2,7 +2,7 @@
 title: "Gateway Plugins & Routing"
 description: "Advanced request features on the gateway — file parsing, response healing, context compression, provider routing, and generation lookup."
 slug: "gateway-plugins"
-breadcrumb: "Guides"
+breadcrumb: "LLM & AI"
 ---
 
 # Gateway Plugins & Routing
@@ -11,13 +11,13 @@ Advanced request features on the gateway — file parsing, response healing, con
 
 ## Overview
 
-When a request targets a frontier model (any model id with a slash, e.g. `openai/gpt-5.4`), you can opt into extra processing via the `plugins` array on a chat completion request.
+When a request targets a frontier model (any model id with a slash, e.g. `google/gemini-3.5-flash`), you can opt into extra processing via the `plugins` array on a chat completion request.
 
 ## Plugins
 
 ```json
 {
-  "model": "anthropic/claude-sonnet-4.6",
+  "model": "google/gemini-3.5-flash",
   "messages": [{ "role": "user", "content": "Summarize this PDF" }],
   "plugins": [
     { "id": "web" },
