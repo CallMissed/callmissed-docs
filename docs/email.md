@@ -2,7 +2,7 @@
 title: "Email API"
 description: "Send and receive email from your own domain over the API — verified-domain onboarding, DKIM signing, delivery and suppression tracking."
 slug: "email"
-breadcrumb: "API Guides & Tutorials"
+breadcrumb: "Email"
 ---
 
 # Email API
@@ -25,7 +25,7 @@ icon:gateway | CallMissed | Verify ownership, SPF and both DKIM records, then ac
 icon:done | Recipients | Receive DKIM-signed mail from your own domain
 :::
 
-> **Billing:** Email is fully credit-based. Every send is charged to your credit balance at **₹30 per 1,000 emails** (per recipient) — the same wallet as every other API. There is no separate email invoice.
+> **Billing:** Email is fully credit-based. Every send is charged to your credit balance at **30 credits (₹30) per 1,000 emails** (per recipient) — the same wallet as every other API. There is no separate email invoice.
 
 ## Add & Verify a Domain
 
@@ -74,7 +74,7 @@ DKIM is **delegated by `CNAME`**, not published as a `TXT` key. The exact host a
 
 Verification covers **four** checks — domain ownership, SPF, DKIM and DKIM2 — and a domain may send only once **all four** report verified. `POST /domains/{id}/verify` returns `verified` (a single boolean over all four) plus a `checks` array with one entry per check, so a partial pass tells you exactly which record has not propagated yet. Propagation is not instant; call verify again until `verified` is `true`.
 
-A newly verified domain starts on a warm-up quota that rises automatically as it sends clean volume — see [Limits & Quotas](#limits-quotas).
+A newly verified domain starts on a warm-up quota that rises automatically as it sends clean volume — see [Limits & Quotas](#limits--quotas).
 
 **Managing domains:**
 
@@ -286,7 +286,7 @@ A successful call returns `202 Accepted`:
 | `status` | string | `sent` when accepted for delivery |
 | `suppressed` | string[] | Recipients dropped by your suppression list |
 
-View delivery history and spend: see [Delivery Log & Usage](#delivery-log-usage).
+View delivery history and spend: see [Delivery Log & Usage](#delivery-log--usage).
 
 ### Switching from Brevo
 
@@ -464,10 +464,10 @@ Send to many recipient sets in one call. Add `messageVersions` — an array wher
 - **Base / override.** The top-level `subject` / `html` / `text` / `templateId` / `params` / `from` are the **base** each version overrides. A per-version body override requires a global body to be present; a per-version `templateId` requires a global `templateId`. Global attachments and tags apply to all versions — there are no per-version attachments.
 - **Limits** (exceeding any → `422`): ≤99 recipients per version, ≤2000 recipients across the batch (deduped), ≤1000 versions, ≤100 KB per-version `params`, ≤1000 KB `params` across the batch. The 50-recipient single-send cap does **not** apply here — the batch union cap replaces it.
 - **A recipient is delivered by exactly one version — the first.** Versions are processed in array order, and each version delivers only the recipients no earlier version already claimed. If `ada@example.com` appears in version 1 **and** version 2, she receives **version 1's** subject, body and params, and version 2 simply does not send to her at all. This is a delivery outcome, not only a billing rule: repeating an address across versions silently drops the later content. Keep each version's recipient set disjoint.
-- **Billing.** The **deduped union** of recipients across all versions is billed **once** at ₹30/1,000 — a recipient in two versions is billed once, matching the delivery rule above. Suppression, quota, rate and monthly-cap checks are likewise evaluated once, over the union.
+- **Billing.** The **deduped union** of recipients across all versions is billed **once** at 30 credits (₹30) per 1,000 — a recipient in two versions is billed once, matching the delivery rule above. Suppression, quota, rate and monthly-cap checks are likewise evaluated once, over the union.
 - **A partial failure still returns `202`.** The response `status` is `sent` when **any** version was accepted for delivery; only an all-versions-failed batch returns `502 relay_failed`. `messageIds` carries one id per version in array order **whether or not that version was accepted**, so the response alone cannot tell you which versions failed. To find out, list the sends and read each row's `status`.
 
-A batch returns `202` with `messageIds` (one per version, in order) and a `batchId` grouping the batch's sends; `id` / `messageId` are the first version, and `suppressed` lists the union's suppressed addresses. Look up each send with `GET /api/v1/email/sends` — see [Delivery Log & Usage](#delivery-log-usage).
+A batch returns `202` with `messageIds` (one per version, in order) and a `batchId` grouping the batch's sends; `id` / `messageId` are the first version, and `suppressed` lists the union's suppressed addresses. Look up each send with `GET /api/v1/email/sends` — see [Delivery Log & Usage](#delivery-log--usage).
 
 :::tabs
 ```bash [cURL]
@@ -572,7 +572,7 @@ Both endpoints are reads, so a read-only key works.
 
 ## Pricing
 
-**₹30 per 1,000 emails**, charged per recipient to your credit balance — the same credits as every other API (your signup bonus counts). Only accepted sends are billed; rejected or failed sends cost nothing. See [Credits & Pricing](/docs/credits-rate-limits).
+**30 credits (₹30) per 1,000 emails**, charged per recipient to your credit balance — the same credits as every other API (your signup bonus counts). Only accepted sends are billed; rejected or failed sends cost nothing. See [Credits & Pricing](/docs/credits-rate-limits).
 
 ## Errors
 

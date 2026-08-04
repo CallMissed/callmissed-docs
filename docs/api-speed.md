@@ -18,7 +18,7 @@ A single playground call and a typical API call hit the **exact same endpoint** 
 | Setting | Playground default | Common API default | Effect |
 | --- | --- | --- | --- |
 | Streaming | `stream: true` | `stream: false` | Non-streaming waits for the *whole* generation before any byte returns |
-| Model | `auto` (fast free model) | `anthropic/claude-sonnet-4.6` | Bigger model → 2-3× wall-clock for the same prompt |
+| Model | `gpt-oss-120b` (fast free model) | `gpt-5.6-sol` | Bigger model → 2-3× wall-clock for the same prompt |
 | Connection | One persistent HTTP/2 connection | New TCP+TLS per call | Adds ~150-300ms handshake to every request |
 
 Same endpoint, very different perceived speed. Below: how to close the gap.
@@ -72,9 +72,9 @@ Same prompt, three different routes — measured first-token and total times:
 | Model | Route | TTFB | Total |
 | --- | --- | --- | --- |
 | `gpt-oss-120b` | Direct-routed | ~50ms | ~1.5s |
-| `auto` | Auto-router | ~90ms | ~2.0s |
-| `anthropic/claude-sonnet-4.6` | Frontier | ~70ms | ~4.8s |
-| `anthropic/claude-haiku-4.5` | Frontier | ~80ms | ~2.0s |
+| `kimi-k2.6` | Direct-routed | ~90ms | ~2.0s |
+| `gpt-5.6-sol` | First-party flagship | ~70ms | ~4.8s |
+| `gpt-5.6-luna` | First-party fast | ~80ms | ~2.0s |
 
 For latency-sensitive integrations (autocomplete, agent tool loops), prefer **`gpt-oss-120b`** or **`kimi-k2.6`** — both direct-routed, both OpenAI-compatible, both sub-2s on small prompts.
 
@@ -157,7 +157,7 @@ Three back-to-back streaming calls on a reused HTTP/2 connection clock in around
 Before reporting "the API feels slow," verify:
 
 - [ ] `stream: true` is set on every chat completion request
-- [ ] Model is one of `gpt-oss-120b`, `kimi-k2.6`, `anthropic/claude-haiku-4.5`, or `auto` (avoid Sonnet/Opus for latency-bound paths)
+- [ ] Model is one of `gpt-oss-120b`, `kimi-k2.6`, `mistral-small-3.1`, or `gpt-5.6-luna` (avoid the 1M-context flagships for latency-bound paths)
 - [ ] For Kimi: `reasoning_effort: "none"` is passed when you don't need the reasoning trace
 - [ ] One `OpenAI()` / `Anthropic()` client instance is shared across requests
 - [ ] HTTP client supports HTTP/2 (the official OpenAI / Anthropic SDKs do)

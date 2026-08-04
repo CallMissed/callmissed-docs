@@ -9,5 +9,5 @@ breadcrumb: "Getting Started"
 
 Understand CallMissed credits, plan tiers, per-API concurrency limits, and how to handle 429 errors gracefully.
 
-> This page contains interactive API endpoint documentation.
-> Visit [docs.callmissed.com/docs/credits-rate-limits](https://docs.callmissed.com/docs/credits-rate-limits) for the full reference.
+> This page documents an interactive API reference.
+> See [docs.callmissed.com/docs/credits-rate-limits](https://docs.callmissed.com/docs/credits-rate-limits) for the full reference.

@@ -2,7 +2,7 @@
 title: "WhatsApp Bot"
 description: "Deploy AI-powered WhatsApp chatbots with knowledge base support."
 slug: "whatsapp"
-breadcrumb: "Channels"
+breadcrumb: "WhatsApp"
 ---
 
 # WhatsApp Bot

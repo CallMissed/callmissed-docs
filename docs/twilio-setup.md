@@ -2,7 +2,7 @@
 title: "Twilio Voice Setup"
 description: "Connect a Twilio voice number to CallMissed so an AI agent answers inbound calls in real time."
 slug: "twilio-setup"
-breadcrumb: "Channels"
+breadcrumb: "Numbers (PSTN)"
 ---
 
 # Twilio Voice Setup

@@ -2,7 +2,7 @@
 title: "Voice SDKs"
 description: "Python and JavaScript SDKs for building voice agents."
 slug: "voice-sdk"
-breadcrumb: "API Guides & Tutorials > Voice Agent"
+breadcrumb: "Voice Agents"
 ---
 
 # Voice SDKs

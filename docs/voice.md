@@ -2,7 +2,7 @@
 title: "Voice Calling"
 description: "AI-powered inbound voice call agents via Twilio."
 slug: "voice"
-breadcrumb: "Channels"
+breadcrumb: "Numbers (PSTN)"
 ---
 
 # Voice Calling
