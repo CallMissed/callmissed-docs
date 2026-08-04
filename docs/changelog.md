@@ -2,12 +2,21 @@
 title: "Changelog"
 description: "Latest updates, new features, and improvements to the CallMissed API."
 slug: "changelog"
-breadcrumb: "Getting Started"
+breadcrumb: "Resources"
 ---
 
 # Changelog
 
 Latest updates, new features, and improvements to the CallMissed API.
+
+## August 2026
+
+### Model catalog update — retired models
+
+- **Retired LLM IDs** — the following model IDs are no longer served: `openai/gpt-5.4-pro`, `openai/gpt-5.4`, `openai/gpt-5.4-mini`, `openai/gpt-5.4-nano`, `anthropic/claude-opus-4.6`, `anthropic/claude-sonnet-4.6`, `anthropic/claude-haiku-4.5`, `x-ai/grok-4.20`, `qwen/qwen3.5-plus`, `qwen/qwen3.5-flash`, `mistralai/mistral-small-2603`, and the `auto` auto-router.
+- **Migration** — use the first-party flagships (`gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, `grok-4.3`) or the direct-routed free tier (`kimi-k2.6`, `kimi-k2.7-code`, `glm-5.2`, `gpt-oss-120b`, `mistral-small-3.1`). See [Models](/docs/models).
+- **Free tier** — now 24 models (11 LLM). The `auto` free auto-router is retired; pick a free model explicitly.
+- **Endpoints unchanged** — `POST /v1/chat/completions` and the Anthropic-compatible `POST /v1/messages` both continue to work and accept every current catalog ID.
 
 ## June 2026
 

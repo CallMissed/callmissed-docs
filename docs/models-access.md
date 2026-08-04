@@ -1,17 +1,17 @@
 ---
 title: "Model Access by Plan"
-description: "See which models each plan tier can call. Free plan includes 25 models across LLM, STT, TTS, and Image."
+description: "See which models each plan tier can call. Free plan includes 24 models across LLM, STT, TTS, and Image."
 slug: "models-access"
-breadcrumb: "Getting Started > Models"
+breadcrumb: "LLM & AI"
 ---
 
 # Model Access by Plan
 
-See which models each plan tier can call. Free plan includes 25 models across LLM, STT, TTS, and Image.
+See which models each plan tier can call. Free plan includes 24 models across LLM, STT, TTS, and Image.
 
 ## Overview
 
-Not all models are available on every plan. The free tier includes 25 models; paid plans (Starter, Pro, Enterprise) unlock all models.
+Not all models are available on every plan. The free tier includes 24 models; paid plans (Starter, Pro, Enterprise) unlock all models.
 
 Use the `/api/v1/models/access` endpoint to programmatically check which models your plan can call.
 
@@ -57,7 +57,7 @@ Object.entries(free.by_category).forEach(([cat, ids]) => {
     "free": {
       "models": ["sarvam-30b", "sarvam-105b", "kimi-k2.5", "..."],
       "by_category": {
-        "llm": ["auto", "sarvam-30b", "sarvam-105b", "kimi-k2.5", "kimi-k2.6", "kimi-k2.7-code", "glm-4.7-flash", "glm-5.2", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1"],
+        "llm": ["sarvam-30b", "sarvam-105b", "kimi-k2.5", "kimi-k2.6", "kimi-k2.7-code", "glm-4.7-flash", "glm-5.2", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1"],
         "stt": ["saaras:v3", "whisper-large-v3-turbo", "nova-3"],
         "tts": ["bulbul:v3", "aura-2-en", "aura-2-es", "melotts"],
         "image": ["flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm"]
@@ -77,13 +77,12 @@ Object.entries(free.by_category).forEach(([cat, ids]) => {
 
 ## Free Plan Models
 
-The free plan includes 25 models. Call `GET /v1/models` to fetch the current free-tier list programmatically (each model's `free` flag).
+The free plan includes 24 models. Call `GET /v1/models` to fetch the current free-tier list programmatically (each model's `free` flag).
 
-**LLM (12):**
+**LLM (11):**
 
 | Model ID | Description |
 |----------|-------------|
-| `auto` | Free auto-router — picks a free model per request |
 | `sarvam-30b` | 30B MoE, 64K context — real-time chat, Indic languages |
 | `sarvam-105b` | 105B MoE, 128K context — complex reasoning |
 | `kimi-k2.5` | Moonshot 1T MoE, 256K context — coding, math |
@@ -128,7 +127,7 @@ The free plan includes 25 models. Call `GET /v1/models` to fetch the current fre
 
 Starter, Pro, and Enterprise plans unlock all models. The only difference between paid tiers is per-service monthly call limits (see [Credits & Rate Limits](/docs/credits-rate-limits)).
 
-Paid-only models include: all first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `grok-4.3`, `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash`, `gpt-realtime`, `gpt-realtime-mini`, `gpt-realtime-2`, `gpt-realtime-1.5`, `gpt-realtime-2.1`, `gpt-realtime-2.1-mini`, `nova-sonic-2`, `nova-sonic`, `whisper`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, `gpt-4o-transcribe-diarize`, `gpt-4o-mini-tts`), Deepgram direct + voice-agent-only ids (`deepgram-*`, including `deepgram-voice-*`), `kimi-k2.5-fast` (under maintenance), frontier IDs (`openai/gpt-5.4*`, `anthropic/claude-*`, `google/gemini-*`, `x-ai/grok-4.20`, `qwen/qwen3.5-*`, `mistralai/mistral-small-2603`, `openrouter/auto`), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-2`, `nano-banana-pro`). The free-tier auto-router is `auto` (not `openrouter/auto`) and IS available on the free plan. See [Full Model Catalog](/docs/models#full-catalog) for all 138 models.
+Paid-only models include: all first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `grok-4.3`, `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash`, `gpt-realtime`, `gpt-realtime-mini`, `gpt-realtime-2`, `gpt-realtime-1.5`, `gpt-realtime-2.1`, `gpt-realtime-2.1-mini`, `nova-sonic-2`, `nova-sonic`, `whisper`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, `gpt-4o-transcribe-diarize`, `gpt-4o-mini-tts`), Deepgram direct + voice-agent-only ids (`deepgram-*`, including `deepgram-voice-*`), `kimi-k2.5-fast` (under maintenance), slash-prefixed frontier IDs (`google/gemini-*`, `openai/*`, `anthropic/*`, `x-ai/*`, `qwen/*`, `mistralai/*` and the rest of the passthrough catalog), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-2`, `nano-banana-pro`). See [Full Model Catalog](/docs/models#full-model-catalog) for all 125 models.
 
 ## Error Handling
 
@@ -137,7 +136,7 @@ When a free-plan user calls a paid-only model, the API returns:
 ```json
 {
   "error": {
-    "message": "Model 'openai/gpt-5.4' requires a paid plan. See GET /api/v1/models/access for the full list of free-plan models. Upgrade at https://app.callmissed.com/pricing",
+    "message": "Model 'gpt-5.6-terra' requires a paid plan. See GET /api/v1/models/access for the full list of free-plan models. Upgrade at https://app.callmissed.com/pricing",
     "type": "invalid_request_error",
     "code": "model_not_available"
   }

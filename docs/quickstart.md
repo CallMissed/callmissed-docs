@@ -41,12 +41,12 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 
 :::cards
 /docs/sdks | SDKs & Libraries | package | Install the OpenAI SDK in your language
-/docs/models | Model Catalog | boxes | 138 models — LLM, STT, TTS, realtime voice, image
+/docs/models | Model Catalog | boxes | 125 models — LLM, STT, TTS, realtime voice, image
 :::
 
 ## Get started
 
-:::steps
+::::steps
 ## Create an API Key
 
 Visit the [CallMissed Dashboard](https://app.callmissed.com) and create a new API key. Keep this key secure — you'll need it to authenticate your requests.
@@ -98,7 +98,7 @@ Use the same pattern as the hero example above — pass your `cm_` API key and p
 
 > **Tip:** Store your API key in environment variables. Never commit keys to version control.
 
-:::
+::::
 
 **Ready to explore?** See [Chat Completion](/docs/chat-completion) for streaming and tool calling, or browse the [Model Catalog](/docs/models).
 

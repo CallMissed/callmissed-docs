@@ -2,7 +2,7 @@
 title: "Voice Session API"
 description: "REST API for creating and managing LiveKit-based voice agent sessions."
 slug: "voice-sessions-api"
-breadcrumb: "API Guides & Tutorials > Voice Agent"
+breadcrumb: "Voice Agents"
 ---
 
 # Voice Session API

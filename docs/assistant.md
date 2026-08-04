@@ -2,7 +2,7 @@
 title: "AI Assistant (Copilot)"
 description: "A chat assistant docked in the dashboard that can operate CallMissed for you — create bots and voice agents, manage WhatsApp, knowledge bases, keys, webhooks, and your team."
 slug: "assistant"
-breadcrumb: "Guides"
+breadcrumb: "LLM & AI"
 ---
 
 # AI Assistant (Copilot)

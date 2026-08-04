@@ -2,7 +2,7 @@
 title: "Web Search API"
 description: "Search the live web through a single endpoint. Two modes — shorter (Serper / Google) and detailed (Exa / neural). Flat ₹1 per search."
 slug: "web-search"
-breadcrumb: "API Guides & Tutorials"
+breadcrumb: "Images & Search"
 ---
 
 # Web Search API
@@ -156,7 +156,7 @@ Error envelope matches the rest of `/v1`:
 |---|---|---|
 | 400 | `invalid_request_error` | Missing or malformed body |
 | 401 | `invalid_api_key` | Bad or revoked key |
-| 402 | `insufficient_credits` | Balance < 1 credit or monthly budget exhausted |
+| 402 | `insufficient_credits` | Balance &lt; 1 credit or monthly budget exhausted |
 | 403 | `permission_denied` | Key lacks `search` permission |
 | 403 | `search_provider_not_allowed` | Key's Allowed search providers excludes the requested provider |
 | 429 | `rate_limit_exceeded` | Per-key RPM exceeded |

@@ -2,7 +2,7 @@
 title: "Pricing"
 description: "Simple, transparent pricing. Pay only for what you use."
 slug: "pricing"
-breadcrumb: "Getting Started"
+breadcrumb: "Resources"
 ---
 
 # Pricing

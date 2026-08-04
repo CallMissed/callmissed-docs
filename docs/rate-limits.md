@@ -21,7 +21,7 @@ Requests pass through several limits, in order:
 | Monthly budget | configurable credit cap | per tenant / per key |
 | Plan limits | tier-based caps on LLM/STT/TTS calls, conversations, storage, team size | per tenant |
 
-Set a per-key RPM and a [budget cap](/docs/payments#budget) when issuing keys, and check live consumption with `GET /api/v1/keys/:id/rate-state`.
+Set a per-key RPM and a [budget cap](/docs/keys) when issuing keys, and check live consumption with `GET /api/v1/keys/:id/rate-state`.
 
 ## Response Headers
 

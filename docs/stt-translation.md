@@ -2,7 +2,7 @@
 title: "Audio Translation"
 description: "Translate audio in any supported language to English text. OpenAI-compatible endpoint."
 slug: "stt-translation"
-breadcrumb: "Speech to Text"
+breadcrumb: "Speech"
 ---
 
 # Audio Translation
