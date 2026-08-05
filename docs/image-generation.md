@@ -2,7 +2,7 @@
 title: "Image Generation"
 description: "Generate images from a text prompt. OpenAI-compatible endpoint."
 slug: "image-generation"
-breadcrumb: "API Guides & Tutorials"
+breadcrumb: "Images & Search"
 ---
 
 # Image Generation

@@ -30,7 +30,7 @@ We pick the upstream provider from the model id, so you never manage multiple SD
 | --- | --- |
 | default fast tier | Kimi K2.5 Fast (~414 tok/s) |
 | no slash (e.g. `sarvam-30b`, `saaras:v3`) | Indic LLM/STT/TTS |
-| has a slash (e.g. `openai/gpt-5.4`, `anthropic/claude-sonnet-4.6`) | Frontier catalog |
+| has a slash (e.g. `google/gemini-3.5-flash`, `moonshotai/kimi-k2`) | Frontier catalog |
 | audio / image models | Audio/Image backends |
 
 You get one API surface, one key, and one bill regardless of which provider ultimately serves the request.
@@ -41,7 +41,7 @@ Every call — LLM tokens, STT minutes, TTS characters, an image, a web search �
 
 ## Tenancy & Isolation
 
-Your organization is a **tenant**. Every user, bot, API key, conversation, and log belongs to exactly one tenant, and every database query is scoped to it — data is never shared across tenants. Roles (owner / admin / agent) gate sensitive actions. See [Team & Tenants](/docs/team).
+Your organization is a **tenant**. Every user, bot, API key, conversation, and log belongs to exactly one tenant, and every database query is scoped to it — data is never shared across tenants. Roles (owner / admin / agent) gate sensitive actions, and you manage members and roles from the dashboard.
 
 ## Channels vs APIs
 

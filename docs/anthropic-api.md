@@ -2,7 +2,7 @@
 title: "Anthropic-Compatible API"
 description: "Use the Anthropic SDK with CallMissed — just change the base URL. Full Messages API compatibility."
 slug: "anthropic-api"
-breadcrumb: "API Guides & Tutorials"
+breadcrumb: "LLM & AI"
 ---
 
 # Anthropic-Compatible API
@@ -36,7 +36,7 @@ client = anthropic.Anthropic(
 )
 
 message = client.messages.create(
-    model="claude-sonnet-4.6",
+    model="gpt-5.6-sol",
     max_tokens=1024,
     system="You are a helpful assistant.",
     messages=[
@@ -55,7 +55,7 @@ const client = new Anthropic({
 });
 
 const message = await client.messages.create({
-  model: "claude-sonnet-4.6",
+  model: "gpt-5.6-sol",
   max_tokens: 1024,
   system: "You are a helpful assistant.",
   messages: [
@@ -70,7 +70,7 @@ curl -X POST https://api.callmissed.com/v1/messages \
   -H "x-api-key: cm_your_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-4.6",
+    "model": "gpt-5.6-sol",
     "max_tokens": 1024,
     "system": "You are a helpful assistant.",
     "messages": [
@@ -90,7 +90,7 @@ curl -X POST https://api.callmissed.com/v1/messages \
   "content": [
     {"type": "text", "text": "The capital of India is New Delhi."}
   ],
-  "model": "claude-sonnet-4.6",
+  "model": "gpt-5.6-sol",
   "stop_reason": "end_turn",
   "stop_sequence": null,
   "usage": {
@@ -114,7 +114,7 @@ client = anthropic.Anthropic(
 )
 
 with client.messages.stream(
-    model="claude-sonnet-4.6",
+    model="gpt-5.6-sol",
     max_tokens=1024,
     messages=[{"role": "user", "content": "Tell me a short story."}]
 ) as stream:
@@ -130,7 +130,7 @@ const client = new Anthropic({
 });
 
 const stream = client.messages.stream({
-  model: "claude-sonnet-4.6",
+  model: "gpt-5.6-sol",
   max_tokens: 1024,
   messages: [{ role: "user", content: "Tell me a short story." }],
 });
@@ -146,7 +146,7 @@ curl -X POST https://api.callmissed.com/v1/messages \
   -H "x-api-key: cm_your_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-4.6",
+    "model": "gpt-5.6-sol",
     "max_tokens": 1024,
     "stream": true,
     "messages": [
@@ -171,7 +171,7 @@ event: message_stop          → stream complete
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `model` | string | Yes | Model ID (e.g. `claude-sonnet-4.6`, `sarvam-30b`, `openai/gpt-5.4`) |
+| `model` | string | Yes | Model ID (e.g. `gpt-5.6-sol`, `sarvam-30b`, `google/gemini-3.5-flash`) |
 | `max_tokens` | integer | Yes | Maximum tokens to generate |
 | `messages` | array | Yes | List of `{role, content}` objects |
 | `system` | string | No | System prompt (top-level, not in messages) |
@@ -186,14 +186,13 @@ event: message_stop          → stream complete
 
 ## Model Aliasing
 
-On the Anthropic endpoint, bare model names are automatically prefixed with `anthropic/` for routing to the frontier catalog:
+On the Anthropic endpoint, a bare model name resolves against the CallMissed catalog; an ID that already carries a provider prefix is routed as sent:
 
 | You send | Routed as |
 |----------|-----------|
-| `claude-sonnet-4.6` | `anthropic/claude-sonnet-4.6` |
-| `claude-opus-4.6` | `anthropic/claude-opus-4.6` |
+| `gpt-5.6-sol` | `gpt-5.6-sol` (first-party model, no prefix) |
 | `sarvam-30b` | `sarvam-30b` (Indic model, no prefix) |
-| `openai/gpt-5.4` | `openai/gpt-5.4` (already has prefix) |
+| `google/gemini-3.5-flash` | `google/gemini-3.5-flash` (already has prefix) |
 
 You can use **any model** from our [Models](/docs/models) catalog — not just Anthropic models.
 
@@ -209,7 +208,7 @@ curl -X POST https://api.callmissed.com/v1/messages/count_tokens \
   -H "x-api-key: cm_your_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-4.6",
+    "model": "gpt-5.6-sol",
     "messages": [{"role": "user", "content": "Hello, how are you?"}],
     "system": "You are a helpful assistant."
   }'
@@ -241,14 +240,14 @@ curl https://api.callmissed.com/anthropic/v1/models \
   "data": [
     {
       "type": "model",
-      "id": "anthropic/claude-sonnet-4.6",
-      "display_name": "Claude Sonnet 4.6",
+      "id": "gpt-5.6-sol",
+      "display_name": "GPT-5.6 Sol",
       "created_at": "2023-11-14T22:13:20+00:00",
-      "description": "Fast and intelligent. Best balance of speed and capability.",
+      "description": "Frontier model for complex professional work. Multimodal, reasoning + tools.",
       "category": "llm",
-      "context_window": 200000,
-      "context_length": 200000,
-      "pricing": {"input": 4.00, "output": 20.00, "unit": "per_million_tokens", "currency": "USD"},
+      "context_window": 1050000,
+      "context_length": 1050000,
+      "pricing": {"input": 5.00, "output": 30.00, "unit": "per_million_tokens", "currency": "USD"},
       "supports_streaming": true,
       "supports_tools": true,
       "supports_reasoning": true,
@@ -266,10 +265,9 @@ Fetch a single model at `GET /anthropic/v1/models/{model_id}`.
 ## Vision (Image Input)
 
 You can send images on any model whose `supports_vision` flag is `true` in
-the model listing. Vision-capable models currently include the OpenAI GPT-5.4
-family, Anthropic Claude 4.5 / 4.6 (Opus, Sonnet, Haiku), Google Gemini 3 / 3.1,
-xAI Grok 4.20, Qwen 3.5 (Plus, Flash), Moonshot Kimi K2.5 / K2.6,
-Google Gemma 4 26B, Mistral Small 3.1 / Small 4, and both auto-routers.
+the model listing. Vision-capable models currently include the OpenAI GPT-5.6
+family (Sol, Terra, Luna), GPT-5.5, GPT-4o / GPT-4.1, Google Gemini 3 / 3.1,
+Moonshot Kimi K2.5 / K2.6 / K2.7 Code, Google Gemma 4 26B, and Mistral Small 3.1.
 Models without vision support reject image content with a
 `400 invalid_request_error` before the upstream call — you won't be charged.
 
@@ -278,7 +276,7 @@ curl -X POST https://api.callmissed.com/v1/messages \
   -H "x-api-key: cm_your_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-4.6",
+    "model": "gpt-5.6-sol",
     "max_tokens": 1024,
     "messages": [{
       "role": "user",
@@ -326,7 +324,7 @@ anthropic-ratelimit-requests-reset: 2026-05-01T00:00:00+00:00
 This endpoint is designed to work with the Anthropic SDK out of the box. Key differences from the official Anthropic API:
 
 - **`anthropic-version` header** is accepted but not required
-- **Model routing** — requests can target *any* model in the CallMissed catalogue, not just Anthropic models. Bare `claude-*` names are auto-prefixed with `anthropic/`.
+- **Model routing** — requests can target *any* model in the CallMissed catalogue, using either a bare first-party ID or a slash-prefixed frontier ID.
 - **Token counting** uses a BPE tokenizer approximation (tiktoken `cl100k_base`). Expect ~5-10% variance from Anthropic's native counts on English prompts; larger on CJK and heavy-punctuation text.
 - **Tools** are supported — `tools` and `tool_choice` work as documented, and `tool_use`/`tool_result` content blocks are preserved.
 - **Vision** is supported on models whose `supports_vision` flag is `true`. Image content sent to text-only models is rejected with a `400 invalid_request_error` before the upstream call, so your credits are safe.

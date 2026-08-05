@@ -37,7 +37,7 @@ The OpenAI-compatible endpoints (`/v1/*`) return the standard OpenAI error envel
 | `404` | Not Found | Resource ID does not exist or belongs to another tenant |
 | `409` | Conflict | Duplicate resource, or replayed `Idempotency-Key` with a different body |
 | `422` | Unprocessable Entity | Schema validation failed (bad enum, out-of-range number) |
-| `429` | Too Many Requests | Per-IP or per-key rate limit exceeded — back off and retry |
+| `429` | Too Many Requests | Rate limit exceeded — back off and retry |
 | `500` | Internal Server Error | Unexpected server error — safe to retry once |
 | `501` | Not Implemented | Endpoint exists but the feature is not yet live (e.g. embeddings) |
 | `503` | Service Unavailable | Upstream provider temporarily unavailable |

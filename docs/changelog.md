@@ -2,12 +2,21 @@
 title: "Changelog"
 description: "Latest updates, new features, and improvements to the CallMissed API."
 slug: "changelog"
-breadcrumb: "Getting Started"
+breadcrumb: "Resources"
 ---
 
 # Changelog
 
 Latest updates, new features, and improvements to the CallMissed API.
+
+## August 2026
+
+### Model catalog update — retired models
+
+- **Retired LLM IDs** — the following model IDs are no longer served: `openai/gpt-5.4-pro`, `openai/gpt-5.4`, `openai/gpt-5.4-mini`, `openai/gpt-5.4-nano`, `anthropic/claude-opus-4.6`, `anthropic/claude-sonnet-4.6`, `anthropic/claude-haiku-4.5`, `x-ai/grok-4.20`, `qwen/qwen3.5-plus`, `qwen/qwen3.5-flash`, `mistralai/mistral-small-2603`, and the `auto` auto-router.
+- **Migration** — use the first-party flagships (`gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, `grok-4.3`) or the direct-routed free tier (`kimi-k2.6`, `kimi-k2.7-code`, `glm-5.2`, `gpt-oss-120b`, `mistral-small-3.1`). See [Models](/docs/models).
+- **Free tier** — now 24 models (11 LLM). The `auto` free auto-router is retired; pick a free model explicitly.
+- **Endpoints unchanged** — `POST /v1/chat/completions` and the Anthropic-compatible `POST /v1/messages` both continue to work and accept every current catalog ID.
 
 ## June 2026
 
@@ -25,10 +34,10 @@ Latest updates, new features, and improvements to the CallMissed API.
 - **First-party models** — deployments callable by bare ID: `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash`, plus first-party STT (`whisper`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, `gpt-4o-transcribe-diarize`) and TTS (`gpt-4o-mini-tts`).
 - **More STT/TTS** — `whisper-large-v3-turbo` (99 langs),  `nova-3` (diarization), `aura-2-en` / `aura-2-es`, and `melotts` — all free-tier.
 - **Kimi K2.6** — `kimi-k2.6` added to the direct-routed free tier alongside `kimi-k2.5`.
-- **TOTP 2FA & passkeys** — `/api/v1/auth/2fa/*` (authenticator apps + backup codes) and WebAuthn passkeys at `/api/v1/auth/passkey/*`. Active sessions are listable and revocable at `/api/v1/auth/sessions`.
+- **TOTP 2FA & passkeys** — two-factor auth (authenticator apps + backup codes) and passkeys for dashboard sign-in. Active sessions can be reviewed and revoked from the dashboard.
 - **WhatsApp platform** — Embedded Signup onboarding, message templates, broadcast campaigns, and delivery analytics under `/api/v1/whatsapp/*`. See [WhatsApp API](/docs/whatsapp-api).
-- **Billing surfaces** — coupon redemption (`POST /api/v1/coupons/redeem`), downloadable invoices (`/api/v1/invoices/:invoice_number/pdf`), and a credit ledger with `summary_by_type` at `/api/v1/credits/transactions`.
-- **Audit log** — sensitive-action audit feed at `/api/v1/audit/events`.
+- **Billing surfaces** — coupon redemption, downloadable PDF invoices, and a credit ledger broken down by transaction type, all in the dashboard.
+- **Audit log** — a sensitive-action audit feed in the dashboard.
 
 ## April 2026
 
@@ -50,11 +59,11 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ### v1.2.0 — Security, Google OAuth & Plan Enforcement
 
-- **Google OAuth** — Sign in with Google via `POST /api/v1/auth/google`. Auto-creates tenant/user, links to existing accounts by email.
+- **Sign in with Google** — Google sign-in for the dashboard. Auto-creates the organisation and user, and links to an existing account by email.
 - **OTP Authentication** — Email-based OTP for passwordless login and password reset
 - **Plan limit enforcement** — Server-side usage caps per plan tier (free/starter/pro/enterprise). API returns `429 quota_exceeded` when limits reached. Usage headers (`X-RateLimit-*`, `X-Usage-Warning`) on every response.
-- **Per-API-key rate limiting** — 60 req/min per key on top of IP-based limits
-- **Security hardening** — SSRF prevention on webhooks, WebSocket auth enforcement, input sanitization, rate limiter IP cleanup, error message sanitization
+- **Per-API-key rate limiting** — 60 req/min per key
+- **Security hardening** — across the API surface
 - **Model catalog update** — OpenAI gpt-5.4 family, Anthropic Claude 4.6, Google Gemini 3.1, xAI Grok 4.20, Qwen 3.5, Mistral Small
 - **Knowledge Base file upload** — Upload PDF, DOCX, TXT files (max 20 MB) with auto text extraction
 - **Bot deployment verification** — Verify WhatsApp/Twilio channel connectivity from the dashboard

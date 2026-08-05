@@ -1,27 +1,17 @@
 ---
 title: "Authentication"
-description: "All API requests require authentication via Bearer token or API key."
+description: "Every API request authenticates with a CallMissed API key."
 slug: "authentication"
 breadcrumb: "API Reference"
 ---
 
 # Authentication
 
-All API requests require authentication via Bearer token or API key.
-
-## Bearer Token
-
-After login or register, you receive an `access_token`. Pass it in every request:
-
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-Tokens expire after 24 hours. Use the refresh endpoint to rotate.
+Every API request authenticates with a CallMissed API key.
 
 ## API Key
 
-For server-to-server integrations, create an API key from your Profile page. Keys are prefixed with `cm_`:
+Every request authenticates with an API key. Create one from your Profile page in the dashboard — keys are prefixed with `cm_` and are passed as a Bearer token:
 
 ```
 Authorization: Bearer cm_your_api_key_here
@@ -57,7 +47,7 @@ Permissions decide which AI services a key may call. They are enforced on the in
 
 ### Resource scopes
 
-Scopes gate the management (dashboard-style) endpoints under `/api/v1/` when you call them with `Bearer cm_*` instead of a dashboard login. Unlike permissions, scopes default to **empty = no resource access** — you opt in explicitly.
+Scopes gate the resource endpoints under `/api/v1/` — bots, conversations, knowledge, webhooks. Unlike permissions, scopes default to **empty = no resource access** — you opt in explicitly.
 
 | Scope | Gates |
 |-------|-------|
@@ -68,4 +58,4 @@ Scopes gate the management (dashboard-style) endpoints under `/api/v1/` when you
 | `whatsapp:read` / `whatsapp:write` | Read vs. manage WhatsApp messaging |
 | `*` | All resource scopes |
 
-> A key created for plain inference (the common case) needs only service permissions — leave scopes empty. Dashboard JWT sessions always have full access to both services and resources.
+> A key created for plain inference (the common case) needs only service permissions — leave scopes empty.

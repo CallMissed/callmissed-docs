@@ -32,4 +32,4 @@ Reuse the **same** key when retrying the same logical request. Use a **new** key
 - A replay with the same key **and** the same body returns the original response — the action runs only once.
 - A replay with the same key but a **different** body returns `409 Conflict`.
 - Keys are scoped to your tenant and retained for a limited window, then expire.
-- Idempotency is most important for [payments](/docs/payments) and resource-creation endpoints.
+- Idempotency is most important for resource-creation endpoints, where a blind retry would otherwise create a duplicate.

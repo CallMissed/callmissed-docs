@@ -2,7 +2,7 @@
 title: "Frontier Models"
 description: "300+ frontier LLM models from OpenAI, Anthropic, Google, and more."
 slug: "models-frontier"
-breadcrumb: "Models"
+breadcrumb: "LLM & AI"
 ---
 
 # Frontier Models
@@ -11,33 +11,17 @@ breadcrumb: "Models"
 
 ## Overview
 
-All frontier models are accessible via `POST /v1/chat/completions` using the model's full ID (e.g. `openai/gpt-5.4`).
+All frontier models are accessible via `POST /v1/chat/completions` using the model's full ID (e.g. `moonshotai/kimi-k2`).
 
 | Model ID | Provider | Context |
 |----------|----------|---------|
-| `openai/gpt-5.4` | OpenAI | 1M |
-| `openai/gpt-5.4-mini` | OpenAI | 400K |
-| `anthropic/claude-sonnet-4.6` | Anthropic | 1M |
-| `anthropic/claude-opus-4.6` | Anthropic | 1M |
 | `google/gemini-3.1-pro-preview` *(maintenance)* | Google | 1M |
 | `google/gemini-3-flash-preview` *(maintenance)* | Google | 1M |
 | `google/gemini-3.5-flash` *(maintenance)* | Google | 1M |
 | `google/gemini-3.1-flash-lite` *(maintenance)* | Google | 1M |
-| `x-ai/grok-4.20` | xAI | 256K |
-| `qwen/qwen3.5-plus` | Qwen | 262K |
 | `moonshotai/kimi-k2` | Moonshot | 128K |
-| `auto` | Auto Router | — |
 
-## Auto Router
-
-`auto` automatically selects the best model for your prompt:
-
-```python
-response = client.chat.completions.create(
-    model="auto",
-    messages=[{"role": "user", "content": "Your prompt here"}]
-)
-```
+The first-party flagship set — `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, and `grok-4.3` — is called with the bare model ID on the same endpoint. See [Models](/docs/models#first-party-models).
 
 ## Provider Routing
 
@@ -45,7 +29,7 @@ Control which upstream serves your request via the `provider` parameter (raw HTT
 
 ```json
 {
-  "model": "openai/gpt-5.4",
+  "model": "moonshotai/kimi-k2",
   "messages": [...],
   "provider": {
     "sort": "price",
@@ -61,7 +45,7 @@ Control which upstream serves your request via the `provider` parameter (raw HTT
 >
 > ```python
 > client.chat.completions.create(
->     model="openai/gpt-5.4",
+>     model="moonshotai/kimi-k2",
 >     messages=[...],
 >     extra_body={"provider": {"sort": "throughput", "order": ["openai"]}},
 > )
@@ -119,4 +103,4 @@ Append suffixes to any model ID for routing hints:
 | `:nitro` | Throughput priority — fastest response |
 | `:floor` | Lowest price available |
 
-Example: `openai/gpt-5.4:nitro`, `anthropic/claude-sonnet-4.6:floor`
+Example: `moonshotai/kimi-k2:nitro`, `google/gemini-3.5-flash:floor`

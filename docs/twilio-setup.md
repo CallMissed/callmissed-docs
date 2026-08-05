@@ -2,7 +2,7 @@
 title: "Twilio Voice Setup"
 description: "Connect a Twilio voice number to CallMissed so an AI agent answers inbound calls in real time."
 slug: "twilio-setup"
-breadcrumb: "Channels"
+breadcrumb: "Numbers (PSTN)"
 ---
 
 # Twilio Voice Setup
@@ -30,31 +30,15 @@ From the [Twilio Console](https://console.twilio.com/) home page, copy:
 :::steps
 ## Open Integration Settings
 
-In the [Dashboard](https://app.callmissed.com), go to **Settings → Integrations → Twilio**. (Programmatically this is `PUT /api/v1/settings/twilio`.)
+In the [Dashboard](https://app.callmissed.com), go to **Settings → Integrations → Twilio**. Credentials are saved from the dashboard, signed in as an owner or admin.
 
 ## Enter your credentials
 
-```bash
-curl -X PUT https://api.callmissed.com/api/v1/settings/twilio \
-  -H "Authorization: Bearer cm_your_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "account_sid": "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-    "auth_token": "your_twilio_auth_token",
-    "phone_number": "+14155550123"
-  }'
-```
-
-The auth token is stored write-only and returned masked on reads.
+Paste the **Account SID**, **Auth Token** and **Phone Number** you copied above, then save. The auth token is stored write-only and shown masked afterwards.
 
 ## Verify the connection
 
-Confirm the credentials are valid with a live check against the Twilio API:
-
-```bash
-curl -X POST https://api.callmissed.com/api/v1/settings/twilio/verify \
-  -H "Authorization: Bearer cm_your_key"
-```
+Click **Verify**. CallMissed runs a live check against the Twilio API and reports whether the credentials work before you route any calls.
 :::
 
 ## Create a voice bot
