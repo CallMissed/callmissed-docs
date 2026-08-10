@@ -171,7 +171,7 @@ event: message_stop          → stream complete
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `model` | string | Yes | Model ID (e.g. `gpt-5.6-sol`, `sarvam-30b`, `google/gemini-3.5-flash`) |
+| `model` | string | Yes | Model ID (e.g. `gpt-5.6-sol`, `sarvam-105b`, `google/gemini-3.5-flash`) |
 | `max_tokens` | integer | Yes | Maximum tokens to generate |
 | `messages` | array | Yes | List of `{role, content}` objects |
 | `system` | string | No | System prompt (top-level, not in messages) |
@@ -191,7 +191,6 @@ On the Anthropic endpoint, a bare model name resolves against the CallMissed cat
 | You send | Routed as |
 |----------|-----------|
 | `gpt-5.6-sol` | `gpt-5.6-sol` (first-party model, no prefix) |
-| `sarvam-30b` | `sarvam-30b` (Indic model, no prefix) |
 | `google/gemini-3.5-flash` | `google/gemini-3.5-flash` (already has prefix) |
 
 You can use **any model** from our [Models](/docs/models) catalog — not just Anthropic models.

@@ -17,7 +17,7 @@ from openai import OpenAI
 
 client = OpenAI(api_key="cm_your_api_key", base_url="https://api.callmissed.com/v1")
 response = client.chat.completions.create(
-    model="sarvam-30b",
+    model="sarvam-105b",
     messages=[{"role": "user", "content": "Hello in Hindi"}],
 )
 print(response.choices[0].message.content)
@@ -26,7 +26,7 @@ print(response.choices[0].message.content)
 import OpenAI from "openai";
 const client = new OpenAI({ apiKey: "cm_your_api_key", baseURL: "https://api.callmissed.com/v1" });
 const response = await client.chat.completions.create({
-  model: "sarvam-30b",
+  model: "sarvam-105b",
   messages: [{ role: "user", content: "Hello in Hindi" }],
 });
 console.log(response.choices[0].message.content);
@@ -35,13 +35,13 @@ console.log(response.choices[0].message.content);
 curl -X POST https://api.callmissed.com/v1/chat/completions \
   -H "Authorization: Bearer cm_your_api_key" \
   -H "Content-Type: application/json" \
-  -d '{"model":"sarvam-30b","messages":[{"role":"user","content":"Hello in Hindi"}]}'
+  -d '{"model":"sarvam-105b","messages":[{"role":"user","content":"Hello in Hindi"}]}'
 ```
 :::
 
 :::cards
 /docs/sdks | SDKs & Libraries | package | Install the OpenAI SDK in your language
-/docs/models | Model Catalog | boxes | 125 models — LLM, STT, TTS, realtime voice, image
+/docs/models | Model Catalog | boxes | 127 models — LLM, STT, TTS, realtime voice, image
 :::
 
 ## Get started
@@ -109,7 +109,7 @@ Use the same pattern as the hero example above — pass your `cm_` API key and p
 :::tabs
 ```python [Python]
 response = client.chat.completions.create(
-    model="sarvam-30b",
+    model="sarvam-105b",
     messages=[{"role": "user", "content": "Explain quantum computing"}],
     stream=True
 )
@@ -120,7 +120,7 @@ for chunk in response:
 ```
 ```javascript [JavaScript]
 const stream = await client.chat.completions.create({
-  model: "sarvam-30b",
+  model: "sarvam-105b",
   messages: [{ role: "user", content: "Explain quantum computing" }],
   stream: true,
 });
@@ -134,7 +134,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
   -H "Authorization: Bearer cm_your_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "sarvam-30b",
+    "model": "sarvam-105b",
     "messages": [{"role": "user", "content": "Explain quantum computing"}],
     "stream": true
   }'

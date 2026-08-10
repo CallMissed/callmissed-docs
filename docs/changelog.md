@@ -11,6 +11,13 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## August 2026
 
+### New models — conversational Indic LLM, Saaras V4 STT, Flux TTS
+
+- **`sarvam-105b-conversations`** — 105B MoE tuned for conversation and voice. 128K context, tool calling, streaming, hybrid thinking. Free-tier, same $0.35 in / $0.35 out per 1M as `sarvam-105b`. See [Indic Models](/docs/models-indic).
+- **`saaras:v4`** — Sarvam STT with five output modes (transcribe, translate, verbatim, transliterate, code-mix) across 24 languages. Free-tier at $0.53 / hour. See [Speech to Text](/docs/speech-to-text).
+- **`deepgram-flux-tts`** — streaming-first TTS built for voice agents: turn-based synthesis with prosody carried across turns. 12 English voices including `priya` (Indian-accented English, the default). English only, no expressive controls. Paid plans, $0.30 / 10K characters. See [Voices](/docs/tts-voices).
+- **Free tier** — now 25 models (11 LLM, 4 STT, 4 TTS, 6 image).
+
 ### Model catalog update — retired models
 
 - **Retired LLM IDs** — the following model IDs are no longer served: `openai/gpt-5.4-pro`, `openai/gpt-5.4`, `openai/gpt-5.4-mini`, `openai/gpt-5.4-nano`, `anthropic/claude-opus-4.6`, `anthropic/claude-sonnet-4.6`, `anthropic/claude-haiku-4.5`, `x-ai/grok-4.20`, `qwen/qwen3.5-plus`, `qwen/qwen3.5-flash`, `mistralai/mistral-small-2603`, and the `auto` auto-router.

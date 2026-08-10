@@ -74,7 +74,7 @@ curl -X POST https://api.callmissed.com/v1/audio/translations \
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `file` | file | Yes | Audio file (WAV, MP3, AAC, OGG, FLAC, WebM, M4A) |
-| `model` | string | No | Model ID (default: `saaras:v3`) |
+| `model` | string | No | Model ID (default: `saaras:v3`; `saaras:v4` also translates to English) |
 | `response_format` | string | No | `json` (default), `text`, or `verbose_json` |
 | `temperature` | float | No | Sampling temperature |
 | `prompt` | string | No | Prompt to guide transcription style |

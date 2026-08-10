@@ -11,7 +11,7 @@ CallMissed provides AI-powered communication APIs to deploy WhatsApp chatbots an
 
 :::cards
 /docs/quickstart | Quickstart | play | Make your first API call in under a minute
-/docs/models | Models | boxes | 125 models — Indic STT/TTS, Deepgram direct, frontier LLMs, realtime voice, image gen
+/docs/models | Models | boxes | 127 models — Indic STT/TTS, Deepgram direct, frontier LLMs, realtime voice, image gen
 /docs/voice-agent | Voice Agent | phone | LiveKit WebRTC agents with Indic speech pipeline
 :::
 

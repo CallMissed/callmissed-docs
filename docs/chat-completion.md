@@ -75,7 +75,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="sarvam-30b",
+    model="sarvam-105b",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "What is the capital of India?"}
@@ -93,7 +93,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: "sarvam-30b",
+  model: "sarvam-105b",
   messages: [
     { role: "system", content: "You are a helpful assistant." },
     { role: "user", content: "What is the capital of India?" },
@@ -107,7 +107,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
   -H "Authorization: Bearer cm_your_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "sarvam-30b",
+    "model": "sarvam-105b",
     "messages": [
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "What is the capital of India?"}
@@ -120,7 +120,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `model` | string | Model ID (e.g. `sarvam-30b`, `gpt-5.6-luna`) |
+| `model` | string | Model ID (e.g. `sarvam-105b`, `gpt-5.6-luna`) |
 | `messages` | array | List of `{role, content}` objects. System prompt goes here as `{"role": "system", "content": "..."}` |
 | `stream` | boolean | Enable streaming SSE responses |
 | `temperature` | number | Sampling temperature (0–2) |
@@ -232,7 +232,6 @@ source — the table below is a snapshot):
 | `nemotron-3-super` | 1,048,576 |
 | `kimi-k2.5`, `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code`, `glm-5.2` | 262,144 |
 | `sarvam-105b`, `gpt-oss-120b`, `glm-4.7-flash`, `gemma-4-26b-a4b-it`, `mistral-small-3.1` | 131,072 |
-| `sarvam-30b` | 65,536 |
 
 ## Responses API
 
