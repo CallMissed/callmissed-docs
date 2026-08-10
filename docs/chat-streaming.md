@@ -2,7 +2,7 @@
 title: "Streaming"
 description: "Stream chat completion responses in real-time using Server-Sent Events."
 slug: "chat-streaming"
-breadcrumb: "Chat Completion"
+breadcrumb: "LLM & AI"
 ---
 
 # Streaming

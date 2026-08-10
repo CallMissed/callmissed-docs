@@ -2,7 +2,7 @@
 title: "Voice Agent"
 description: "Real-time voice AI agent powered by LiveKit (WebRTC) — native speech-to-speech with Nova 2 Sonic by default, plus STT→LLM→TTS fallback."
 slug: "voice-agent"
-breadcrumb: "API Guides & Tutorials"
+breadcrumb: "Voice Agents"
 ---
 
 # Voice Agent

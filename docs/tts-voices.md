@@ -2,7 +2,7 @@
 title: "Voices"
 description: "Available voices for text-to-speech synthesis."
 slug: "tts-voices"
-breadcrumb: "Text to Speech"
+breadcrumb: "Speech"
 ---
 
 # Voices

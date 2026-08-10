@@ -2,7 +2,7 @@
 title: "Chat Completion"
 description: "Generate text responses using our OpenAI-compatible chat completion API."
 slug: "chat-completion"
-breadcrumb: "API Guides & Tutorials"
+breadcrumb: "LLM & AI"
 ---
 
 # Chat Completion
@@ -120,7 +120,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `model` | string | Model ID (e.g. `sarvam-30b`, `openai/gpt-5.4-mini`) |
+| `model` | string | Model ID (e.g. `sarvam-30b`, `gpt-5.6-luna`) |
 | `messages` | array | List of `{role, content}` objects. System prompt goes here as `{"role": "system", "content": "..."}` |
 | `stream` | boolean | Enable streaming SSE responses |
 | `temperature` | number | Sampling temperature (0–2) |
@@ -160,11 +160,11 @@ When using slash-prefixed frontier models, these additional parameters are suppo
 >
 > ```python
 > client.chat.completions.create(
->     model="openai/gpt-5.4",
+>     model="google/gemini-3.5-flash",
 >     messages=[...],
 >     extra_body={
->         "provider": {"sort": "throughput", "order": ["openai"]},
->         "models": ["openai/gpt-5.4-mini"],
+>         "provider": {"sort": "throughput", "order": ["google"]},
+>         "models": ["google/gemini-3.1-flash-lite"],
 >     },
 > )
 > ```
@@ -184,7 +184,7 @@ from openai import OpenAI
 client = OpenAI(api_key="cm_your_key", base_url="https://api.callmissed.com/v1")
 
 resp = client.chat.completions.create(
-    model="anthropic/claude-sonnet-4.6",   # supports_vision: true
+    model="gpt-5.6-sol",   # supports_vision: true
     messages=[{
         "role": "user",
         "content": [
@@ -195,13 +195,11 @@ resp = client.chat.completions.create(
 )
 ```
 
-Current vision-capable models: `openai/gpt-5.4-pro`, `openai/gpt-5.4`,
-`openai/gpt-5.4-mini`, `openai/gpt-5.4-nano`, `anthropic/claude-opus-4.6`,
-`anthropic/claude-sonnet-4.6`, `anthropic/claude-haiku-4.5`,
+Current vision-capable models: `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
+`gpt-5.5`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`,
 `google/gemini-3.1-pro-preview`, `google/gemini-3-flash-preview`, `google/gemini-3.5-flash`, `google/gemini-3.1-flash-lite`,
-`x-ai/grok-4.20`, `qwen/qwen3.5-plus`, `qwen/qwen3.5-flash`, `kimi-k2.5`,
-`kimi-k2.6`, `kimi-k2.7-code`, `gemma-4-26b-a4b-it`, `mistral-small-3.1`,
-`mistralai/mistral-small-2603`, `auto` (free plan), `openrouter/auto`.
+`kimi-k2.5`, `kimi-k2.6`, `kimi-k2.7-code`, `gemma-4-26b-a4b-it`,
+`mistral-small-3.1`.
 Check the live `GET /v1/models` response for the authoritative list — it's
 computed from the same set the runtime guard uses.
 
@@ -230,14 +228,10 @@ source — the table below is a snapshot):
 | Model | context_window |
 |-------|----------------|
 | `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna` | 1,050,000 |
-| `openai/gpt-5.4`, `openai/gpt-5.4-pro`, `openai/gpt-5.4-mini`, `openai/gpt-5.4-nano` | 1,048,576 |
-| `anthropic/claude-opus-4.6`, `anthropic/claude-sonnet-4.6` | 1,048,576 |
 | `google/gemini-3.1-pro-preview`, `google/gemini-3-flash-preview`, `google/gemini-3.5-flash`, `google/gemini-3.1-flash-lite` | 1,048,576 |
 | `nemotron-3-super` | 1,048,576 |
-| `x-ai/grok-4.20` | 262,144 |
-| `qwen/qwen3.5-plus`, `qwen/qwen3.5-flash` | 262,144 |
 | `kimi-k2.5`, `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code`, `glm-5.2` | 262,144 |
-| `sarvam-105b`, `gpt-oss-120b`, `glm-4.7-flash`, `gemma-4-26b-a4b-it`, `mistralai/mistral-small-2603` | 131,072 |
+| `sarvam-105b`, `gpt-oss-120b`, `glm-4.7-flash`, `gemma-4-26b-a4b-it`, `mistral-small-3.1` | 131,072 |
 | `sarvam-30b` | 65,536 |
 
 ## Responses API

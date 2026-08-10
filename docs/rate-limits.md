@@ -1,13 +1,13 @@
 ---
 title: "Rate Limits & Quotas"
-description: "How CallMissed limits request rate — global per-IP limits, per-key RPM, response headers, and how to handle 429s."
+description: "How CallMissed limits request rate — per-key RPM, budget caps, response headers, and how to handle 429s."
 slug: "rate-limits"
 breadcrumb: "Getting Started"
 ---
 
 # Rate Limits & Quotas
 
-How CallMissed limits request rate — global per-IP limits, per-key RPM, response headers, and how to handle 429s.
+How CallMissed limits request rate — per-key RPM, budget caps, response headers, and how to handle 429s.
 
 ## Limit Layers
 
@@ -15,13 +15,13 @@ Requests pass through several limits, in order:
 
 | Layer | Limit | Scope |
 | --- | --- | --- |
-| Global middleware | 200 requests / minute | per IP |
-| Auth endpoints | 5–10 requests / minute | per IP (login, register, refresh, OTP) |
 | Per-key RPM | plan defaults: Free 60 · Starter 500 · Pro 3,000 · Enterprise 10,000 (override per key) | per API key |
 | Monthly budget | configurable credit cap | per tenant / per key |
 | Plan limits | tier-based caps on LLM/STT/TTS calls, conversations, storage, team size | per tenant |
 
-Set a per-key RPM and a [budget cap](/docs/payments#budget) when issuing keys, and check live consumption with `GET /api/v1/keys/:id/rate-state`.
+Abuse protection also runs in front of the API and may throttle traffic that looks automated or hostile, independently of your plan's per-key RPM.
+
+Set a per-key RPM and a [budget cap](/docs/keys) when issuing keys, then track live consumption for each key from the dashboard.
 
 ## Response Headers
 

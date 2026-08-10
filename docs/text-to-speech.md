@@ -2,7 +2,7 @@
 title: "Text to Speech"
 description: "Convert text to natural-sounding speech with our Indic TTS."
 slug: "text-to-speech"
-breadcrumb: "API Guides & Tutorials"
+breadcrumb: "Speech"
 ---
 
 # Text to Speech

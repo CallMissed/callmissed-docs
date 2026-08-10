@@ -2,7 +2,7 @@
 title: "Real-time STT"
 description: "Real-time speech-to-text transcription via WebSocket."
 slug: "stt-realtime"
-breadcrumb: "Speech to Text"
+breadcrumb: "Speech"
 ---
 
 # Real-time STT

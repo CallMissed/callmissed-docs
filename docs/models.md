@@ -2,7 +2,7 @@
 title: "Models"
 description: "All available models on CallMissed — Indic STT/TTS/LLM, fast direct-routed models, and 300+ frontier text models. All accessible through one OpenAI-compatible API."
 slug: "models"
-breadcrumb: "Getting Started"
+breadcrumb: "LLM & AI"
 ---
 
 # Models
@@ -55,12 +55,11 @@ The OpenAI-compatible listing at `GET /v1/models` (requires `Authorization: Bear
 
 ## Free Plan Models
 
-The free tier includes **25 models** across four categories. Use `GET /api/v1/models?free=true` to list them, or see the [Model Access by Plan](/docs/model-access) page for the full breakdown.
+The free tier includes **24 models** across four categories. Use `GET /api/v1/models?free=true` to list them, or see the [Model Access by Plan](/docs/model-access) page for the full breakdown.
 
-### LLM (12 models)
+### LLM (11 models)
 | Model ID | Description |
 |----------|-------------|
-| `auto` | Free auto-router — picks a capable free model per request |
 | `sarvam-30b` | 30B MoE — Indic languages, cost-efficient |
 | `sarvam-105b` | 105B MoE — complex reasoning, Indic languages |
 | `kimi-k2.5` | Moonshot K2.5 — 262K context, reasoning |
@@ -115,11 +114,6 @@ All models are pay-per-use. Pricing is in USD.
 | `kimi-k2.5-fast` | $0.81 | $4.05 |
 | `sarvam-30b` | $0.35 (₹30) | $0.35 (₹30) |
 | `sarvam-105b` | $0.35 (₹30) | $0.35 (₹30) |
-| `openai/gpt-5.4-mini` | $1.00 | $6.00 |
-| `openai/gpt-5.4` | $3.50 | $20.00 |
-| `openai/gpt-5.4-pro` | $40.00 | $240.00 |
-| `anthropic/claude-sonnet-4.6` | $4.00 | $20.00 |
-| `anthropic/claude-opus-4.6` | $7.00 | $35.00 |
 | `google/gemini-3.1-pro-preview` *(maintenance)* | $2.00 | $12.00 |
 | `google/gemini-3-flash-preview` *(maintenance)* | $0.50 | $3.00 |
 | `google/gemini-3.5-flash` *(maintenance)* | $1.50 | $9.00 |
@@ -302,7 +296,7 @@ Send a JSON body with `features` (array or comma-separated string) and exactly o
 
 ## Direct-Routed LLMs
 
-Low-latency models routed directly through CallMissed — sub-2s end-to-end on small prompts and free-tier eligible per the [reasoning_effort matrix](/docs/api-speed#3-reasoning-effort-matrix-per-model-verified-empirically).
+Low-latency models routed directly through CallMissed — sub-2s end-to-end on small prompts and free-tier eligible per the [reasoning_effort matrix](/docs/api-speed#3-reasoning_effort-matrix-per-model--verified-empirically).
 
 | Model ID | Creator | Context |
 |----------|---------|---------|
@@ -320,30 +314,16 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 Access frontier models via the same `/v1/chat/completions` endpoint. Use the slash-prefixed model ID as the `model` field.
 
-> **"300+ models" — what that means.** CallMissed maintains a curated catalog of ~72 first-party models (Indic STT/TTS/LLM, direct-routed fast models, realtime speech-to-speech voice, image, and the popular frontier IDs below). On top of that, *any* of 300+ and growing frontier models is reachable as a passthrough by sending its slash-prefixed ID (e.g. `openai/gpt-5.4`) even if it isn't in our curated list. Passthrough models are billed at the listed per-model rate and aren't guaranteed to appear in `GET /v1/models`.
+> **"300+ models" — what that means.** CallMissed maintains a curated catalog of ~59 first-party models (Indic STT/TTS/LLM, direct-routed fast models, realtime speech-to-speech voice, image, and the popular frontier IDs below). On top of that, *any* of 300+ and growing frontier models is reachable as a passthrough by sending its slash-prefixed ID (e.g. `google/gemini-3.5-flash`) even if it isn't in our curated list. Passthrough models are billed at the listed per-model rate and aren't guaranteed to appear in `GET /v1/models`.
 
 ### Popular Models
 
 | Model ID | Creator | Context |
 |----------|---------|---------|
-| `openai/gpt-5.4-pro` | OpenAI | 1M |
-| `openai/gpt-5.4` | OpenAI | 1M |
-| `openai/gpt-5.4-nano` | OpenAI | 400K |
-| `openai/gpt-5.4-mini` | OpenAI | 400K |
-| `anthropic/claude-opus-4.6` | Anthropic | 1M |
-| `anthropic/claude-sonnet-4.6` | Anthropic | 1M |
-| `anthropic/claude-haiku-4.5` | Anthropic | 200K |
 | `google/gemini-3.1-pro-preview` *(maintenance)* | Google | 1M |
 | `google/gemini-3-flash-preview` *(maintenance)* | Google | 1M |
 | `google/gemini-3.5-flash` *(maintenance)* | Google | 1M |
 | `google/gemini-3.1-flash-lite` *(maintenance)* | Google | 1M |
-| `x-ai/grok-4.20` | xAI | 256K |
-| `qwen/qwen3.5-plus` | Qwen | 256K |
-| `qwen/qwen3.5-flash` | Qwen | 256K |
-| `mistralai/mistral-small-2603` | Mistral | 128K |
-| `auto` | Auto Router | — |
-
-Use `auto` to let CallMissed select the best free model for your prompt automatically.
 
 
 ## First-Party Models
@@ -379,18 +359,14 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **138** models (76 LLM · 42 STT · 8 TTS · 12 image) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **125** models (63 LLM · 42 STT · 8 TTS · 12 image) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
-### LLM (47 models)
+### LLM (34 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
 | `sarvam-30b` | 30B MoE (2.4B active params), 64K context. Best for real-time chat an… | 65K | Yes | $0.35 in / $0.35 out per 1M |
 | `sarvam-105b` | 105B MoE, 128K context. Flagship model for complex reasoning and agen… | 131K | Yes | $0.35 in / $0.35 out per 1M |
-| `openai/gpt-5.4-pro` | OpenAI's most capable model. 1M context, best for complex multi-step … | 1M | No | $40.00 in / $240.00 out per 1M |
-| `openai/gpt-5.4` | OpenAI's flagship model. 1M context, strong general-purpose performance. | 1M | No | $3.50 in / $20.00 out per 1M |
-| `openai/gpt-5.4-mini` | Fast and affordable. Great balance of speed and quality. | 400K | No | $1.00 in / $6.00 out per 1M |
-| `openai/gpt-5.4-nano` | Fastest and cheapest OpenAI model. Best for simple tasks. | 400K | No | $0.27 in / $1.70 out per 1M |
 | `gpt-4o` | OpenAI GPT-4o. Multimodal (text + vision), 128K context. Hos… | 128K | No | $2.50 in / $10.00 out per 1M |
 | `gpt-4.1` | OpenAI GPT-4.1. Long-context (1M) multimodal model with stro… | 1M | No | $2.00 in / $8.00 out per 1M |
 | `gpt-5-mini` | OpenAI GPT-5 Mini. Fast, affordable reasoning model. 400K co… | 400K | No | $0.25 in / $2.00 out per 1M |
@@ -401,16 +377,10 @@ A curated, representative slice of the **138** models (76 LLM · 42 STT · 8 TTS
 | `grok-4.3` | xAI Grok 4.3. Strong reasoning and real-ti… | 200K | No | $3.50 in / $15.00 out per 1M |
 | `DeepSeek-V4-Pro` | DeepSeek V4 Pro. Flagship reasoning model … | 1M | No | $1.00 in / $3.00 out per 1M |
 | `DeepSeek-V4-Flash` | DeepSeek V4 Flash. Fast, affordable reason… | 131K | No | $0.30 in / $1.20 out per 1M |
-| `anthropic/claude-opus-4.6` | Anthropic's most capable model. 1M context, excellent for coding and … | 1M | No | $7.00 in / $35.00 out per 1M |
-| `anthropic/claude-sonnet-4.6` | Fast and intelligent. 1M-token context — best balance of speed and ca… | 1M | No | $4.00 in / $20.00 out per 1M |
-| `anthropic/claude-haiku-4.5` | Anthropic's fastest, most cost-efficient model. 200K context, strong … | 200K | No | $1.35 in / $6.75 out per 1M |
 | `google/gemini-3.1-pro-preview` *(maintenance)* | Google's flagship model. 1M context, agentic reasoning, multimodal. P… | 1M | No | $2.00 in / $12.00 out per 1M |
 | `google/gemini-3-flash-preview` *(maintenance)* | Google's fast frontier model. 1M context, optimized for low latency. … | 1M | No | $0.50 in / $3.00 out per 1M |
 | `google/gemini-3.5-flash` *(maintenance)* | Google's latest fast frontier model. 1M context, multimodal, tools + reasoning + caching. | 1M | No | $1.50 in / $9.00 out per 1M |
 | `google/gemini-3.1-flash-lite` *(maintenance)* | Most affordable Gemini 3.x model. 1M context, low-latency. Pass-throu… | 1M | No | $0.25 in / $1.50 out per 1M |
-| `x-ai/grok-4.20` | xAI's flagship model. 256K context, strong on reasoning and real-time… | 262K | No | $1.69 in / $3.38 out per 1M |
-| `qwen/qwen3.5-plus` | Alibaba's flagship model. 256K native context, excellent multilingual… | 262K | No | $0.40 in / $2.40 out per 1M |
-| `qwen/qwen3.5-flash` | Fast Qwen model. 256K native context, optimized for speed and cost. | 262K | No | $0.09 in / $0.35 out per 1M |
 | `kimi-k2.5` | Moonshot AI's latest model. 256K context, strong on coding and math. | 262K | Yes | $0.81 in / $4.05 out per 1M |
 | `kimi-k2.5-fast` *(maintenance)* | Kimi K2.5 tuned for sub-second latency — 414 tok/s inference, 256K co… | 262K | No | $0.81 in / $4.05 out per 1M |
 | `kimi-k2.6` | Moonshot AI's latest K2.6 release. 256K context, improved reasoning a… | 262K | Yes | $1.28 in / $5.40 out per 1M |
@@ -421,9 +391,6 @@ A curated, representative slice of the **138** models (76 LLM · 42 STT · 8 TTS
 | `nemotron-3-super` | NVIDIA Nemotron 3 — 120B MoE tuned for long-context reasoning. 256K-tok… | 256K | Yes | $1.50 in / $6.00 out per 1M |
 | `gemma-4-26b-a4b-it` | Google Gemma 4 — 26B MoE (4B active). Efficient instruct model for ge… | 131K | Yes | $0.40 in / $1.60 out per 1M |
 | `mistral-small-3.1` | Mistral Small 3.1 — 24B instruct, 128K context. Strong tool use, fast… | 131K | Yes | $0.47 in / $0.76 out per 1M |
-| `mistralai/mistral-small-2603` | Mistral's efficient model. Fast and cost-effective for everyday tasks. | 131K | No | $0.20 in / $0.80 out per 1M |
-| `auto` | Auto-router. Automatically selects a model per request, filtering by … | 200K | Yes | $0.30 in / $0.50 out per 1M |
-| `openrouter/auto` | Automatically selects the best model for your prompt. | — | No | Pricing varies — depends on the model auto-selected for your prompt |
 | `nova-sonic-2` | Amazon Nova 2 Sonic. Native speech-to-speech voice model — STT, reasoning, and TTS in one; 16 voices across 8 languages including Hindi + en-IN. | 32K | No | $4.00 in / $15.00 out per 1M • $0.064/min |
 | `nova-sonic` | Amazon Nova Sonic 1.0. Native speech-to-speech voice model with 11 voices across English, Spanish, French, Italian, and German. | 32K | No | $4.50 in / $17.00 out per 1M • $0.071/min |
 | `gpt-realtime` | OpenAI flagship realtime speech-to-speech model — STT + reasoning + function calling + TTS in one. 10 concurrent. | 32K | No | $4.00 in / $16.00 out per 1M • $0.375/min |
@@ -494,9 +461,9 @@ response = client.chat.completions.create(
     extra_body={"reasoning_effort": "high"}
 )
 
-# Frontier model
+# First-party flagship model
 response = client.chat.completions.create(
-    model="openai/gpt-5.4-mini",
+    model="gpt-5.6-luna",
     messages=[{"role": "user", "content": "Hello"}]
 )
 ```

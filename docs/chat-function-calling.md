@@ -2,7 +2,7 @@
 title: "Function Calling"
 description: "Use tool calls and function calling with the chat completion API."
 slug: "chat-function-calling"
-breadcrumb: "Chat Completion"
+breadcrumb: "LLM & AI"
 ---
 
 # Function Calling

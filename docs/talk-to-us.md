@@ -2,7 +2,7 @@
 title: "Talk to Us"
 description: "Get in touch with the CallMissed team for support, enterprise inquiries, or feedback."
 slug: "talk-to-us"
-breadcrumb: "Getting Started"
+breadcrumb: "Resources"
 ---
 
 # Talk to Us

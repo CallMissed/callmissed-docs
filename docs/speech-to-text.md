@@ -2,7 +2,7 @@
 title: "Speech to Text"
 description: "Transcribe audio to text with our Indic saaras model and 22 Indic language support."
 slug: "speech-to-text"
-breadcrumb: "API Guides & Tutorials"
+breadcrumb: "Speech"
 ---
 
 # Speech to Text

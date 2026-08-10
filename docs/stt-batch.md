@@ -2,7 +2,7 @@
 title: "Batch STT"
 description: "Batch speech-to-text transcription with speaker diarization for call analytics."
 slug: "stt-batch"
-breadcrumb: "Speech to Text"
+breadcrumb: "Speech"
 ---
 
 # Batch STT
