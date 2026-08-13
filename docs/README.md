@@ -27,6 +27,7 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Scheduled & Batch Sending](email-scheduled.md)
 - [Receive Email](email-inbound.md)
 - [Delivery, Suppressions & Usage](email-logs.md)
+- [Email Webhooks](email-webhooks.md)
 - [Limits, Quotas & Errors](email-limits.md)
 
 ## Getting Started
@@ -51,12 +52,10 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Model Access by Plan](model-access.md)
 - [Kimi K2.5 Fast (Maintenance)](models-kimi-fast.md)
 - [Indic Models](models-indic.md)
-- [Frontier Models](models-frontier.md)
 - [Chat Completion](chat-completion.md)
 - [Streaming](chat-streaming.md)
 - [Function Calling](chat-function-calling.md)
 - [Anthropic-Compatible API](anthropic-api.md)
-- [Gateway Plugins & Routing](gateway-plugins.md)
 
 ## Images & Search
 
@@ -103,5 +102,6 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Sending Messages](whatsapp-messages.md)
 - [Message Templates](whatsapp-templates.md)
 - [Campaigns](whatsapp-campaigns.md)
+- [Payments](whatsapp-payments.md)
 - [Calling](whatsapp-calling.md)
 - [Migrate from Meta Cloud API](migrate-from-meta.md)

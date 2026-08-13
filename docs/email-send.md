@@ -107,15 +107,15 @@ An **address** may be written three ways, and you can mix them within one array:
 | `cc` | array | No | Carbon-copy recipients. Appear in the `Cc` header **and** are delivered |
 | `bcc` | array | No | Blind-copy recipients. Delivered but **never** written to any header |
 | `subject` | string | No | Up to 998 characters |
-| `text` | string | body required | Plain-text body |
+| `text` | string | body required | Plain-text body. Omit it on an HTML send and one is [generated for you](#automatic-plain-text); send `""` to opt out and ship HTML only |
 | `html` | string | body required | HTML body |
 | `textContent` | string | body required | Brevo alias for `text` |
 | `htmlContent` | string | body required | Brevo alias for `html` |
 | `reply_to` | string | No | Reply-To address as a string |
 | `replyTo` | string \| object | No | Brevo alias for `reply_to`, string or `{"email", "name"}` |
 | `headers` | object | No | Extra headers as string→string. Reserved headers (`From`, `To`, `Cc`, `Bcc`, `Reply-To`, `Subject`, `Date`, `Message-ID`, `DKIM-Signature`, `Received`) are ignored |
-| `attachment` | array | No | Attachments; also accepted as `attachments`. See below |
-| `tags` | array | No | Up to 10 string tags for your own categorisation; trimmed, empties dropped. They also ride the message as an `X-Tags` header |
+| `attachment` | array | No | Attachments, and [inline images](#inline-images); also accepted as `attachments`. See below |
+| `tags` | array | No | Up to 10 tags for your own categorisation. Each is either a plain string or a [`{name, value}` object](#tags); trimmed, empties dropped |
 | `templateId` | string (UUID) | No | Send from a saved template: its subject/body are the base; explicit send fields override. See [Templates](/docs/email-templates) |
 | `params` | object | No | Substitution values for `{{ params.KEY }}` placeholders. They are applied to the template's subject and bodies **and** to any inline `subject` / `text` / `html` you send, so `params` works with no `templateId` at all. Capped at 100 KB of JSON |
 | `scheduledAt` | string | No | ISO-8601 UTC timestamp to send later (future, within 72h). See [Scheduled Sending](/docs/email-scheduled) |
@@ -131,6 +131,88 @@ Provide **at least one** of `text` / `html` (or their Brevo aliases), a `templat
 | `url` | string | one of `url` / `content` | `http`/`https` URL fetched at send time. Internal/private URLs are refused; the fetched file is size-capped |
 | `content` | string | one of `url` / `content` | Base64-encoded file bytes |
 | `name` | string | with `content` | Filename (≤255 chars). Required when `content` is set; optional with `url` |
+| `content_id` | string | No | Makes the part an [inline image](#inline-images) your HTML references as `<img src="cid:THE_ID">`. Also accepted as `contentId`. Up to 255 chars, and only letters, numbers, `.`, `-`, `_` and `@`; anything else is a `422` |
+| `disposition` | string | No | `inline` or `attachment`, to be explicit. Omitted, a part with a `content_id` is inline and everything else is an attachment |
+
+### Inline images
+
+Give an attachment a `content_id` and reference that id from the HTML body as `cid:`. The part is embedded where you placed it instead of arriving as a download:
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/email/send \
+  -H "Authorization: Bearer cm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "Acme Ops <donotreply@acme.com>",
+    "to": ["customer@example.com"],
+    "subject": "Your receipt",
+    "html": "<p>Thanks for your order.</p><img src=\"cid:logo@acme\" alt=\"Acme\" width=\"120\">",
+    "attachment": [
+      {
+        "name": "logo.png",
+        "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==",
+        "content_id": "logo@acme"
+      }
+    ]
+  }'
+```
+
+A `url` attachment can be inline too: set `content_id` on it and the fetched file is embedded the same way.
+
+The one case `content_id` alone cannot express is a part that has a content id **and** should still appear as a normal downloadable attachment. Set `"disposition": "attachment"` for that; an explicit `disposition` always wins.
+
+Inline parts count toward the 25 MB message ceiling like any other attachment, and `cid:` references in your HTML are never rewritten by [click tracking](#open-and-click-tracking).
+
+### Tags
+
+A tag is either a plain string, as before, or a `{name, value}` object when you need to carry a value:
+
+```json
+{
+  "tags": [
+    "receipt",
+    { "name": "order_id", "value": "1043" },
+    { "name": "campaign", "value": "spring-sale" }
+  ]
+}
+```
+
+Both shapes can be mixed in the same array. A structured tag's `name` and `value` are required, may contain only ASCII letters, numbers, underscores and dashes, and are capped at 256 characters each; anything else is a `422`. Up to 10 tags per send.
+
+On the wire, tag **names** are joined into an `X-Tags` header exactly as before, and each structured tag additionally gets its own `X-Tag-<name>: <value>` header so the value survives onto the message. The authoritative copy is the one stored against the send.
+
+Plain-string tags behave exactly as they did, so existing calls need no change.
+
+### Automatic plain text
+
+Send `html` with no `text` and a plain-text alternative is generated from your HTML. A message with no text part reads badly in text-only clients and scores worse with spam filters, so this is the default.
+
+Link destinations are kept alongside their label as `label (https://url)`, and block-level markup becomes line breaks so the text keeps the shape of the document. Scripts and styles are dropped entirely.
+
+It is a best-effort reading of your HTML, never an exact rendering. Two ways to take control:
+
+- **Supply `text` yourself** for exact copy. Anything you send is used as-is.
+- **Send `"text": ""`** to opt out and ship an HTML-only message. An empty string is treated as a deliberate choice, not an omission.
+
+### Open and click tracking
+
+Tracking is **per sending domain and off by default**. Turn it on with [`PATCH /api/v1/email/domains/{id}`](/docs/email-domains#tracking-and-sending-toggles):
+
+```bash
+curl -X PATCH https://api.callmissed.com/api/v1/email/domains/9d0f8b3a-1c2e-4a5b-8f7d-6e2a1b0c9d4e \
+  -H "Authorization: Bearer cm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"open_tracking": true, "click_tracking": true}'
+```
+
+Once a domain opts in, every HTML send from it is rewritten as it goes out:
+
+- **Opens** append a 1x1 pixel at the end of the HTML body. It is marked `aria-hidden` with an empty `alt`, so a screen reader does not announce it, and it never displaces visible content.
+- **Clicks** rewrite `http`/`https` links to a signed redirect that forwards the recipient to the original destination. `mailto:`, `tel:` and `cid:` links are left alone, as are unquoted `href` attributes, so nothing in your markup is mangled.
+
+Only the HTML part is tracked; the plain-text part always keeps the real destinations. Both toggles are independent, and whether a send carried tracking is recorded at send time, so [metrics](/docs/email-logs#engagement-metrics) stay meaningful across a window where you flipped a toggle.
+
+Read the results from [engagement metrics](/docs/email-logs#engagement-metrics).
 
 **Headers.**
 

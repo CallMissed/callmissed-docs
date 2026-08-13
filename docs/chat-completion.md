@@ -34,7 +34,7 @@ icon:gateway | CallMissed gateway | Stream tokens back and deduct credits when t
 icon:done | Your app | Receive the completion (all at once, or token-by-token when streaming)
 :::
 
-> **Tip:** The model id decides routing automatically — bare ids and slash-prefixed ids are routed to the right backend for you. See [How CallMissed Works](/docs/how-it-works).
+> **Tip:** The model id decides routing automatically — you never pick a backend. See [How CallMissed Works](/docs/how-it-works).
 
 ## Make your first request
 
@@ -75,7 +75,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="sarvam-30b",
+    model="sarvam-105b",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "What is the capital of India?"}
@@ -93,7 +93,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: "sarvam-30b",
+  model: "sarvam-105b",
   messages: [
     { role: "system", content: "You are a helpful assistant." },
     { role: "user", content: "What is the capital of India?" },
@@ -107,7 +107,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
   -H "Authorization: Bearer cm_your_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "sarvam-30b",
+    "model": "sarvam-105b",
     "messages": [
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "What is the capital of India?"}
@@ -120,7 +120,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `model` | string | Model ID (e.g. `sarvam-30b`, `gpt-5.6-luna`) |
+| `model` | string | Model ID (e.g. `sarvam-105b`, `gpt-5.6-luna`) |
 | `messages` | array | List of `{role, content}` objects. System prompt goes here as `{"role": "system", "content": "..."}` |
 | `stream` | boolean | Enable streaming SSE responses |
 | `temperature` | number | Sampling temperature (0–2) |
@@ -143,33 +143,29 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 | `stream_options` | object | `{"include_usage": true}` to get token counts in stream |
 | `reasoning_effort` | string | `"none"` / `"minimal"` / `"low"` / `"medium"` / `"high"` / `"xhigh"` — see the per-model matrix below. `"xhigh"` (maximum reasoning) is accepted by the GPT-5.5 / GPT-5.6 family; other models map it down to their highest supported value. |
 
-## Frontier Parameters
-
-When using slash-prefixed frontier models, these additional parameters are supported:
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `provider` | object | Provider routing preferences (`sort`, `order`, `only`, `ignore`, `max_price`) |
-| `models` | array | Fallback model list |
-| `route` | string | `"fallback"` |
-| `plugins` | array | `[{"id": "web"}]` for web search, `"file-parser"`, `"response-healing"`, `"context-compression"` |
-| `reasoning` | object | `{"effort": "high", "max_tokens": 5000}` |
-| `transforms` | array | `["middle-out"]` for context compression |
-
-> **OpenAI Python SDK note** — The OpenAI client validates kwargs against its known parameters and rejects `provider=...` (and the others above) with `TypeError: Completions.create() got an unexpected keyword argument 'provider'`. Pass them via `extra_body` instead:
+> **OpenAI Python SDK note** — The OpenAI client validates kwargs against its
+> known parameters, so a CallMissed-specific field such as `reasoning_effort`
+> raises `TypeError: Completions.create() got an unexpected keyword argument`.
+> Pass it via `extra_body` instead:
 >
 > ```python
 > client.chat.completions.create(
->     model="google/gemini-3.5-flash",
+>     model="kimi-k2.6",
 >     messages=[...],
->     extra_body={
->         "provider": {"sort": "throughput", "order": ["google"]},
->         "models": ["google/gemini-3.1-flash-lite"],
->     },
+>     extra_body={"reasoning_effort": "none"},
 > )
 > ```
 >
-> Raw HTTP / curl users can keep `provider` at the top level — only the OpenAI SDK gates kwargs.
+> Raw HTTP / curl users can keep it at the top level — only the OpenAI SDK gates kwargs.
+
+## Model Substitution
+
+CallMissed never substitutes your model. Send a `model` and you get that model,
+or a clean error (`429`/`503` with `Retry-After`). You are never billed for a
+model you did not name.
+
+Need a model that is not in the catalog? See
+[Models on demand](/docs/models#models-on-demand).
 
 ## Vision (Image Input)
 
@@ -195,13 +191,13 @@ resp = client.chat.completions.create(
 )
 ```
 
-Current vision-capable models: `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
-`gpt-5.5`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`,
-`google/gemini-3.1-pro-preview`, `google/gemini-3-flash-preview`, `google/gemini-3.5-flash`, `google/gemini-3.1-flash-lite`,
-`kimi-k2.5`, `kimi-k2.6`, `kimi-k2.7-code`, `gemma-4-26b-a4b-it`,
+Vision-capable models: `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
+`gpt-5.5`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `kimi-k2.5`,
+`kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code`, `gemma-4-26b-a4b-it`,
 `mistral-small-3.1`.
-Check the live `GET /v1/models` response for the authoritative list — it's
-computed from the same set the runtime guard uses.
+
+`GET /v1/models` is authoritative. Read `supports_vision` there rather than
+hard-coding this list.
 
 ## Context Window
 
@@ -222,17 +218,19 @@ for m in client.models.list():
     print(m.id, extra.get("context_window"), extra.get("supports_vision"))
 ```
 
-Representative context windows (treat `GET /v1/models` as the authoritative
-source — the table below is a snapshot):
+Snapshot — `GET /v1/models` is authoritative:
 
 | Model | context_window |
 |-------|----------------|
 | `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna` | 1,050,000 |
-| `google/gemini-3.1-pro-preview`, `google/gemini-3-flash-preview`, `google/gemini-3.5-flash`, `google/gemini-3.1-flash-lite` | 1,048,576 |
-| `nemotron-3-super` | 1,048,576 |
-| `kimi-k2.5`, `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code`, `glm-5.2` | 262,144 |
-| `sarvam-105b`, `gpt-oss-120b`, `glm-4.7-flash`, `gemma-4-26b-a4b-it`, `mistral-small-3.1` | 131,072 |
-| `sarvam-30b` | 65,536 |
+| `gpt-4.1` | 1,047,576 |
+| `gpt-5.5`, `DeepSeek-V4-Pro` | 1,000,000 |
+| `gpt-5-mini` | 400,000 |
+| `kimi-k2.6`, `kimi-k2.7-code`, `glm-5.2` | 262,144 |
+| `kimi-k2.5`, `kimi-k2.5-fast`, `nemotron-3-super` | 256,000 |
+| `grok-4.3` | 200,000 |
+| `sarvam-105b`, `sarvam-105b-conversations`, `glm-4.7-flash`, `gemma-4-26b-a4b-it`, `DeepSeek-V4-Flash` | 131,072 |
+| `gpt-4o`, `gpt-oss-120b`, `mistral-small-3.1` | 128,000 |
 
 ## Responses API
 
