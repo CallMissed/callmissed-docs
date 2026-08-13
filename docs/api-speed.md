@@ -106,7 +106,6 @@ Behaviour per model — verified live against each upstream on 2026-05-01:
 | `nemotron-3-super` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
 | `glm-4.7-flash` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
 | `glm-5.2` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
-| `sarvam-30b` / `sarvam-105b` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
 | `mistral-small-3.1` | (no reasoning surface — silently dropped) | | | | | |
 | Frontier (`openai/*`, `anthropic/*`, …) | forwarded as-is — underlying model gates valid values | | | | | |
 

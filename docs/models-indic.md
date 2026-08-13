@@ -11,14 +11,6 @@ Indic STT, TTS, and LLM models — optimized for Indian languages.
 
 ## LLM
 
-### sarvam-30b
-
-- **Architecture:** 30B MoE, 2.4B active parameters, 128 sparse experts, GQA
-- **Context:** 64K tokens
-- **Training:** Pre-trained on 16T tokens
-- **Best for:** Real-time chat, Indic languages, cost-efficient reasoning
-- **Thinking mode:** `reasoning_effort: "low" | "medium" | "high"`
-
 ### sarvam-105b
 
 - **Architecture:** 105B MoE, MLA architecture
@@ -27,9 +19,20 @@ Indic STT, TTS, and LLM models — optimized for Indian languages.
 - **Best for:** Complex reasoning, agentic tasks, long documents
 - **Thinking mode:** `reasoning_effort: "low" | "medium" | "high"`
 
+### sarvam-105b-conversations
+
+- **Architecture:** 105B MoE, tuned for conversation and voice
+- **Context:** 128K tokens
+- **Tool calling:** yes
+- **Streaming:** yes
+- **Best for:** Multi-turn dialogue, voice agents, assistants that talk
+- **Thinking mode:** `reasoning_effort: "low" | "medium" | "high"`
+
+Same family, same price and same 128K window as `sarvam-105b` — tuned for spoken dialogue rather than long-form work. It does not accept image input.
+
 ### Thinking Mode
 
-Both `sarvam-30b` and `sarvam-105b` support hybrid thinking mode:
+The `sarvam-105b` models support hybrid thinking mode:
 
 ```python
 response = client.chat.completions.create(
@@ -62,6 +65,15 @@ thinking-disable is available on the direct-routed `kimi-k2.5` / `kimi-k2.6` /
 - **Endpoint:** `POST /v1/audio/transcriptions`
 
 Supported languages include: Hindi, Bengali, Gujarati, Kannada, Malayalam, Marathi, Odia, Punjabi, Tamil, Telugu, Urdu, Assamese, Bodo, Dogri, Kashmiri, Konkani, Maithili, Manipuri, Nepali, Sanskrit, Santali, Sindhi, and English.
+
+### saaras:v4
+
+- **Languages:** 24
+- **Output modes:** transcribe, translate, verbatim, translit, codemix
+- **Auto language detection:** yes
+- **Endpoint:** `POST /v1/audio/transcriptions`
+
+Five output modes on one model — standard transcription, English translation, verbatim (fillers kept), Latin-script transliteration, and code-mixed output. Select one with the `mode` form field; `transcribe` is the default.
 
 ## Text to Speech
 

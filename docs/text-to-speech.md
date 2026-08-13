@@ -117,7 +117,7 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 {"model": "deepgram-aura-2", "input": "Let me pull that up... okay, found it."}
 ```
 
-`bulbul:v3` and `gnani-timbre-v2.0` do not support pause markup or SSML — they would speak the dots aloud. Use sentence length and real punctuation for rhythm on those models.
+`bulbul:v3`, `gnani-timbre-v2.0` and `deepgram-flux-tts` do not support pause markup or SSML — they would speak the dots aloud. Use sentence length and real punctuation for rhythm on those models.
 
 ## Choosing an expressive voice
 
@@ -127,6 +127,7 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 | Indian languages, warm delivery | `bulbul:v3` with `temperature` 0.9–1.2 |
 | Pauses and hesitation in text | `deepgram-aura-2` (91 voices, many tagged expressive/cheerful) |
 | Lowest cost | `melotts` — no expressive controls; rely on `humanize` |
+| English voice agents, turn-aware prosody | `deepgram-flux-tts` (11 English voices, default `priya`) — no expressive controls or SSML |
 
 ## Streaming (Deepgram Aura-2)
 

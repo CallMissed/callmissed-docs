@@ -43,7 +43,7 @@ curl https://api.callmissed.com/api/v1/models?category=llm
 curl https://api.callmissed.com/api/v1/models?free=true
 
 # Get a specific model
-curl https://api.callmissed.com/api/v1/models/sarvam-30b
+curl https://api.callmissed.com/api/v1/models/sarvam-105b
 
 # Which models each plan tier can call
 curl https://api.callmissed.com/api/v1/models/access
@@ -55,13 +55,13 @@ The OpenAI-compatible listing at `GET /v1/models` (requires `Authorization: Bear
 
 ## Free Plan Models
 
-The free tier includes **24 models** across four categories. Use `GET /api/v1/models?free=true` to list them, or see the [Model Access by Plan](/docs/model-access) page for the full breakdown.
+The free tier includes **25 models** across four categories. Use `GET /api/v1/models?free=true` to list them, or see the [Model Access by Plan](/docs/model-access) page for the full breakdown.
 
 ### LLM (11 models)
 | Model ID | Description |
 |----------|-------------|
-| `sarvam-30b` | 30B MoE — Indic languages, cost-efficient |
 | `sarvam-105b` | 105B MoE — complex reasoning, Indic languages |
+| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice — 128K context, tool calling |
 | `kimi-k2.5` | Moonshot K2.5 — 262K context, reasoning |
 | `kimi-k2.6` | Moonshot K2.6 — improved reasoning + coding, 262K context |
 | `kimi-k2.7-code` | Moonshot K2.7 Code — frontier 1T-param agentic coding, 262K context, vision + tools |
@@ -72,10 +72,11 @@ The free tier includes **24 models** across four categories. Use `GET /api/v1/mo
 | `gemma-4-26b-a4b-it` | Google Gemma 4 26B |
 | `mistral-small-3.1` | Mistral Small 3.1 — 24B instruct, tool use |
 
-### STT (3 models)
+### STT (4 models)
 | Model ID | Description |
 |----------|-------------|
 | `saaras:v3` | 23 langs (22 Indic + English), best for code-mixed |
+| `saaras:v4` | 24 langs — five output modes: transcribe, translate, verbatim, transliterate, code-mix |
 | `whisper-large-v3-turbo` | Whisper — 99 langs with auto-detect, transcribe + translate |
 | `nova-3` | Nova 3 — 11 langs, diarization, smart-format, streaming-capable |
 
@@ -103,7 +104,7 @@ The free tier includes **24 models** across four categories. Use `GET /api/v1/mo
 | `nano-banana-2` | Google Gemini 3.1 Flash Image — multimodal, highest LM-Arena Elo *(paid · maintenance)* |
 | `nano-banana-pro` | Google Gemini 3 Pro Image — flagship typography + fidelity *(paid · maintenance)* |
 
-All other models — including `kimi-k2.5-fast`, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `nova-sonic*`, first-party STT/TTS), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), slash-prefixed frontier IDs (`openai/*`, `anthropic/*`, `google/*`, `x-ai/*`, `qwen/*`, `mistralai/*`), and paid image models (`flux-2-pro`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
+All other models — including `kimi-k2.5-fast`, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `nova-sonic*`, first-party STT/TTS), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, `deepgram-flux-tts`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), slash-prefixed frontier IDs (`openai/*`, `anthropic/*`, `google/*`, `x-ai/*`, `qwen/*`, `mistralai/*`), and paid image models (`flux-2-pro`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
 
 ### Pricing
 
@@ -112,8 +113,8 @@ All models are pay-per-use. Pricing is in USD.
 | Model | Input / 1M tokens | Output / 1M tokens |
 |-------|-------------------|-------------------|
 | `kimi-k2.5-fast` | $0.81 | $4.05 |
-| `sarvam-30b` | $0.35 (₹30) | $0.35 (₹30) |
 | `sarvam-105b` | $0.35 (₹30) | $0.35 (₹30) |
+| `sarvam-105b-conversations` | $0.35 (₹30) | $0.35 (₹30) |
 | `google/gemini-3.1-pro-preview` *(maintenance)* | $2.00 | $12.00 |
 | `google/gemini-3-flash-preview` *(maintenance)* | $0.50 | $3.00 |
 | `google/gemini-3.5-flash` *(maintenance)* | $1.50 | $9.00 |
@@ -133,7 +134,8 @@ All models are pay-per-use. Pricing is in USD.
 
 | STT Model | Price |
 |-----------|-------|
-| `saaras:v3` | $0.53 / hour (₹45/hr) |
+| `saaras:v3` | $0.30 / hour (₹30/hr) |
+| `saaras:v4` | $0.30 / hour (₹30/hr) |
 | `gnani-prisma-v2.5` | $0.27 / hour |
 | `whisper-large-v3-turbo` | $0.06 / hour |
 | `nova-3` | $0.50 / hour |
@@ -148,12 +150,13 @@ All models are pay-per-use. Pricing is in USD.
 
 | TTS Model | Price |
 |-----------|-------|
-| `bulbul:v3` | $0.53 / 10K chars (₹45/10K) |
+| `bulbul:v3` | $0.30 / 10K chars (₹30/10K) |
 | `gnani-timbre-v2.0` | $0.27 / 10K chars |
 | `aura-2-en` | $0.40 / 10K chars |
 | `aura-2-es` | $0.40 / 10K chars |
 | `deepgram-aura-2` | $0.30 / 10K chars |
 | `deepgram-aura-1` | $0.15 / 10K chars |
+| `deepgram-flux-tts` | $0.45 / 10K chars |
 | `melotts` | $0.05 / 10K chars |
 
 | Audio / Text Intelligence (Deepgram) | Price |
@@ -196,6 +199,7 @@ response = client.chat.completions.create(
 | Model | Description | Languages |
 |-------|-------------|-----------|
 | `saaras:v3` | Latest STT — best accuracy on Indian + code-mixed | 23 languages (22 Indic + English) |
+| `saaras:v4` | Five output modes on one model — transcribe, translate, verbatim, transliterate, code-mix | 24 languages |
 | `gnani-prisma-v2.5` | India-first telephony STT — code-switching, sub-4% WER on Indian English | 10 Indian languages |
 
 For 99-language general-purpose transcription, see `whisper-large-v3-turbo`. For diarization + smart-format on calls, see `nova-3`. Both are free-tier and live under the [audio model routes](#audio-models).
@@ -213,10 +217,10 @@ For low-latency English / Spanish voice agents, see `aura-2-en` / `aura-2-es`. F
 
 | Model | Params | Context | Best For |
 |-------|--------|---------|----------|
-| `sarvam-30b` | 30B MoE (2.4B active) | 64K tokens | Real-time chat, Indic languages, cost-efficient |
 | `sarvam-105b` | 105B MoE | 128K tokens | Complex reasoning, agentic tasks, long documents |
+| `sarvam-105b-conversations` | 105B MoE | 128K tokens | Conversation and voice agents, tool calling |
 
-Both `sarvam-30b` and `sarvam-105b` support **hybrid thinking mode** via `reasoning_effort: "low" | "medium" | "high"`. `"none"` and `"minimal"` are mapped down to `"low"` (verified 2026-05-01) so OpenAI-style clients sending `reasoning_effort: "none"` for thinking-off still get a 200. Full thinking-disable is available on the direct-routed `kimi-k2.5` / `kimi-k2.6` / `kimi-k2.7-code` / `gemma-4-26b-a4b-it` models.
+Both `sarvam-105b` and `sarvam-105b-conversations` support **hybrid thinking mode** via `reasoning_effort: "low" | "medium" | "high"`. `"none"` and `"minimal"` are mapped down to `"low"` (verified 2026-05-01) so OpenAI-style clients sending `reasoning_effort: "none"` for thinking-off still get a 200. Full thinking-disable is available on the direct-routed `kimi-k2.5` / `kimi-k2.6` / `kimi-k2.7-code` / `gemma-4-26b-a4b-it` models.
 
 ## Audio Models
 
@@ -256,10 +260,13 @@ Free-tier on every plan. See the [Pricing](/docs/pricing) page for current rates
 | `aura-2-es` | Spanish | 10 (aquila default) | $0.40 / 10K chars |
 | `deepgram-aura-2` | en/es/de/fr/nl/it/ja | 90+ (thalia default) | $0.30 / 10K chars |
 | `deepgram-aura-1` | English | 12 (asteria default) | $0.15 / 10K chars |
+| `deepgram-flux-tts` | English | 11 (priya default) | $0.45 / 10K chars |
 | `melotts` | English + French | 1 per language | $0.05 / 10K chars |
 | `gpt-4o-mini-tts` | Multilingual steerable | 6 OpenAI voices | $0.20 / 10K chars |
 
 Aura 2 returns linear16 PCM streamed at 24 kHz for low-latency playback. MeloTTS returns base64 MP3. Output formats may vary as models are updated.
+
+`deepgram-flux-tts` is streaming-first and built for voice agents: synthesis is turn-based and prosody carries across turns. It serves 11 English voices, including `priya` (Indian-accented English, the default). It is English-only — a multilingual voice set is planned for a later release — and exposes no expressive/emotion/style controls and no SSML.
 
 ### Audio Intelligence (Deepgram)
 
@@ -359,14 +366,14 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **125** models (63 LLM · 42 STT · 8 TTS · 12 image) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **127** models (63 LLM · 43 STT · 9 TTS · 12 image) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
 ### LLM (34 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
-| `sarvam-30b` | 30B MoE (2.4B active params), 64K context. Best for real-time chat an… | 65K | Yes | $0.35 in / $0.35 out per 1M |
 | `sarvam-105b` | 105B MoE, 128K context. Flagship model for complex reasoning and agen… | 131K | Yes | $0.35 in / $0.35 out per 1M |
+| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. 128K context, tool calling. | 131K | Yes | $0.35 in / $0.35 out per 1M |
 | `gpt-4o` | OpenAI GPT-4o. Multimodal (text + vision), 128K context. Hos… | 128K | No | $2.50 in / $10.00 out per 1M |
 | `gpt-4.1` | OpenAI GPT-4.1. Long-context (1M) multimodal model with stro… | 1M | No | $2.00 in / $8.00 out per 1M |
 | `gpt-5-mini` | OpenAI GPT-5 Mini. Fast, affordable reasoning model. 400K co… | 400K | No | $0.25 in / $2.00 out per 1M |
@@ -400,11 +407,12 @@ A curated, representative slice of the **125** models (63 LLM · 42 STT · 8 TTS
 | `gpt-realtime-2.1` | Latest realtime speech-to-speech — better alphanumeric recognition, silence/noise + interruption handling, configurable reasoning effort. Voice-agent only. | 128K | No | $4.00 in / $24.00 out per 1M • $0.375/min |
 | `gpt-realtime-2.1-mini` | Distilled, lower-cost realtime for faster voice interactions. Voice-agent only. | 128K | No | $0.60 in / $2.40 out per 1M • $0.117/min |
 
-### Speech to Text (8 models)
+### Speech to Text (9 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
-| `saaras:v3` | Latest Indic STT model. 23 languages (22 Indic + English), best ac… | — | Yes | $0.53 / hr |
+| `saaras:v3` | Latest Indic STT model. 23 languages (22 Indic + English), best ac… | — | Yes | $0.30 / hr |
+| `saaras:v4` | Sarvam STT with five output modes: transcribe, translate, verbatim, transliterate, code-mix. 24 languages. | — | Yes | $0.30 / hr |
 | `gnani-prisma-v2.5` | India-first telephony STT. 10 Indian languages, code-switching… | — | No | $0.27 / hr |
 | `whisper-large-v3-turbo` | OpenAI's Whisper Large v3 Turbo. 100+ languages with auto-detect, tra… | — | Yes | $0.06 / hr |
 | `nova-3` | Nova 3 — production-grade STT with diarization, punctuation,… | — | Yes | $0.50 / hr |
@@ -450,7 +458,7 @@ Pass the model ID in your request:
 ```python
 # Indic LLM
 response = client.chat.completions.create(
-    model="sarvam-30b",
+    model="sarvam-105b",
     messages=[{"role": "user", "content": "Hello in Hindi"}]
 )
 

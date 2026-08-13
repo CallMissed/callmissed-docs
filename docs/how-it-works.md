@@ -29,7 +29,7 @@ We pick the upstream provider from the model id, so you never manage multiple SD
 | Model id shape | Routed to |
 | --- | --- |
 | default fast tier | Kimi K2.5 Fast (~414 tok/s) |
-| no slash (e.g. `sarvam-30b`, `saaras:v3`) | Indic LLM/STT/TTS |
+| no slash (e.g. `sarvam-105b`, `saaras:v3`) | Indic LLM/STT/TTS |
 | has a slash (e.g. `google/gemini-3.5-flash`, `moonshotai/kimi-k2`) | Frontier catalog |
 | audio / image models | Audio/Image backends |
 
