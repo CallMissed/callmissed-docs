@@ -69,7 +69,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/templates \
   }'
 ```
 
-`components` is forwarded to WhatsApp unchanged, so any component type WhatsApp supports works, including button blocks. Only `BODY`, `FOOTER` and text `HEADER` are checked locally; everything else is validated by Meta.
+`components` is forwarded to WhatsApp unchanged, so any component type WhatsApp supports works, including button blocks. `BODY`, `FOOTER`, text `HEADER` and the three marketing formats below ([carousel](#carousel-templates), [limited-time offer](#limited-time-offer-templates), [coupon code](#coupon-code-templates)) are checked locally first; everything else is validated by Meta.
 
 **Response (200 OK)**
 
@@ -142,6 +142,172 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/templates \
 The only body option is the boolean `add_security_recommendation`, and there is no `example` because there is no sender-supplied variable in the body. Sending `BODY` text on an `AUTHENTICATION` template returns `400` telling you the verification-code copy is fixed by Meta, and a non-boolean `add_security_recommendation` returns `400` as well. Any additional button or footer options come from Meta's authentication-template reference and are passed through unchanged.
 
 Once approved, send the code through [`POST /messages/template`](/docs/whatsapp-messages#send-a-template-message), passing it as the body or button parameter.
+
+### Carousel templates
+
+A carousel pairs a normal message `BODY` with a swipeable row of cards, each with its own media header and buttons. Add a `CAROUSEL` component alongside the `BODY`.
+
+Carousels are **`MARKETING` only**. Under any other category the create returns `400` naming the format.
+
+| Rule | Detail |
+|---|---|
+| `cards` | 2 to 10. The count is fixed at creation: an approved template can only send the number of cards it was created with |
+| Card `HEADER` | Required on every card, and always media. `format` is `IMAGE` or `VIDEO` |
+| Card header media | `example.header_handle` must be a non-empty array holding an uploaded media handle |
+| Card `BODY` | Optional, but if one card has it every card must. Text max 160 characters, far shorter than the 1024-character message body. Variables need an `example` object |
+| Card `BUTTONS` | Optional, at most 2 per card, of type `QUICK_REPLY`, `URL` or `PHONE_NUMBER` |
+| Uniform structure | Every card must carry the same components in the same order, and the same button types. Cards render at a shared height, so a body or button on one card is required on all |
+| Top-level `BODY` | Still required, alongside the `CAROUSEL` component |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/templates \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "waba_id": "102290129340398",
+    "name": "summer_blends_carousel",
+    "category": "MARKETING",
+    "language": "en_US",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Hi {{1}}, our cold brew blends are 20% off this week.",
+        "example": { "body_text": [["Priya"]] }
+      },
+      {
+        "type": "CAROUSEL",
+        "cards": [
+          {
+            "components": [
+              {
+                "type": "HEADER",
+                "format": "IMAGE",
+                "example": { "header_handle": ["4::aW1hZ2UvanBlZw==:ARZ1"] }
+              },
+              { "type": "BODY", "text": "Ratnagiri Dark Roast, notes of cocoa and dried fig." },
+              {
+                "type": "BUTTONS",
+                "buttons": [
+                  { "type": "QUICK_REPLY", "text": "Send me a sample" },
+                  { "type": "URL", "text": "Shop now", "url": "https://acme.example.com/dark-roast" }
+                ]
+              }
+            ]
+          },
+          {
+            "components": [
+              {
+                "type": "HEADER",
+                "format": "IMAGE",
+                "example": { "header_handle": ["4::aW1hZ2UvanBlZw==:ARZ2"] }
+              },
+              { "type": "BODY", "text": "Chikmagalur Medium Roast, bright and citrus-forward." },
+              {
+                "type": "BUTTONS",
+                "buttons": [
+                  { "type": "QUICK_REPLY", "text": "Send me a sample" },
+                  { "type": "URL", "text": "Shop now", "url": "https://acme.example.com/medium-roast" }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+Every rule above is checked before submission, and the `400` names the card index and the field, so you do not have to reverse-engineer a generic rejection.
+
+### Limited-time offer templates
+
+A limited-time offer adds an offer banner with an optional countdown. Add a `LIMITED_TIME_OFFER` component. `MARKETING` only.
+
+| Rule | Detail |
+|---|---|
+| `limited_time_offer` | Required object: `{ "text": string (max 16), "has_expiration": boolean }`. `text` is the offer label |
+| `BODY` | Max 600 characters on this format, stricter than the usual 1024 |
+| `HEADER` | Optional, but when present must be `IMAGE` or `VIDEO`. A text header is not supported |
+| `FOOTER` | Not supported at all. Sending one returns `400` |
+| `BUTTONS` | Only `COPY_CODE` and `URL`. When both are present the `COPY_CODE` button must be declared first, because it is fixed at button index 0 and the URL button at index 1 |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/templates \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "waba_id": "102290129340398",
+    "name": "monsoon_offer",
+    "category": "MARKETING",
+    "language": "en_US",
+    "components": [
+      {
+        "type": "HEADER",
+        "format": "IMAGE",
+        "example": { "header_handle": ["4::aW1hZ2UvanBlZw==:ARZ1"] }
+      },
+      {
+        "type": "BODY",
+        "text": "Hi {{1}}, take 20% off your next bag of coffee.",
+        "example": { "body_text": [["Priya"]] }
+      },
+      {
+        "type": "LIMITED_TIME_OFFER",
+        "limited_time_offer": { "text": "20% off", "has_expiration": true }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          { "type": "COPY_CODE", "example": "MONSOON20" },
+          { "type": "URL", "text": "Shop now", "url": "https://acme.example.com/shop" }
+        ]
+      }
+    ]
+  }'
+```
+
+`has_expiration: true` renders a countdown, whose expiry is supplied per send as a component parameter on [`POST /messages/template`](/docs/whatsapp-messages#send-a-template-message). `components` is forwarded to WhatsApp unchanged on a template send, so the parameter shape is WhatsApp's own.
+
+### Coupon code templates
+
+A `COPY_CODE` button gives the customer a one-tap copy of a discount code. It works on its own marketing template, and is also the button an LTO template uses. `MARKETING` only.
+
+| Rule | Detail |
+|---|---|
+| Button shape | `{ "type": "COPY_CODE", "example": "<CODE>" }`. The button's label is fixed, so there is no `text` to set |
+| `example` | Required, a sample coupon code, max 20 characters. The same cap applies to the code you pass at send time |
+| Count | At most one `COPY_CODE` button per template |
+| Companions | A `QUICK_REPLY` button may accompany it |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/templates \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "waba_id": "102290129340398",
+    "name": "welcome_coupon",
+    "category": "MARKETING",
+    "language": "en_US",
+    "components": [
+      {
+        "type": "BODY",
+        "text": "Welcome to Acme, {{1}}. Here is 15% off your first order.",
+        "example": { "body_text": [["Priya"]] }
+      },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          { "type": "COPY_CODE", "example": "WELCOME15" },
+          { "type": "QUICK_REPLY", "text": "Browse blends" }
+        ]
+      }
+    ]
+  }'
+```
+
+The `example` is a sample for review, not the code you ship. The real code goes in a `coupon_code` button parameter per send, capped at the same 20 characters, so one approved template can issue a different code to every customer.
+
+An `AUTHENTICATION` template's `{ "type": "OTP", "otp_type": "COPY_CODE" }` button is a different component on a different template family and is not subject to these rules.
 
 ## List templates
 

@@ -11,6 +11,13 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## August 2026
 
+### New models — conversational Indic LLM, Saaras V4 STT, Flux TTS
+
+- **`sarvam-105b-conversations`** — 105B MoE tuned for conversation and voice. 128K context, tool calling, streaming, hybrid thinking. Free-tier, same $0.35 in / $0.35 out per 1M as `sarvam-105b`. See [Indic Models](/docs/models-indic).
+- **`saaras:v4`** — Sarvam STT with five output modes (transcribe, translate, verbatim, transliterate, code-mix) across 24 languages. Free-tier at $0.30 / hour. See [Speech to Text](/docs/speech-to-text).
+- **`deepgram-flux-tts`** — streaming-first TTS built for voice agents: turn-based synthesis with prosody carried across turns. 11 English voices including `priya` (Indian-accented English, the default). English only, no expressive controls. Paid plans, $0.45 / 10K characters. See [Voices](/docs/tts-voices).
+- **Free tier** — now 25 models (11 LLM, 4 STT, 4 TTS, 6 image).
+
 ### Model catalog update — retired models
 
 - **Retired LLM IDs** — the following model IDs are no longer served: `openai/gpt-5.4-pro`, `openai/gpt-5.4`, `openai/gpt-5.4-mini`, `openai/gpt-5.4-nano`, `anthropic/claude-opus-4.6`, `anthropic/claude-sonnet-4.6`, `anthropic/claude-haiku-4.5`, `x-ai/grok-4.20`, `qwen/qwen3.5-plus`, `qwen/qwen3.5-flash`, `mistralai/mistral-small-2603`, and the `auto` auto-router.
@@ -45,7 +52,7 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 - **Anthropic Messages API** — New `POST /v1/messages` endpoint. Use the Anthropic SDK with CallMissed by changing only the `base_url`. Full streaming support with Anthropic SSE lifecycle (`message_start`, `content_block_delta`, `message_stop`).
 - **Dual auth headers** — Anthropic endpoint accepts both `x-api-key` and `Authorization: Bearer` headers
-- **Model aliasing** — Send `claude-sonnet-4.6` on the Anthropic endpoint and it auto-routes to `anthropic/claude-sonnet-4.6` in the frontier catalog
+- **Model aliasing** — A bare model name on the Anthropic endpoint resolves against the CallMissed catalog
 - **Audio Translation** — New `POST /v1/audio/translations` endpoint. Translate audio in 24 languages to English text. OpenAI SDK compatible (`client.audio.translations.create()`)
 - **Token counting** — `POST /v1/messages/count_tokens` for input token estimation
 - **Anthropic rate limit headers** — `anthropic-ratelimit-requests-limit`, `anthropic-ratelimit-requests-remaining`, etc.
@@ -89,4 +96,4 @@ Latest updates, new features, and improvements to the CallMissed API.
 - **API Keys** — Scoped API keys with usage tracking
 - **Webhook Delivery** — Outbound webhooks with retry and HMAC signing
 - **Analytics Dashboard** — Real-time conversation and usage analytics
-- **300+ LLM Models** — Access frontier models from OpenAI, Anthropic, Google, xAI, Qwen, and more
+- **Model catalog** — LLM, STT, TTS and image models from one OpenAI-compatible endpoint

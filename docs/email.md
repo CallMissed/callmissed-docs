@@ -34,8 +34,9 @@ icon:done | Recipients | Receive DKIM-signed mail from your own domain
 /docs/email-send | Send Email | send | POST /api/v1/email/send with every field, header, response and the Brevo migration
 /docs/email-templates | Templates | file-text | Reusable subject and body with per-send substitution values
 /docs/email-scheduled | Scheduled & Batch Sending | calendar-clock | Send later with scheduledAt, or many recipient sets in one call
-/docs/email-inbound | Receive Email | inbox | Claim addresses on a verified domain and read inbound mail
-/docs/email-logs | Delivery, Suppressions & Usage | chart-column | Send log, suppression list, spend, and pricing
+/docs/email-inbound | Receive Email | inbox | Claim addresses on a verified domain, read inbound mail, or have it forwarded to your app
+/docs/email-logs | Delivery, Suppressions & Usage | chart-column | Send log, suppression list, engagement metrics, spend, and pricing
+/docs/email-webhooks | Email Webhooks | webhook | Subscribe your endpoint to bounces and complaints, signed and logged per attempt
 /docs/email-limits | Limits, Quotas & Errors | gauge | Send rate, monthly cap, daily quota, and every error shape and reason
 :::
 
