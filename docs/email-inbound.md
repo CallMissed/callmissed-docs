@@ -82,11 +82,58 @@ Mail arriving for an address you have not claimed is refused at the door, so not
 |-------|------|----------|-------|
 | `local_part` | string | Yes | The mailbox name to claim, 1–64 chars, for example `support` for `support@acme.com`. A bare name only: `@` or `/` in it is a `422`. Lower-cased before the address is built |
 | `domain_id` | string (UUID) | Yes | The id of one of your **verified** domains. An unverified domain is a `400` |
-| `forward_url` | string | No | Up to 2048 chars, and it must be a public `http`/`https` URL: an internal or private target is refused at write time with a `400`. Stored against the address for forwarding; **messages are not POSTed to it yet**, so read them from the messages endpoints below |
+| `forward_url` | string | No | Up to 2048 chars, and it must be a public `http`/`https` URL: an internal or private target is refused at write time with a `400`. Every message that arrives at this address is [POSTed to it](#forwarding-to-your-app) |
 
 An inbound address is **globally unique**: one mailbox per address across the whole platform, so a `local_part` already claimed on that domain returns `409`.
 
 `InboundAddressOut` returns `id`, `address` (the full `local_part@domain`), `domain_id`, `forward_url`, `is_active` and `created_at`.
+
+### Forwarding to your app
+
+Set `forward_url` on an address and every message that arrives there is POSTed to it as JSON, so you do not have to poll the messages endpoints.
+
+```json
+{
+  "type": "email.received",
+  "data": {
+    "id": "3f1c9a2d-4b5e-6a7f-8c9d-0e1f2a3b4c5d",
+    "message_id": "<CAF9x8@mail.example.com>",
+    "from": "customer@example.com",
+    "to": "support@acme.com",
+    "subject": "Where is my order?",
+    "text": "Hi, checking on order 1043.",
+    "html": "<p>Hi, checking on order 1043.</p>",
+    "auth_results": null,
+    "size_bytes": 4821,
+    "received_at": "2026-08-13T09:41:02.118431+00:00"
+  }
+}
+```
+
+The `data` object is the message as we stored it. Raw MIME is not included; it is not retained after parsing. `auth_results` carries the sender-authentication verdicts computed when the message was received, and is `null` when none were recorded.
+
+The forward payload uses shorter key names than the messages API, so a handler written against one does not read the other unchanged:
+
+| Forward payload | `GET /inbound/messages/{id}` |
+|-----------------|------------------------------|
+| `data.id` | `id` |
+| `data.from` | `from_address` |
+| `data.to` | `to_address` |
+| `data.text` | `text_body` |
+| `data.html` | `html_body` |
+| `data.auth_results` | not returned |
+
+`message_id`, `subject`, `size_bytes` and `received_at` are spelled the same on both.
+
+How it behaves:
+
+- **The message is stored first, then forwarded.** It is always readable through the API even if your endpoint is down, and the `id` in the payload is the one you can fetch.
+- **The message's `status` records the outcome:** `forwarded` when your endpoint answered 2xx, `failed` when it did not. Poll `GET /inbound/messages` filtered by nothing and check `status` to find what your endpoint missed.
+- **A failed forward never loses the message.** Delivery is best-effort on top of a message we have already persisted.
+- **Redirects are not followed**, and the URL is re-validated at delivery time: one that resolves to a private or internal address is refused even though it passed validation when you claimed the address.
+- **Forwards are not signed.** Unlike [email webhooks](/docs/email-webhooks), a `forward_url` carries no HMAC signature, because there is no per-subscription secret behind it. Treat the payload as unauthenticated: use an unguessable URL, and confirm anything you act on by re-reading the message with `GET /inbound/messages/{id}` using your API key.
+
+If you want signed, retried, per-event delivery instead, subscribe to `email.received` on [Email Webhooks](/docs/email-webhooks) — note that event is accepted but not emitted yet, so `forward_url` is the live path for inbound mail today.
 
 ### Read what arrived
 

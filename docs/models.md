@@ -1,32 +1,33 @@
 ---
 title: "Models"
-description: "All available models on CallMissed — Indic STT/TTS/LLM, fast direct-routed models, and 300+ frontier text models. All accessible through one OpenAI-compatible API."
+description: "Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, first-party flagships, realtime voice and image — through one OpenAI-compatible API, plus 300+ more we deploy on demand."
 slug: "models"
 breadcrumb: "LLM & AI"
 ---
 
 # Models
 
-All available models on CallMissed — Indic STT/TTS/LLM, fast direct-routed models, and 300+ frontier text models. All accessible through one OpenAI-compatible API.
+Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, first-party flagships, realtime voice and image — through one OpenAI-compatible API, plus 300+ more we deploy on demand.
 
 :::cards
 /docs/model-access | Model Access by Plan | key | Free, Starter, Pro, and Enterprise model tiers
 /docs/models-indic | Indic Models | mic | Indic STT, TTS, and LLM models
-/docs/models-frontier | Frontier Models | boxes | 300+ frontier LLMs from every major provider
+/docs/models-kimi-fast | Fast LLMs | zap | High-throughput Kimi tier for voice-agent latency
 /docs/api-speed | API Speed | gauge | Latency benchmarks and reasoning-effort matrix
 :::
 
 ## Overview
 
-CallMissed provides access to a tiered model catalog through a single OpenAI-compatible API:
+123 models, one OpenAI-compatible API. Same auth, same request shape — change
+the `model` field and nothing else.
 
-- **Fast LLMs** — Kimi K2.5 at up to ~414 tokens/second on high-throughput GPUs. The default and fastest LLM for voice agents.
-- **Indic Models** — purpose-built for Indian languages. STT, TTS, and LLM optimized for Hindi, Tamil, Telugu, Bengali, and 19 more.
-- **Direct-Routed LLMs** — sub-2s open-weights models (Kimi K2.5/K2.6, GPT-OSS, Gemma-4, GLM, Nemotron, Mistral Small).
-- **First-Party Models** — first-party OpenAI, xAI, DeepSeek, and Amazon voice deployments (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-Pro`, `nova-sonic-2`, realtime voice) plus first-party STT/TTS.
-- **Frontier Models** — frontier models from OpenAI, Anthropic, Google, xAI, Qwen, Mistral, and more through one endpoint.
-
-All models use the same authentication and request format. Just change the `model` field.
+| Group | What it is |
+|-------|------------|
+| **Fast LLMs** | Kimi K2.5 at up to ~414 tok/s. The default for voice agents. |
+| **Indic models** | STT, TTS and LLM built for 22 Indian languages. |
+| **Direct-routed LLMs** | Sub-2s open-weights models: Kimi K2.5/K2.6/K2.7 Code, GPT-OSS, Gemma 4, GLM, Nemotron, Mistral Small. |
+| **First-party** | `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `grok-4.3`, `DeepSeek-V4-*`, realtime voice, plus first-party STT/TTS. |
+| **On demand** | [300+ more we deploy on request](#models-on-demand). |
 
 ## Models API
 
@@ -43,7 +44,7 @@ curl https://api.callmissed.com/api/v1/models?category=llm
 curl https://api.callmissed.com/api/v1/models?free=true
 
 # Get a specific model
-curl https://api.callmissed.com/api/v1/models/sarvam-30b
+curl https://api.callmissed.com/api/v1/models/sarvam-105b
 
 # Which models each plan tier can call
 curl https://api.callmissed.com/api/v1/models/access
@@ -51,18 +52,18 @@ curl https://api.callmissed.com/api/v1/models/access
 
 Response includes: `id`, `name`, `description`, `category`, `owned_by`, `context_window`, `context_length` (alias of `context_window` for OpenAI-style clients), `pricing`, `free`, `supports_streaming`, `supports_tools`, `supports_reasoning`, and `supports_vision`.
 
-The OpenAI-compatible listing at `GET /v1/models` (requires `Authorization: Bearer cm_*`) returns the same enriched fields, and the Anthropic-shape listing at `GET /anthropic/v1/models` surfaces them inside Anthropic's `{data, has_more, first_id, last_id}` envelope.
+The OpenAI-compatible listing at `GET /v1/models` (requires `Authorization: Bearer cm_*`) returns the same fields but a **shorter list**: it hides models that are only valid for voice sessions (`nova-sonic*`, `gpt-realtime*`, `deepgram-voice-*`). Use `GET /api/v1/models` for the full catalog. The Anthropic-shape listing at `GET /anthropic/v1/models` returns the same set inside Anthropic's `{data, has_more, first_id, last_id}` envelope.
 
 ## Free Plan Models
 
-The free tier includes **24 models** across four categories. Use `GET /api/v1/models?free=true` to list them, or see the [Model Access by Plan](/docs/model-access) page for the full breakdown.
+The free tier includes **27 models** across five categories. Use `GET /api/v1/models?free=true` to list them, or see the [Model Access by Plan](/docs/model-access) page for the full breakdown.
 
 ### LLM (11 models)
 | Model ID | Description |
 |----------|-------------|
-| `sarvam-30b` | 30B MoE — Indic languages, cost-efficient |
 | `sarvam-105b` | 105B MoE — complex reasoning, Indic languages |
-| `kimi-k2.5` | Moonshot K2.5 — 262K context, reasoning |
+| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice — 128K context, tool calling |
+| `kimi-k2.5` | Moonshot K2.5 — 256K context, reasoning |
 | `kimi-k2.6` | Moonshot K2.6 — improved reasoning + coding, 262K context |
 | `kimi-k2.7-code` | Moonshot K2.7 Code — frontier 1T-param agentic coding, 262K context, vision + tools |
 | `glm-4.7-flash` | GLM 4.7 Flash — fast inference |
@@ -72,10 +73,11 @@ The free tier includes **24 models** across four categories. Use `GET /api/v1/mo
 | `gemma-4-26b-a4b-it` | Google Gemma 4 26B |
 | `mistral-small-3.1` | Mistral Small 3.1 — 24B instruct, tool use |
 
-### STT (3 models)
+### STT (4 models)
 | Model ID | Description |
 |----------|-------------|
 | `saaras:v3` | 23 langs (22 Indic + English), best for code-mixed |
+| `saaras:v4` | 24 langs — five output modes: transcribe, translate, verbatim, transliterate, code-mix |
 | `whisper-large-v3-turbo` | Whisper — 99 langs with auto-detect, transcribe + translate |
 | `nova-3` | Nova 3 — 11 langs, diarization, smart-format, streaming-capable |
 
@@ -96,6 +98,12 @@ The free tier includes **24 models** across four categories. Use `GET /api/v1/mo
 | `phoenix-1.0` | Phoenix — photorealistic |
 | `sdxl-lightning` | SDXL Lightning — fast |
 | `dreamshaper-8-lcm` | DreamShaper 8 LCM — fast |
+
+### Embedding (2 models)
+| Model ID | Description |
+|----------|-------------|
+| `text-embedding-3-small` | 1536 dimensions, 8,192-token inputs — best price/performance |
+| `text-embedding-3-large` | 3072 dimensions, 8,192-token inputs — highest accuracy |
 | `flux-2-pro` | Flux 2 Pro — flagship BFL quality *(paid)* |
 | `flux-1.1-pro` | Flux 1.1 Pro — fast high-quality *(paid)* |
 | `gpt-image-2` | OpenAI GPT Image 2 — accurate on-image text *(paid)* |
@@ -103,7 +111,9 @@ The free tier includes **24 models** across four categories. Use `GET /api/v1/mo
 | `nano-banana-2` | Google Gemini 3.1 Flash Image — multimodal, highest LM-Arena Elo *(paid · maintenance)* |
 | `nano-banana-pro` | Google Gemini 3 Pro Image — flagship typography + fidelity *(paid · maintenance)* |
 
-All other models — including `kimi-k2.5-fast`, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `nova-sonic*`, first-party STT/TTS), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), slash-prefixed frontier IDs (`openai/*`, `anthropic/*`, `google/*`, `x-ai/*`, `qwen/*`, `mistralai/*`), and paid image models (`flux-2-pro`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
+A free-plan key calling a paid model gets `403 model_not_available` — it is not billed, it is refused. Upgrade to Starter or above first.
+
+All other models — including `kimi-k2.5-fast`, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `nova-sonic*`, first-party STT/TTS), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, `deepgram-flux-tts`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
 
 ### Pricing
 
@@ -112,12 +122,8 @@ All models are pay-per-use. Pricing is in USD.
 | Model | Input / 1M tokens | Output / 1M tokens |
 |-------|-------------------|-------------------|
 | `kimi-k2.5-fast` | $0.81 | $4.05 |
-| `sarvam-30b` | $0.35 (₹30) | $0.35 (₹30) |
 | `sarvam-105b` | $0.35 (₹30) | $0.35 (₹30) |
-| `google/gemini-3.1-pro-preview` *(maintenance)* | $2.00 | $12.00 |
-| `google/gemini-3-flash-preview` *(maintenance)* | $0.50 | $3.00 |
-| `google/gemini-3.5-flash` *(maintenance)* | $1.50 | $9.00 |
-| `google/gemini-3.1-flash-lite` *(maintenance)* | $0.25 | $1.50 |
+| `sarvam-105b-conversations` | $0.35 (₹30) | $0.35 (₹30) |
 | `gpt-5.6-sol` | $5.00 | $30.00 |
 | `gpt-5.6-terra` | $2.50 | $15.00 |
 | `gpt-5.6-luna` | $1.00 | $6.00 |
@@ -129,11 +135,12 @@ All models are pay-per-use. Pricing is in USD.
 | `gpt-realtime-1.5` | $4.00 | $16.00 |
 | `gpt-realtime-2.1` | $4.00 | $24.00 |
 | `gpt-realtime-2.1-mini` | $0.60 | $2.40 |
-| `deepgram-voice-*` | per-minute Voice Agent tier | Standard $0.075/min, Advanced $0.163/min *(voice-agent only; runtime bridge in progress)* |
+| `deepgram-voice-*` | per-minute Voice Agent tier | Standard $0.075/min, Advanced $0.163/min *(voice-agent only)* |
 
 | STT Model | Price |
 |-----------|-------|
-| `saaras:v3` | $0.53 / hour (₹45/hr) |
+| `saaras:v3` | $0.30 / hour (₹30/hr) |
+| `saaras:v4` | $0.30 / hour (₹30/hr) |
 | `gnani-prisma-v2.5` | $0.27 / hour |
 | `whisper-large-v3-turbo` | $0.06 / hour |
 | `nova-3` | $0.50 / hour |
@@ -148,18 +155,22 @@ All models are pay-per-use. Pricing is in USD.
 
 | TTS Model | Price |
 |-----------|-------|
-| `bulbul:v3` | $0.53 / 10K chars (₹45/10K) |
+| `bulbul:v3` | $0.30 / 10K chars (₹30/10K) |
 | `gnani-timbre-v2.0` | $0.27 / 10K chars |
 | `aura-2-en` | $0.40 / 10K chars |
 | `aura-2-es` | $0.40 / 10K chars |
 | `deepgram-aura-2` | $0.30 / 10K chars |
 | `deepgram-aura-1` | $0.15 / 10K chars |
+| `deepgram-flux-tts` | $0.45 / 10K chars |
 | `melotts` | $0.05 / 10K chars |
 
-| Audio / Text Intelligence (Deepgram) | Price |
+| Intelligence feature (not a model ID) | Price |
 |-------------------------------|-------|
 | `deepgram-summarize` / `-topics` / `-sentiment` / `-intents` (audio) | $0.0003 / 1K input + $0.0006 / 1K output tokens |
 | `deepgram-text-summarize` / `-text-topics` / `-text-sentiment` / `-text-intents` | $0.0003 / 1K input + $0.0006 / 1K output tokens |
+
+These eight values go in the `features` field, not in `model`. They are not
+catalog models — `GET /api/v1/models/deepgram-summarize` returns 404.
 
 Full pricing for all models is available via the API: `GET /api/v1/models`
 
@@ -178,7 +189,7 @@ High-throughput Kimi K2.5 inference tier optimized for voice-agent latency.
 
 | Model ID | Status | Context | Best For |
 |----------|--------|---------|----------|
-| `kimi-k2.5-fast` | **Under maintenance** — fall back to `kimi-k2.5` | 262K | Voice agents, fast inference, reasoning tasks |
+| `kimi-k2.5-fast` | **Under maintenance** — fall back to `kimi-k2.5` | 256K | Voice agents, fast inference, reasoning tasks |
 
 While `kimi-k2.5-fast` is in maintenance (returns HTTP 503), use `kimi-k2.5`:
 
@@ -196,6 +207,7 @@ response = client.chat.completions.create(
 | Model | Description | Languages |
 |-------|-------------|-----------|
 | `saaras:v3` | Latest STT — best accuracy on Indian + code-mixed | 23 languages (22 Indic + English) |
+| `saaras:v4` | Five output modes on one model — transcribe, translate, verbatim, transliterate, code-mix | 24 languages |
 | `gnani-prisma-v2.5` | India-first telephony STT — code-switching, sub-4% WER on Indian English | 10 Indian languages |
 
 For 99-language general-purpose transcription, see `whisper-large-v3-turbo`. For diarization + smart-format on calls, see `nova-3`. Both are free-tier and live under the [audio model routes](#audio-models).
@@ -213,10 +225,10 @@ For low-latency English / Spanish voice agents, see `aura-2-en` / `aura-2-es`. F
 
 | Model | Params | Context | Best For |
 |-------|--------|---------|----------|
-| `sarvam-30b` | 30B MoE (2.4B active) | 64K tokens | Real-time chat, Indic languages, cost-efficient |
 | `sarvam-105b` | 105B MoE | 128K tokens | Complex reasoning, agentic tasks, long documents |
+| `sarvam-105b-conversations` | 105B MoE | 128K tokens | Conversation and voice agents, tool calling |
 
-Both `sarvam-30b` and `sarvam-105b` support **hybrid thinking mode** via `reasoning_effort: "low" | "medium" | "high"`. `"none"` and `"minimal"` are mapped down to `"low"` (verified 2026-05-01) so OpenAI-style clients sending `reasoning_effort: "none"` for thinking-off still get a 200. Full thinking-disable is available on the direct-routed `kimi-k2.5` / `kimi-k2.6` / `kimi-k2.7-code` / `gemma-4-26b-a4b-it` models.
+Both Sarvam models support hybrid thinking via `reasoning_effort: "low" | "medium" | "high"`. `"none"` and `"minimal"` map down to `"low"`, so an OpenAI-style client sending `"none"` gets a 200 rather than an error — but thinking stays on. To turn thinking fully off, use `kimi-k2.5`, `kimi-k2.6`, `glm-4.7-flash`, `glm-5.2`, or `gemma-4-26b-a4b-it` with `reasoning_effort: "none"`. See the [per-model matrix](/docs/api-speed#3-reasoning-effort-by-model).
 
 ## Audio Models
 
@@ -256,10 +268,13 @@ Free-tier on every plan. See the [Pricing](/docs/pricing) page for current rates
 | `aura-2-es` | Spanish | 10 (aquila default) | $0.40 / 10K chars |
 | `deepgram-aura-2` | en/es/de/fr/nl/it/ja | 90+ (thalia default) | $0.30 / 10K chars |
 | `deepgram-aura-1` | English | 12 (asteria default) | $0.15 / 10K chars |
+| `deepgram-flux-tts` | English | 11 (priya default) | $0.45 / 10K chars |
 | `melotts` | English + French | 1 per language | $0.05 / 10K chars |
 | `gpt-4o-mini-tts` | Multilingual steerable | 6 OpenAI voices | $0.20 / 10K chars |
 
 Aura 2 returns linear16 PCM streamed at 24 kHz for low-latency playback. MeloTTS returns base64 MP3. Output formats may vary as models are updated.
+
+`deepgram-flux-tts` is streaming-first and built for voice agents: synthesis is turn-based and prosody carries across turns. It serves 11 English voices, including `priya` (Indian-accented English, the default). It is English-only — a multilingual voice set is planned for a later release — and exposes no expressive/emotion/style controls and no SSML.
 
 ### Audio Intelligence (Deepgram)
 
@@ -296,11 +311,11 @@ Send a JSON body with `features` (array or comma-separated string) and exactly o
 
 ## Direct-Routed LLMs
 
-Low-latency models routed directly through CallMissed — sub-2s end-to-end on small prompts and free-tier eligible per the [reasoning_effort matrix](/docs/api-speed#3-reasoning_effort-matrix-per-model--verified-empirically).
+Low-latency models routed directly through CallMissed — sub-2s end-to-end on small prompts and free-tier eligible per the [reasoning_effort matrix](/docs/api-speed#3-reasoning-effort-by-model).
 
 | Model ID | Creator | Context |
 |----------|---------|---------|
-| `kimi-k2.5` | Moonshot AI | 262K |
+| `kimi-k2.5` | Moonshot AI | 256K |
 | `kimi-k2.6` | Moonshot AI | 262K |
 | `kimi-k2.7-code` | Moonshot AI | 262K |
 | `gpt-oss-120b` | OpenAI (open-weights) | 128K |
@@ -310,21 +325,20 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 | `nemotron-3-super` | NVIDIA | 256K |
 | `mistral-small-3.1` | Mistral | 128K |
 
-## Frontier Models
+## Models on Demand
 
-Access frontier models via the same `/v1/chat/completions` endpoint. Use the slash-prefixed model ID as the `model` field.
+`GET /api/v1/models` lists everything that is live today: **123** model IDs
+callable right now with a `cm_` key.
 
-> **"300+ models" — what that means.** CallMissed maintains a curated catalog of ~59 first-party models (Indic STT/TTS/LLM, direct-routed fast models, realtime speech-to-speech voice, image, and the popular frontier IDs below). On top of that, *any* of 300+ and growing frontier models is reachable as a passthrough by sending its slash-prefixed ID (e.g. `google/gemini-3.5-flash`) even if it isn't in our curated list. Passthrough models are billed at the listed per-model rate and aren't guaranteed to appear in `GET /v1/models`.
+Beyond that we deploy **300+ further models on demand** on CallMissed
+infrastructure. Send the model you need and your expected throughput to
+`sales@callmissed.com`. Once deployed it appears in your `GET /api/v1/models`
+response with a plain CallMissed ID and published per-token pricing, on the
+same `/v1/chat/completions` endpoint as every other model. Same key, same
+credit balance, no new SDK.
 
-### Popular Models
-
-| Model ID | Creator | Context |
-|----------|---------|---------|
-| `google/gemini-3.1-pro-preview` *(maintenance)* | Google | 1M |
-| `google/gemini-3-flash-preview` *(maintenance)* | Google | 1M |
-| `google/gemini-3.5-flash` *(maintenance)* | Google | 1M |
-| `google/gemini-3.1-flash-lite` *(maintenance)* | Google | 1M |
-
+Enterprise accounts get dedicated capacity. Starter and Pro get shared capacity
+where the model allows it.
 
 ## First-Party Models
 
@@ -335,6 +349,7 @@ Credit-covered first-party models. Use the bare model ID in API requests — e.g
 | `gpt-4o` | LLM | Multimodal text + vision, 128K context |
 | `gpt-4.1` | LLM | Long-context (1M) multimodal |
 | `gpt-5-mini` | LLM | Fast reasoning, 400K context |
+| `gpt-5.5` | LLM | GPT-5.5 reasoning flagship, 1M context, vision + tools |
 | `gpt-5.6-sol` | LLM | GPT-5.6 flagship, 1.05M context, vision + tools |
 | `gpt-5.6-terra` | LLM | GPT-5.6 balanced intelligence/cost, 1.05M context |
 | `gpt-5.6-luna` | LLM | GPT-5.6 fast + affordable, 1.05M context |
@@ -359,38 +374,34 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **125** models (63 LLM · 42 STT · 8 TTS · 12 image) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **123** models (57 LLM · 43 STT · 9 TTS · 12 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
-### LLM (34 models)
+### LLM (30 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
-| `sarvam-30b` | 30B MoE (2.4B active params), 64K context. Best for real-time chat an… | 65K | Yes | $0.35 in / $0.35 out per 1M |
-| `sarvam-105b` | 105B MoE, 128K context. Flagship model for complex reasoning and agen… | 131K | Yes | $0.35 in / $0.35 out per 1M |
-| `gpt-4o` | OpenAI GPT-4o. Multimodal (text + vision), 128K context. Hos… | 128K | No | $2.50 in / $10.00 out per 1M |
-| `gpt-4.1` | OpenAI GPT-4.1. Long-context (1M) multimodal model with stro… | 1M | No | $2.00 in / $8.00 out per 1M |
-| `gpt-5-mini` | OpenAI GPT-5 Mini. Fast, affordable reasoning model. 400K co… | 400K | No | $0.25 in / $2.00 out per 1M |
-| `gpt-5.5` | OpenAI GPT-5.5. Flagship reasoning, 1M context, multimodal + tool calling + prompt caching. | 1M | Yes | $5.00 in / $30.00 out per 1M |
-| `gpt-5.6-sol` | OpenAI GPT-5.6 Sol. Frontier model for complex professional work. 1.05M context, multimodal (text + vision), reasoning + tools. | 1.05M | No | $5.00 in / $30.00 out per 1M |
-| `gpt-5.6-terra` | OpenAI GPT-5.6 Terra. Balances intelligence and cost. 1.05M context, multimodal + reasoning + tools. | 1.05M | No | $2.50 in / $15.00 out per 1M |
-| `gpt-5.6-luna` | OpenAI GPT-5.6 Luna. Optimized for cost-sensitive, high-volume workloads. 1.05M context, multimodal + reasoning + tools. | 1.05M | No | $1.00 in / $6.00 out per 1M |
-| `grok-4.3` | xAI Grok 4.3. Strong reasoning and real-ti… | 200K | No | $3.50 in / $15.00 out per 1M |
-| `DeepSeek-V4-Pro` | DeepSeek V4 Pro. Flagship reasoning model … | 1M | No | $1.00 in / $3.00 out per 1M |
-| `DeepSeek-V4-Flash` | DeepSeek V4 Flash. Fast, affordable reason… | 131K | No | $0.30 in / $1.20 out per 1M |
-| `google/gemini-3.1-pro-preview` *(maintenance)* | Google's flagship model. 1M context, agentic reasoning, multimodal. P… | 1M | No | $2.00 in / $12.00 out per 1M |
-| `google/gemini-3-flash-preview` *(maintenance)* | Google's fast frontier model. 1M context, optimized for low latency. … | 1M | No | $0.50 in / $3.00 out per 1M |
-| `google/gemini-3.5-flash` *(maintenance)* | Google's latest fast frontier model. 1M context, multimodal, tools + reasoning + caching. | 1M | No | $1.50 in / $9.00 out per 1M |
-| `google/gemini-3.1-flash-lite` *(maintenance)* | Most affordable Gemini 3.x model. 1M context, low-latency. Pass-throu… | 1M | No | $0.25 in / $1.50 out per 1M |
-| `kimi-k2.5` | Moonshot AI's latest model. 256K context, strong on coding and math. | 262K | Yes | $0.81 in / $4.05 out per 1M |
-| `kimi-k2.5-fast` *(maintenance)* | Kimi K2.5 tuned for sub-second latency — 414 tok/s inference, 256K co… | 262K | No | $0.81 in / $4.05 out per 1M |
-| `kimi-k2.6` | Moonshot AI's latest K2.6 release. 256K context, improved reasoning a… | 262K | Yes | $1.28 in / $5.40 out per 1M |
-| `kimi-k2.7-code` | Moonshot AI's frontier 1T-param agentic-coding model. 262K context, t… | 262K | Yes | $1.28 in / $5.40 out per 1M |
-| `glm-4.7-flash` | Z.ai's fast, cost-efficient bilingual model. Strong tool use and 128K… | 131K | Yes | $0.50 in / $2.00 out per 1M |
-| `glm-5.2` | Z.ai's flagship agentic coding model. 262K context, tools + reasoning. | 262K | Yes | $1.89 in / $5.94 out per 1M |
-| `gpt-oss-120b` | OpenAI's open-weight 120B MoE. Reasoning-grade quality, lower cost th… | 131K | Yes | $1.00 in / $4.00 out per 1M |
-| `nemotron-3-super` | NVIDIA Nemotron 3 — 120B MoE tuned for long-context reasoning. 256K-tok… | 256K | Yes | $1.50 in / $6.00 out per 1M |
-| `gemma-4-26b-a4b-it` | Google Gemma 4 — 26B MoE (4B active). Efficient instruct model for ge… | 131K | Yes | $0.40 in / $1.60 out per 1M |
-| `mistral-small-3.1` | Mistral Small 3.1 — 24B instruct, 128K context. Strong tool use, fast… | 131K | Yes | $0.47 in / $0.76 out per 1M |
+| `sarvam-105b` | 105B MoE. Complex reasoning, agentic tasks, long documents. | 131K | Yes | $0.35 in / $0.35 out per 1M |
+| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. Tool calling. | 131K | Yes | $0.35 in / $0.35 out per 1M |
+| `gpt-4o` | Multimodal text + vision. | 128K | No | $2.50 in / $10.00 out per 1M |
+| `gpt-4.1` | Long-context multimodal. Strong instruction following. | 1M | No | $2.00 in / $8.00 out per 1M |
+| `gpt-5-mini` | Fast, affordable reasoning. | 400K | No | $0.25 in / $2.00 out per 1M |
+| `gpt-5.5` | Reasoning flagship. Vision, tools, prompt caching. | 1M | No | $5.00 in / $30.00 out per 1M |
+| `gpt-5.6-sol` | Frontier model for complex professional work. Vision, reasoning, tools. | 1.05M | No | $5.00 in / $30.00 out per 1M |
+| `gpt-5.6-terra` | Balances intelligence and cost. Vision, reasoning, tools. | 1.05M | No | $2.50 in / $15.00 out per 1M |
+| `gpt-5.6-luna` | Cost-sensitive, high-volume workloads. Vision, reasoning, tools. | 1.05M | No | $1.00 in / $6.00 out per 1M |
+| `grok-4.3` | xAI Grok 4.3. Reasoning + vision. | 200K | No | $3.50 in / $15.00 out per 1M |
+| `DeepSeek-V4-Pro` | Flagship DeepSeek reasoning. | 1M | No | $1.00 in / $3.00 out per 1M |
+| `DeepSeek-V4-Flash` | Fast, affordable DeepSeek reasoning. | 131K | No | $0.30 in / $1.20 out per 1M |
+| `kimi-k2.5` | Strong on coding and math. Vision. | 256K | Yes | $0.81 in / $4.05 out per 1M |
+| `kimi-k2.5-fast` *(maintenance)* | Kimi K2.5 at ~414 tok/s for voice-agent latency. | 256K | No | $0.81 in / $4.05 out per 1M |
+| `kimi-k2.6` | Improved reasoning and coding over K2.5. Vision. | 262K | Yes | $1.28 in / $5.40 out per 1M |
+| `kimi-k2.7-code` | 1T-param agentic coding. Vision + tools. | 262K | Yes | $1.28 in / $5.40 out per 1M |
+| `glm-4.7-flash` | Fast, cost-efficient bilingual model. Strong tool use. | 131K | Yes | $0.50 in / $2.00 out per 1M |
+| `glm-5.2` | Flagship agentic coding. Tools + reasoning. | 262K | Yes | $1.89 in / $5.94 out per 1M |
+| `gpt-oss-120b` | Open-weight 120B MoE. Reasoning-grade at lower cost. | 128K | Yes | $1.00 in / $4.00 out per 1M |
+| `nemotron-3-super` | 120B MoE tuned for long-context reasoning. | 256K | Yes | $1.50 in / $6.00 out per 1M |
+| `gemma-4-26b-a4b-it` | 26B MoE (4B active). Efficient instruct model. Vision. | 131K | Yes | $0.40 in / $1.60 out per 1M |
+| `mistral-small-3.1` | 24B instruct. Strong tool use, fast. Vision. | 128K | Yes | $0.47 in / $0.76 out per 1M |
 | `nova-sonic-2` | Amazon Nova 2 Sonic. Native speech-to-speech voice model — STT, reasoning, and TTS in one; 16 voices across 8 languages including Hindi + en-IN. | 32K | No | $4.00 in / $15.00 out per 1M • $0.064/min |
 | `nova-sonic` | Amazon Nova Sonic 1.0. Native speech-to-speech voice model with 11 voices across English, Spanish, French, Italian, and German. | 32K | No | $4.50 in / $17.00 out per 1M • $0.071/min |
 | `gpt-realtime` | OpenAI flagship realtime speech-to-speech model — STT + reasoning + function calling + TTS in one. 10 concurrent. | 32K | No | $4.00 in / $16.00 out per 1M • $0.375/min |
@@ -400,48 +411,58 @@ A curated, representative slice of the **125** models (63 LLM · 42 STT · 8 TTS
 | `gpt-realtime-2.1` | Latest realtime speech-to-speech — better alphanumeric recognition, silence/noise + interruption handling, configurable reasoning effort. Voice-agent only. | 128K | No | $4.00 in / $24.00 out per 1M • $0.375/min |
 | `gpt-realtime-2.1-mini` | Distilled, lower-cost realtime for faster voice interactions. Voice-agent only. | 128K | No | $0.60 in / $2.40 out per 1M • $0.117/min |
 
-### Speech to Text (8 models)
+### Speech to Text (9 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
-| `saaras:v3` | Latest Indic STT model. 23 languages (22 Indic + English), best ac… | — | Yes | $0.53 / hr |
-| `gnani-prisma-v2.5` | India-first telephony STT. 10 Indian languages, code-switching… | — | No | $0.27 / hr |
-| `whisper-large-v3-turbo` | OpenAI's Whisper Large v3 Turbo. 100+ languages with auto-detect, tra… | — | Yes | $0.06 / hr |
-| `nova-3` | Nova 3 — production-grade STT with diarization, punctuation,… | — | Yes | $0.50 / hr |
-| `whisper` | OpenAI Whisper. 99 languages, transcription + translation to… | — | No | $0.40 / hr |
-| `gpt-4o-transcribe` | OpenAI gpt-4o-transcribe — higher accuracy than Whisper, sup… | — | No | $0.40 / hr |
-| `gpt-4o-mini-transcribe` | Cheaper, faster gpt-4o-mini-transcribe. Streaming transcript… | — | No | $0.24 / hr |
-| `gpt-4o-transcribe-diarize` | gpt-4o-transcribe with speaker diarization — labels who spok… | — | No | $0.40 / hr |
+| `saaras:v3` | 23 languages (22 Indic + English). Best on code-mixed speech. | — | Yes | $0.30 / hr |
+| `saaras:v4` | 24 languages. Five output modes: transcribe, translate, verbatim, transliterate, code-mix. | — | Yes | $0.30 / hr |
+| `gnani-prisma-v2.5` | India-first telephony STT. 10 Indian languages, code-switching. | — | No | $0.27 / hr |
+| `whisper-large-v3-turbo` | 99 languages with auto-detect. Transcribe + translate. | — | Yes | $0.06 / hr |
+| `nova-3` | Diarization, punctuation, smart-format. Streaming-capable. | — | Yes | $0.50 / hr |
+| `whisper` | 99 languages. Transcription + translation to English. | — | No | $0.40 / hr |
+| `gpt-4o-transcribe` | Higher accuracy than Whisper. Streaming. | — | No | $0.40 / hr |
+| `gpt-4o-mini-transcribe` | Cheaper, faster streaming transcription. | — | No | $0.24 / hr |
+| `gpt-4o-transcribe-diarize` | Streaming transcription with speaker labels. | — | No | $0.40 / hr |
 
 ### Text to Speech (6 models)
 
-| Model ID | Description | Context | Free | Pricing |
-|----------|-------------|---------|------|---------|
-| `bulbul:v3` | Natural Indic TTS. 37 voices, 11 Indic languages. | — | Yes | — |
-| `gnani-timbre-v2.0` | India-first neural TTS. 24 voices, English + Hindi, context-aware… | — | No | $0.27 / 10K chars |
-| `aura-2-en` | Aura 2 — natural, conversational English TTS. 40 voices incl… | — | Yes | — |
-| `aura-2-es` | Aura 2 Spanish — 10 native voices including aquila, sirio, d… | — | Yes | — |
-| `melotts` | MyShell MeloTTS — fast, lightweight multilingual TTS. English + Frenc… | — | Yes | — |
-| `gpt-4o-mini-tts` | Steerable TTS — accepts an `instructions` field to control t… | — | No | — |
+| Model ID | Description | Voices | Free | Pricing |
+|----------|-------------|--------|------|---------|
+| `bulbul:v3` | Indic TTS across 11 Indian languages. | 37 | Yes | $0.30 / 10K chars |
+| `gnani-timbre-v2.0` | India-first neural TTS, English + Hindi. Context-aware tone. | 24 | No | $0.27 / 10K chars |
+| `aura-2-en` | Conversational English TTS, low-latency streaming. | 40 | Yes | $0.40 / 10K chars |
+| `aura-2-es` | Spanish TTS, low-latency streaming. | 10 | Yes | $0.40 / 10K chars |
+| `melotts` | Lightweight English + French TTS. Cheapest available. | 1 per language | Yes | $0.05 / 10K chars |
+| `gpt-4o-mini-tts` | Steerable — takes an `instructions` field to direct tone. | 6 | No | $0.20 / 10K chars |
 
 ### Image Generation (12 models)
 
-| Model ID | Description | Context | Free | Pricing |
-|----------|-------------|---------|------|---------|
-| `flux-2-klein-9b` | Black Forest Labs' Flux 2 — high-quality text-to-image. 1024×1024 by … | — | Yes | $0.10 / image |
-| `flux-2-pro` | Black Forest Labs' FLUX.2 Pro — flagship text-to-image with high fide… | — | No | $0.10 / image |
-| `flux-1.1-pro` | Black Forest Labs' FLUX 1.1 Pro — fast, production-grade text-to-imag… | — | No | $0.05 / image |
-| `flux-2-dev` | Black Forest Labs' Flux 2 Dev — higher fidelity, 50-step inference. | — | Yes | $0.12 / image |
-| `gpt-image-2` | OpenAI GPT Image 2 — accurate on-image text rendering. | — | No | $0.25 / image |
-| `gpt-image-1.5` | OpenAI GPT Image 1.5 — precise image editing, strong logo/face preser… | — | No | $0.25 / image |
-| `lucid-origin` | Leonardo Lucid Origin — vibrant, cinematic compositions. Great for ma… | — | Yes | $0.08 / image |
-| `phoenix-1.0` | Leonardo Phoenix 1.0 — strong prompt adherence, photorealistic portra… | — | Yes | $0.10 / image |
-| `sdxl-lightning` | ByteDance distilled SDXL — 4-step inference, fastest for iterative pr… | — | Yes | $0.04 / image |
-| `dreamshaper-8-lcm` | Lykon Dreamshaper 8 via LCM — stylised illustrations, fast generation. | — | Yes | $0.04 / image |
-| `nano-banana-2` *(maintenance)* | Google Gemini 3.1 Flash Image — fast multimodal image generation with… | — | No | $0.07 / image |
-| `nano-banana-pro` *(maintenance)* | Google Gemini 3 Pro Image — flagship image model with the highest qua… | — | No | $0.134 / image |
+| Model ID | Description | Free | Pricing |
+|----------|-------------|------|---------|
+| `flux-2-klein-9b` | Flux 2 Klein. 1024×1024 default. | Yes | $0.10 / image |
+| `flux-2-dev` | Flux 2 Dev. Higher fidelity, 50-step inference. | Yes | $0.12 / image |
+| `flux-2-pro` | Flux 2 Pro. Flagship BFL fidelity. | No | $0.10 / image |
+| `flux-1.1-pro` | Flux 1.1 Pro. Fast, production-grade. | No | $0.05 / image |
+| `gpt-image-2` | Accurate on-image text rendering. | No | $0.25 / image |
+| `gpt-image-1.5` | Precise image editing. Strong logo/face preservation. | No | $0.25 / image |
+| `lucid-origin` | Vibrant, cinematic compositions. | Yes | $0.08 / image |
+| `phoenix-1.0` | Strong prompt adherence, photorealistic portraits. | Yes | $0.10 / image |
+| `sdxl-lightning` | 4-step inference. Fastest for iterative prompting. | Yes | $0.04 / image |
+| `dreamshaper-8-lcm` | Stylised illustrations, fast generation. | Yes | $0.04 / image |
+| `nano-banana-2` *(maintenance)* | Fast multimodal image generation. | No | $0.067 / image |
+| `nano-banana-pro` *(maintenance)* | Flagship typography and fidelity. | No | $0.134 / image |
 
-> **Tip:** Filter programmatically — `GET /api/v1/models?category=llm`, `?category=stt`, `?category=tts`, `?category=image`, or `?free=true` for free-plan models only.
+### Embeddings (2 models)
+
+| Model ID | Description | Dimensions | Free | Pricing |
+|----------|-------------|------------|------|---------|
+| `text-embedding-3-small` | Fast, low-cost embeddings. Best price/performance for large corpora. | 1536 | Yes | $0.02 / 1M input tokens |
+| `text-embedding-3-large` | Highest-accuracy embeddings. | 3072 | Yes | $0.13 / 1M input tokens |
+
+Both accept 8,192-token inputs and support shortening the vector with `dimensions`. See [Embeddings](/docs/embeddings).
+
+> **Tip:** Filter programmatically — `GET /api/v1/models?category=llm`, `?category=stt`, `?category=tts`, `?category=image`, `?category=embedding`, or `?free=true` for free-plan models only.
 
 ## Model Selection
 
@@ -450,7 +471,7 @@ Pass the model ID in your request:
 ```python
 # Indic LLM
 response = client.chat.completions.create(
-    model="sarvam-30b",
+    model="sarvam-105b",
     messages=[{"role": "user", "content": "Hello in Hindi"}]
 )
 
@@ -471,4 +492,7 @@ response = client.chat.completions.create(
 The API automatically routes to the correct backend based on the model ID:
 - Bare names (`kimi-k2.5`, `gpt-4o`, `DeepSeek-V4-Pro`, `mistral-small-3.1`, …) → direct-routed or first-party
 - `sarvam-*` prefix → Indic LLMs
-- Slash-prefixed (`openai/`, `anthropic/`, `google/`, …) → frontier catalog
+- `saaras:*` / `bulbul:*` / `deepgram-*` / image IDs → the matching speech or image backend
+
+Every ID is a plain CallMissed ID with no vendor prefix — including models we
+[deploy on demand](#models-on-demand).

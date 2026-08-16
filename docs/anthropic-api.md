@@ -171,7 +171,7 @@ event: message_stop          → stream complete
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `model` | string | Yes | Model ID (e.g. `gpt-5.6-sol`, `sarvam-30b`, `google/gemini-3.5-flash`) |
+| `model` | string | Yes | Model ID (e.g. `gpt-5.6-sol`, `sarvam-105b`, `kimi-k2.6`) |
 | `max_tokens` | integer | Yes | Maximum tokens to generate |
 | `messages` | array | Yes | List of `{role, content}` objects |
 | `system` | string | No | System prompt (top-level, not in messages) |
@@ -184,17 +184,13 @@ event: message_stop          → stream complete
 
 > **Note:** Unlike the OpenAI API, `max_tokens` is **required** and `system` is a **top-level parameter** (not a message with `role: "system"`).
 
-## Model Aliasing
+## Model Selection
 
-On the Anthropic endpoint, a bare model name resolves against the CallMissed catalog; an ID that already carries a provider prefix is routed as sent:
+Send any model ID from the [Models](/docs/models) catalog — not just Anthropic-shaped names. The `model` field takes the same values as `/v1/chat/completions`.
 
-| You send | Routed as |
-|----------|-----------|
-| `gpt-5.6-sol` | `gpt-5.6-sol` (first-party model, no prefix) |
-| `sarvam-30b` | `sarvam-30b` (Indic model, no prefix) |
-| `google/gemini-3.5-flash` | `google/gemini-3.5-flash` (already has prefix) |
-
-You can use **any model** from our [Models](/docs/models) catalog — not just Anthropic models.
+```json
+{ "model": "gpt-5.6-sol", "max_tokens": 1024, "messages": [...] }
+```
 
 ## Token Counting
 
@@ -264,12 +260,11 @@ Fetch a single model at `GET /anthropic/v1/models/{model_id}`.
 
 ## Vision (Image Input)
 
-You can send images on any model whose `supports_vision` flag is `true` in
-the model listing. Vision-capable models currently include the OpenAI GPT-5.6
-family (Sol, Terra, Luna), GPT-5.5, GPT-4o / GPT-4.1, Google Gemini 3 / 3.1,
-Moonshot Kimi K2.5 / K2.6 / K2.7 Code, Google Gemma 4 26B, and Mistral Small 3.1.
-Models without vision support reject image content with a
-`400 invalid_request_error` before the upstream call — you won't be charged.
+Send images on any model whose `supports_vision` flag is `true` in the model
+listing. That is the authoritative source; see the
+[vision list](/docs/chat-completion#vision-image-input) for the current set.
+Models without vision reject image content with `400 invalid_request_error`
+before the upstream call — you are not charged.
 
 ```bash
 curl -X POST https://api.callmissed.com/v1/messages \
@@ -324,7 +319,7 @@ anthropic-ratelimit-requests-reset: 2026-05-01T00:00:00+00:00
 This endpoint is designed to work with the Anthropic SDK out of the box. Key differences from the official Anthropic API:
 
 - **`anthropic-version` header** is accepted but not required
-- **Model routing** — requests can target *any* model in the CallMissed catalogue, using either a bare first-party ID or a slash-prefixed frontier ID.
+- **Model routing** — requests can target any model in the CallMissed catalogue, not just Anthropic-shaped names.
 - **Token counting** uses a BPE tokenizer approximation (tiktoken `cl100k_base`). Expect ~5-10% variance from Anthropic's native counts on English prompts; larger on CJK and heavy-punctuation text.
 - **Tools** are supported — `tools` and `tool_choice` work as documented, and `tool_use`/`tool_result` content blocks are preserved.
 - **Vision** is supported on models whose `supports_vision` flag is `true`. Image content sent to text-only models is rejected with a `400 invalid_request_error` before the upstream call, so your credits are safe.
