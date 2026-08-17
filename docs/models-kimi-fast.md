@@ -23,7 +23,7 @@ The `kimi-k2.5-fast` tier targets ultra-low-latency voice-agent workloads via a 
 | Status | **Under maintenance** — returns 503 |
 | Recommended fallback | `kimi-k2.5` |
 | Architecture | MoE (Mixture of Experts) |
-| Context window | 262,144 tokens |
+| Context window | 256,000 tokens |
 | Supports streaming | Yes |
 | Supports tools | Yes |
 
@@ -61,4 +61,4 @@ for chunk in response:
 | Input | $0.81 |
 | Output | $4.05 |
 
-Credits: **1 credit = ₹1** (metered at roughly $0.01 of provider cost per credit — the USD figures above are the underlying rates). A typical voice agent turn (500 input + 200 output tokens) costs approximately **0.07 credits**. Pricing applies once `kimi-k2.5-fast` returns from maintenance; `kimi-k2.5` is priced separately on its [model page](/docs/models).
+**1 credit = ₹1 = $0.01.** A typical voice-agent turn — 500 input + 200 output tokens — costs $0.001215, or **0.1215 credits**. These rates apply once `kimi-k2.5-fast` leaves maintenance. See [Credits & Rate Limits](/docs/credits-rate-limits).

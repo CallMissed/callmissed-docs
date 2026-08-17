@@ -98,22 +98,26 @@ curl -X POST https://api.callmissed.com/v1/images/generations \
 
 ## Models
 
-| ID | Provider | Quality | Speed | Best for |
-|----|----------|---------|-------|----------|
-| `gpt-image-2` | OpenAI | Flagship | Medium | Accurate on-image text, marketing visuals |
-| `gpt-image-1.5` | OpenAI | High | Medium | Precise image editing, strong logo/face preservation |
-| `flux-2-dev` | Black Forest Labs | Flagship | Slow | Maximum fidelity, hero imagery |
-| `flux-2-klein-9b` | Black Forest Labs | Highest | Slow | Final output, print, marketing |
-| `lucid-origin` | Leonardo | High | Medium | Cinematic, concept art |
-| `phoenix-1.0` | Leonardo | High | Medium | Photorealistic portraits |
-| `sdxl-lightning` | ByteDance | Medium | Fast | Prototyping, iteration |
-| `dreamshaper-8-lcm` | Lykon | Medium | Fast | Stylised illustrations |
-| `nano-banana-pro` *(maintenance)* | Google (direct) | Flagship | Medium | Marketing infographics, accurate typography, brand-true visuals |
-| `nano-banana-2` *(maintenance)* | Google (direct) | High | Fast | Multimodal (text + reference images), highest LM-Arena Elo |
+| ID | Creator | Plan | Speed | Best for |
+|----|---------|------|-------|----------|
+| `flux-2-klein-9b` | Black Forest Labs | Free | Slow | Final output, print, marketing |
+| `flux-2-dev` | Black Forest Labs | Free | Slow | Maximum fidelity, hero imagery |
+| `lucid-origin` | Leonardo | Free | Medium | Cinematic, concept art |
+| `phoenix-1.0` | Leonardo | Free | Medium | Photorealistic portraits |
+| `sdxl-lightning` | ByteDance | Free | Fast | Prototyping, iteration |
+| `dreamshaper-8-lcm` | Lykon | Free | Fast | Stylised illustrations |
+| `flux-2-pro` | Black Forest Labs | Paid | Medium | Flagship FLUX fidelity |
+| `flux-1.1-pro` | Black Forest Labs | Paid | Fast | Production-grade at lower cost |
+| `gpt-image-2` | OpenAI | Paid | Medium | Accurate on-image text, marketing visuals |
+| `gpt-image-1.5` | OpenAI | Paid | Medium | Precise editing, logo/face preservation |
+| `nano-banana-pro` *(maintenance)* | Google | Paid | Medium | Infographics, accurate typography |
+| `nano-banana-2` *(maintenance)* | Google | Paid | Fast | Multimodal (text + reference images) |
 
-The `gpt-image-*` models are paid-only — the free-tier image rows above stay on
-the free plan. The `nano-banana-*` models are currently **under maintenance**
-(requests return HTTP 503). See [Pricing](#pricing) below for exact per-image rates.
+Free-plan keys can call the six **Free** rows. Every **Paid** row needs Starter
+or above; a free key gets `403 model_not_available`.
+
+`nano-banana-2` and `nano-banana-pro` are **under maintenance** — requests
+return HTTP 503.
 
 ## Sizes
 
@@ -132,13 +136,15 @@ Flat per-image price, converted to credits at 1 credit = ₹1.
 | `nano-banana-pro` *(maintenance)* | $0.134 | 13.4 |
 | `flux-2-dev` | $0.12 | 12 |
 | `flux-2-klein-9b` | $0.10 | 10 |
+| `flux-2-pro` | $0.10 | 10 |
 | `phoenix-1.0` | $0.10 | 10 |
 | `lucid-origin` | $0.08 | 8 |
 | `nano-banana-2` *(maintenance)* | $0.067 | 6.7 |
+| `flux-1.1-pro` | $0.05 | 5 |
 | `sdxl-lightning` | $0.04 | 4 |
 | `dreamshaper-8-lcm` | $0.04 | 4 |
 
-The `gpt-image-*` models are paid-only. The `nano-banana-*` models are currently under maintenance; pricing is pass-through for a standard-resolution (1K) image when they return.
+Prices are for a standard-resolution (1K) image.
 
 Credits are deducted **after** the upstream call returns successfully. A failed generation does not cost credits.
 
