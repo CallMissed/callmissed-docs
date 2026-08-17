@@ -17,6 +17,20 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Conversations](conversations.md)
 - [Webhooks](webhooks.md)
 - [Status API](status-api.md)
+- [Usage API](usage-api.md)
+- [Prompt Management](gateway-prompts.md)
+- [Response Cache](gateway-cache.md)
+- [Bring Your Own Key](provider-keys.md)
+- [Companies](crm-companies.md)
+- [Notes & Tasks](crm-notes-tasks.md)
+- [Deals & Pipelines](crm-deals.md)
+- [Custom Fields & Saved Views](crm-custom-fields.md)
+- [Search, Bulk & CSV](crm-import-export.md)
+- [Lead Scoring & Timeline](crm-lead-scores.md)
+- [Support Tickets](support-tickets.md)
+- [SLA Policies](support-sla.md)
+- [Macros, Tags & Routing](support-ops.md)
+- [CSAT & NPS Surveys](csat.md)
 
 ## Email
 
@@ -27,6 +41,7 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Scheduled & Batch Sending](email-scheduled.md)
 - [Receive Email](email-inbound.md)
 - [Delivery, Suppressions & Usage](email-logs.md)
+- [Email Webhooks](email-webhooks.md)
 - [Limits, Quotas & Errors](email-limits.md)
 
 ## Getting Started
@@ -35,6 +50,7 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Developer Quickstart](quickstart.md)
 - [Libraries & SDKs](sdks.md)
 - [Docs MCP Server](mcp-server.md)
+- [Account MCP Server](agent-tools-mcp.md)
 - [How CallMissed Works](how-it-works.md)
 - [Idempotency](idempotency.md)
 - [Rate Limits & Quotas](rate-limits.md)
@@ -51,12 +67,11 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Model Access by Plan](model-access.md)
 - [Kimi K2.5 Fast (Maintenance)](models-kimi-fast.md)
 - [Indic Models](models-indic.md)
-- [Frontier Models](models-frontier.md)
 - [Chat Completion](chat-completion.md)
 - [Streaming](chat-streaming.md)
 - [Function Calling](chat-function-calling.md)
 - [Anthropic-Compatible API](anthropic-api.md)
-- [Gateway Plugins & Routing](gateway-plugins.md)
+- [Embeddings](embeddings.md)
 
 ## Images & Search
 
@@ -94,6 +109,9 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Voice Agent](voice-agent.md)
 - [Voice Session API](voice-sessions-api.md)
 - [Voice SDKs](voice-sdk.md)
+- [Agent Evals](voice-evals.md)
+- [A/B Experiments](voice-experiments.md)
+- [Agent Squads](voice-squads.md)
 
 ## WhatsApp
 
@@ -103,5 +121,8 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Sending Messages](whatsapp-messages.md)
 - [Message Templates](whatsapp-templates.md)
 - [Campaigns](whatsapp-campaigns.md)
+- [Payments](whatsapp-payments.md)
 - [Calling](whatsapp-calling.md)
+- [Flows](whatsapp-flows.md)
+- [Orders](whatsapp-orders.md)
 - [Migrate from Meta Cloud API](migrate-from-meta.md)

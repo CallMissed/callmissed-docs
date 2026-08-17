@@ -100,7 +100,7 @@ When streaming, each chunk that carries a `delta.tool_calls` fragment also inclu
 ```python
 # Step 1: Send initial request with tools
 response = client.chat.completions.create(
-    model="sarvam-30b",
+    model="sarvam-105b",
     messages=[{"role": "user", "content": "What's the weather in Mumbai?"}],
     tools=[{
         "type": "function",
@@ -126,7 +126,7 @@ if msg.tool_calls:
 
     # Step 3: Send result back
     final = client.chat.completions.create(
-        model="sarvam-30b",
+        model="sarvam-105b",
         messages=[
             {"role": "user", "content": "What's the weather in Mumbai?"},
             msg,  # assistant message with tool_calls

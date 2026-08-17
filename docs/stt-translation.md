@@ -11,13 +11,13 @@ Translate audio in any supported language to English text. OpenAI-compatible end
 
 ## Overview
 
-The Audio Translation API translates speech in any of 24 supported languages to **English text**. This is the OpenAI-compatible `/v1/audio/translations` endpoint.
+Translates speech in any of 23 supported languages to **English text**. OpenAI-compatible `/v1/audio/translations`.
 
 Unlike [Speech to Text](/docs/speech-to-text) (which transcribes in the original language), this endpoint always outputs English.
 
 **Endpoint:** `POST /v1/audio/translations`
 
-**Supported input languages:** Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi, Odia, Assamese, Urdu, Nepali, Konkani, Kashmiri, Sindhi, Sanskrit, Santali, Manipuri, Brij, Maithili, Dogri, English — plus auto-detection.
+**Supported input languages (23):** Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi, Odia, Assamese, Urdu, Nepali, Konkani, Kashmiri, Sindhi, Sanskrit, Santali, Manipuri, Bodo, Maithili, Dogri, English. Omit `language` to auto-detect.
 
 ## Basic Usage
 
@@ -74,7 +74,7 @@ curl -X POST https://api.callmissed.com/v1/audio/translations \
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `file` | file | Yes | Audio file (WAV, MP3, AAC, OGG, FLAC, WebM, M4A) |
-| `model` | string | No | Model ID (default: `saaras:v3`) |
+| `model` | string | No | Model ID (default: `saaras:v3`; `saaras:v4` also translates to English) |
 | `response_format` | string | No | `json` (default), `text`, or `verbose_json` |
 | `temperature` | float | No | Sampling temperature |
 | `prompt` | string | No | Prompt to guide transcription style |

@@ -31,3 +31,14 @@ Bhavna · Yashvi · Urmila · Chitra
 ```
 
 > **Other TTS providers** also expose voices via the same `POST /v1/audio/speech` endpoint — **aura-2-en** (40 English voices, default `luna`), **aura-2-es** (10 Spanish voices), **deepgram-aura-2** (91 voices across English, Spanish, German, French, Dutch, Italian, and Japanese via the direct Deepgram API, default `thalia`), **deepgram-aura-1** (12 legacy English voices via the direct Deepgram API at half the Aura-2 rate, default `asteria`), and **gpt-4o-mini-tts** (`alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`). See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model pricing.
+
+## Flux TTS Voices
+
+**deepgram-flux-tts** provides **11 English voices** for streaming voice agents — synthesis is turn-based and prosody carries across turns. The default voice is `priya`, an Indian-accented English voice; an unrecognized voice falls back to the default.
+
+```text
+alexis · bruce · cole · drew · haley · heather
+jack · marcus · priya · rufus · sharon
+```
+
+English only — a multilingual voice set is planned for a later release. The model exposes no expressive/emotion/style controls and does not interpret SSML.
