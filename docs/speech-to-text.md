@@ -80,7 +80,7 @@ curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `model` | string | `saaras:v3` |
+| `model` | string | `saaras:v3`, `saaras:v4`, or any other STT model ID |
 | `file` | file | Audio file (WAV, MP3, etc.) |
 | `language` | string | Language code (auto-detected if omitted) |
 | `mode` | string | Output mode — see below |
@@ -96,6 +96,16 @@ curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
 | `verbatim` | Exact transcription including filler words |
 | `translit` | Transliteration to Latin script |
 | `codemix` | Code-mixed output (Indic + English) |
+
+`saaras:v4` serves all five modes on one model across 24 languages, and is free-tier like `saaras:v3`:
+
+```bash
+curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
+  -H "Authorization: Bearer cm_your_key" \
+  -F file=@audio.wav \
+  -F model=saaras:v4 \
+  -F mode=codemix
+```
 
 ## Deepgram feature parameters
 

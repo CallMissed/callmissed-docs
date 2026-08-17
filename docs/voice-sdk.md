@@ -30,7 +30,7 @@ async def main():
             SessionConfig(
                 system_prompt="You are a helpful assistant.",
                 voice="shubh",
-                llm_model="sarvam-30b",
+                llm_model="sarvam-105b",
             )
         )
 
