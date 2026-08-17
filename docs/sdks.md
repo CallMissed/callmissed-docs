@@ -91,7 +91,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="sarvam-30b",
+    model="sarvam-105b",
     messages=[{"role": "user", "content": "Hello"}]
 )
 print(response.choices[0].message.content)
@@ -105,7 +105,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: "sarvam-30b",
+  model: "sarvam-105b",
   messages: [{ role: "user", content: "Hello" }],
 });
 console.log(response.choices[0].message.content);
@@ -119,7 +119,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: "sarvam-30b",
+  model: "sarvam-105b",
   messages: [{ role: "user", content: "Hello" }],
 });
 console.log(response.choices[0].message.content);
@@ -142,7 +142,7 @@ func main() {
 
     resp, _ := client.Chat.Completions.New(context.Background(),
         openai.ChatCompletionNewParams{
-            Model: openai.F("sarvam-30b"),
+            Model: openai.F("sarvam-105b"),
             Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
                 openai.UserMessage("Hello"),
             }),
@@ -159,7 +159,7 @@ $client = OpenAI::factory()
     ->make();
 
 $response = $client->chat()->create([
-    'model'    => 'sarvam-30b',
+    'model'    => 'sarvam-105b',
     'messages' => [['role' => 'user', 'content' => 'Hello']],
 ]);
 
@@ -175,7 +175,7 @@ client = OpenAI::Client.new(
 
 response = client.chat(
   parameters: {
-    model: "sarvam-30b",
+    model: "sarvam-105b",
     messages: [{ role: "user", content: "Hello" }]
   }
 )
@@ -185,7 +185,7 @@ puts response.dig("choices", 0, "message", "content")
 curl https://api.callmissed.com/v1/chat/completions \
   -H "Authorization: Bearer cm_your_api_key" \
   -H "Content-Type: application/json" \
-  -d '{"model": "sarvam-30b", "messages": [{"role": "user", "content": "Hello"}]}'
+  -d '{"model": "sarvam-105b", "messages": [{"role": "user", "content": "Hello"}]}'
 ```
 :::
 
