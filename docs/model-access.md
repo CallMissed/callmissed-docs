@@ -31,29 +31,30 @@ GET /api/v1/models/access
 {
   "plans": {
     "free": {
-      "models": ["sarvam-30b", "sarvam-105b", "kimi-k2.5", "kimi-k2.6", "kimi-k2.7-code", "glm-4.7-flash", "glm-5.2", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1", "saaras:v3", "whisper-large-v3-turbo", "nova-3", "bulbul:v3", "aura-2-en", "aura-2-es", "melotts", "flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm"],
+      "models": ["sarvam-105b", "sarvam-105b-conversations", "kimi-k2.5", "kimi-k2.6", "kimi-k2.7-code", "glm-4.7-flash", "glm-5.2", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1", "saaras:v3", "saaras:v4", "whisper-large-v3-turbo", "nova-3", "bulbul:v3", "aura-2-en", "aura-2-es", "melotts", "flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm", "text-embedding-3-small", "text-embedding-3-large"],
       "by_category": {
-        "llm": ["sarvam-30b", "sarvam-105b", "kimi-k2.5", "kimi-k2.6", "kimi-k2.7-code", "glm-4.7-flash", "glm-5.2", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1"],
-        "stt": ["saaras:v3", "whisper-large-v3-turbo", "nova-3"],
+        "llm": ["sarvam-105b", "sarvam-105b-conversations", "kimi-k2.5", "kimi-k2.6", "kimi-k2.7-code", "glm-4.7-flash", "glm-5.2", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1"],
+        "stt": ["saaras:v3", "saaras:v4", "whisper-large-v3-turbo", "nova-3"],
         "tts": ["bulbul:v3", "aura-2-en", "aura-2-es", "melotts"],
-        "image": ["flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm"]
+        "image": ["flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm"],
+        "embedding": ["text-embedding-3-small", "text-embedding-3-large"]
       },
-      "restriction": "24 models across 4 categories"
+      "restriction": "27 models across 5 categories"
     },
     "starter": {
-      "models": ["...all free models + 300+ paid models"],
-      "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."] },
-      "restriction": "All 300+ models"
+      "models": ["...every model in the catalog"],
+      "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
+      "restriction": "All models"
     },
     "pro": {
       "models": ["..."],
-      "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."] },
-      "restriction": "All 300+ models"
+      "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
+      "restriction": "All models"
     },
     "enterprise": {
       "models": ["..."],
-      "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."] },
-      "restriction": "All 300+ models + custom models"
+      "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
+      "restriction": "All models + models deployed on demand"
     }
   }
 }
@@ -97,16 +98,17 @@ console.log(model, "on free plan:", isFree); // false
 
 ## Free Plan Models
 
-The free tier includes **24 models**:
+The free tier includes **27 models**:
 
 | Category | Models |
 |----------|--------|
-| LLM (11) | `sarvam-30b`, `sarvam-105b`, `kimi-k2.5`, `kimi-k2.6`, `kimi-k2.7-code`, `glm-4.7-flash`, `glm-5.2`, `gpt-oss-120b`, `nemotron-3-super`, `gemma-4-26b-a4b-it`, `mistral-small-3.1` |
-| STT (3) | `saaras:v3`, `whisper-large-v3-turbo`, `nova-3` |
+| LLM (11) | `sarvam-105b`, `sarvam-105b-conversations`, `kimi-k2.5`, `kimi-k2.6`, `kimi-k2.7-code`, `glm-4.7-flash`, `glm-5.2`, `gpt-oss-120b`, `nemotron-3-super`, `gemma-4-26b-a4b-it`, `mistral-small-3.1` |
+| STT (4) | `saaras:v3`, `saaras:v4`, `whisper-large-v3-turbo`, `nova-3` |
 | TTS (4) | `bulbul:v3`, `aura-2-en`, `aura-2-es`, `melotts` |
 | Image (6) | `flux-2-klein-9b`, `flux-2-dev`, `lucid-origin`, `phoenix-1.0`, `sdxl-lightning`, `dreamshaper-8-lcm` |
+| Embedding (2) | `text-embedding-3-small`, `text-embedding-3-large` |
 
-All other models (e.g. `kimi-k2.5-fast`, `openai/*`, `anthropic/*`, `google/*`, `x-ai/*`, `qwen/*`, `mistralai/*`) require a paid plan.
+Every other model — `kimi-k2.5-fast`, the first-party OpenAI / xAI / DeepSeek IDs, the realtime voice models, the Deepgram direct line, and the paid image models — requires Starter, Pro, or Enterprise.
 
 ## Error Handling
 

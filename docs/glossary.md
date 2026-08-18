@@ -15,7 +15,7 @@ Definitions for the core CallMissed concepts and terminology used throughout the
 | --- | --- |
 | **Tenant** | Your organization. All users, bots, keys, and data are isolated per tenant. |
 | **Bot** | A configured AI agent (WhatsApp, inbound/outbound call, IVR) with a system prompt and optional knowledge base. |
-| **Channel** | The surface a bot runs on — WhatsApp or voice (Twilio / LiveKit). |
+| **Channel** | The surface a bot runs on — WhatsApp or voice (Twilio, LiveKit, or a direct WebSocket). |
 | **Conversation** | A thread of messages between an end user and a bot on a channel. |
 | **API Key** | A secret prefixed `cm_` used for server-to-server auth, with scopes, domain locks, and per-key limits. |
 | **Permission** | A service an API key may call — `llm`, `stt`, `tts`, `search`, `image`, or `*`. Enforced on the inference endpoints; default `*`. |
@@ -41,5 +41,5 @@ Definitions for the core CallMissed concepts and terminology used throughout the
 | **TTS** | Text-to-Speech — voice synthesis. |
 | **RAG** | Retrieval-Augmented Generation — semantic search over ingested knowledge passed as context. |
 | **Diarization** | Labeling who spoke when in a transcript (speaker separation). |
-| **Voice Agent** | A real-time STT→LLM→TTS pipeline over WebRTC (LiveKit). |
+| **Voice Agent** | A real-time STT→LLM→TTS pipeline. Two transports: a raw WebSocket ([Managed Voice Agent](/docs/managed-voice-agent), no SDK) or WebRTC via LiveKit ([Voice Session API](/docs/voice-sessions-api)). |
 | **OpenAI-compatible** | Our `/v1` endpoints accept the same request shapes as the OpenAI API — change only the base URL and key. |

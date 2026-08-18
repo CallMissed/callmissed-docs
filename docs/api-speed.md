@@ -78,7 +78,7 @@ Same prompt, three different routes — measured first-token and total times:
 
 For latency-sensitive integrations (autocomplete, agent tool loops), prefer **`gpt-oss-120b`** or **`kimi-k2.6`** — both direct-routed, both OpenAI-compatible, both sub-2s on small prompts.
 
-## 3. Reasoning_effort matrix (per model — verified empirically)
+## 3. Reasoning effort by model
 
 Reasoning models can spend 100+ tokens "thinking" before producing visible content. On short answers, that's both a wall-clock and a credit cost the user never sees. Use `reasoning_effort` to dial it down — or off, where supported.
 
@@ -100,17 +100,22 @@ Behaviour per model — verified live against each upstream on 2026-05-01:
 | `gpt-5.5` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `kimi-k2.5` | ✅ off | ✅ | ✅ | ✅ | — | ↓ `"none"` |
 | `kimi-k2.6` | ✅ off | ✅ | ✅ | ✅ | — | ↓ `"none"` |
-| `kimi-k2.7-code` | ✅ off | ✅ | ✅ | ✅ | — | ↓ `"none"` |
-| `gemma-4-26b-a4b-it` | ✅ off | ✅ | ✅ | ✅ | — | ↓ `"none"` |
 | `gpt-oss-120b` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
 | `nemotron-3-super` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
-| `glm-4.7-flash` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
-| `glm-5.2` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
-| `sarvam-30b` / `sarvam-105b` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
-| `mistral-small-3.1` | (no reasoning surface — silently dropped) | | | | | |
-| Frontier (`openai/*`, `anthropic/*`, …) | forwarded as-is — underlying model gates valid values | | | | | |
+| `glm-4.7-flash` | ✅ off | ⊘ | ⊘ | ⊘ | — | ✅ off |
+| `glm-5.2` | ✅ off | ⊘ | ⊘ | ⊘ | — | ✅ off |
+| `gemma-4-26b-a4b-it` | ✅ off | ⊘ | ⊘ | ⊘ | — | ✅ off |
+| `sarvam-105b`, `sarvam-105b-conversations` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
+| `kimi-k2.7-code` | ⊘ | ⊘ | ⊘ | ⊘ | — | ⊘ |
+| `mistral-small-3.1` | ⊘ | ⊘ | ⊘ | ⊘ | — | ⊘ |
 
-Legend: ✅ = sent to upstream verbatim · ↓ = the API maps it to the next-supported value before forwarding · — = value not accepted by that model. The GPT-5.6 family (`sol`/`terra`/`luna`) and `gpt-5.5` accept OpenAI's full `none`/`low`/`medium`/`high`/`xhigh` ladder; `"minimal"` is not supported on these models and is mapped down to `"low"`.
+Legend: ✅ = sent to upstream verbatim · ✅ off = thinking is switched off · ↓ = mapped to the listed value before forwarding · ⊘ = dropped from the request; the model runs at its default thinking behaviour · — = not accepted by that model.
+
+Three notes worth reading before you rely on a value:
+
+- `glm-4.7-flash`, `glm-5.2` and `gemma-4-26b-a4b-it` honour only the off switch. `"none"` and `"minimal"` turn thinking off. `"low"`, `"medium"` and `"high"` are dropped, so the model thinks at its own default — they are not an intensity dial.
+- `kimi-k2.7-code` and `mistral-small-3.1` expose no reasoning control. Every value is dropped. Both still return 200.
+- The GPT-5.5 / GPT-5.6 family accepts the full `none`/`low`/`medium`/`high`/`xhigh` ladder. `"minimal"` is rejected upstream, so we map it to `"low"`. Send `xhigh`, not `max` or `ultra`.
 
 Concrete numbers on `kimi-k2.6` answering "What is 2+2?":
 

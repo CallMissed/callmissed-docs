@@ -35,7 +35,9 @@ Nova 2 Sonic handles speech understanding, reasoning, turn-taking, function call
 
 ## Architecture
 
-You create a session over REST and receive a LiveKit room URL + token. Your client connects to that room with the `livekit-client` SDK; the CallMissed voice agent joins automatically and handles the speech pipeline. Audio flows over WebRTC — there is no direct WebSocket between your client and the CallMissed API.
+You create a session over REST and receive a LiveKit room URL + token. Your client connects to that room with the `livekit-client` SDK; the CallMissed voice agent joins automatically and handles the speech pipeline. Audio flows over WebRTC.
+
+This is the WebRTC path. For a plain WebSocket you stream raw audio to — no LiveKit SDK, no media server hop — see the [Managed Voice Agent](/docs/managed-voice-agent), which runs the same tuned pipeline over `wss://api.callmissed.com`.
 
 :::flow
 icon:app | Browser (livekit-client SDK) | Captures mic audio and streams it over WebRTC

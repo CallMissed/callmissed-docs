@@ -323,6 +323,60 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/phone_numbers/9c2b7e30-1
 
 Returns the updated phone-number object.
 
+### Conversational automation
+
+In-chat guidance on a number: **ice breakers**, the tappable openers a customer sees before they have said anything, and **commands**, the slash-command hints that appear while they type. Both are per number.
+
+`GET /api/v1/whatsapp/phone_numbers/{phone_id}/conversational_automation` · scope `whatsapp:read`
+
+```bash
+curl https://api.callmissed.com/api/v1/whatsapp/phone_numbers/9c2b7e30-1d8a-4c5f-9b3d-2f4a6e8b1c2d/conversational_automation \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+**Response (200 OK)**
+
+```json
+{
+  "enable_welcome_message": true,
+  "commands": [
+    { "command_name": "track", "command_description": "Track your latest order" },
+    { "command_name": "invoice", "command_description": "Get an invoice by order id" }
+  ],
+  "prompts": ["Track my order", "Talk to a human", "Store timings"]
+}
+```
+
+A number that has never been configured returns empty lists rather than an error.
+
+`POST /api/v1/whatsapp/phone_numbers/{phone_id}/conversational_automation` · scope `whatsapp:write`
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `commands` | array of objects, max 30 | No | Each is `{ "command_name": string (1-32), "command_description": string (1-256) }` |
+| `prompts` | array of strings, max 4 | No | The ice breakers. Each max 80 characters |
+| `enable_welcome_message` | boolean | No | Show a welcome message on a brand-new chat. Forwarded to WhatsApp only when you set it explicitly, and never defaulted |
+
+Every field is optional and updates are partial, so posting only `commands` leaves your ice breakers untouched, and vice versa. A field you do send replaces the whole list, so send the full set you want, not just the additions.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/phone_numbers/9c2b7e30-1d8a-4c5f-9b3d-2f4a6e8b1c2d/conversational_automation \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompts": ["Track my order", "Talk to a human", "Store timings"],
+    "commands": [
+      { "command_name": "track", "command_description": "Track your latest order" },
+      { "command_name": "invoice", "command_description": "Get an invoice by order id" }
+    ],
+    "enable_welcome_message": true
+  }'
+```
+
+Returns the configuration as WhatsApp reports it after the update, in the same shape as the read. `422` when a cap is exceeded: more than 30 commands, more than 4 ice breakers, an ice breaker over 80 characters, a `command_name` over 32, or a `command_description` over 256.
+
+A tapped ice breaker or command arrives as an ordinary inbound text message, so your agent answers it with no extra wiring. Point the copy at things the agent can actually do.
+
 ### Disconnect a number
 
 `POST /api/v1/whatsapp/phone_numbers/{phone_id}/disconnect` · scope `whatsapp:write`
