@@ -22,18 +22,22 @@ icon:provider | Best provider | the best-fit backend for each model — chosen a
 icon:db | Credits & logs | Deduct from one credit balance and record usage for every request
 :::
 
-## Provider Routing
+## Model Routing
 
-We pick the upstream provider from the model id, so you never manage multiple SDKs or keys:
+The model id picks the backend. You never manage multiple SDKs or keys.
 
-| Model id shape | Routed to |
+| Model id | Routed to |
 | --- | --- |
-| default fast tier | Kimi K2.5 Fast (~414 tok/s) |
-| no slash (e.g. `sarvam-30b`, `saaras:v3`) | Indic LLM/STT/TTS |
-| has a slash (e.g. `google/gemini-3.5-flash`, `moonshotai/kimi-k2`) | Frontier catalog |
-| audio / image models | Audio/Image backends |
+| `sarvam-*` (e.g. `sarvam-105b`) | Indic LLM |
+| `saaras:*`, `whisper*`, `nova-3`, `deepgram-*`, `gnani-prisma-*` | Speech to text |
+| `bulbul:*`, `aura-2-*`, `melotts`, `gnani-timbre-*` | Text to speech |
+| `flux-*`, `gpt-image-*`, `lucid-origin`, `phoenix-1.0`, … | Image generation |
+| everything else (e.g. `kimi-k2.5`, `gpt-5.6-terra`, `glm-5.2`) | Chat completions |
 
-You get one API surface, one key, and one bill regardless of which provider ultimately serves the request.
+Every id is a plain CallMissed id. One API surface, one key, one bill.
+
+Need a model that isn't in the catalog? We deploy 300+ more on demand — see
+[Models on demand](/docs/models#models-on-demand).
 
 ## One Credit Currency
 

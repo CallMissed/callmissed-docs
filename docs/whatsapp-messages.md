@@ -244,7 +244,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/media \
 
 `POST /api/v1/whatsapp/messages/interactive` · scope `whatsapp:send`
 
-Reply buttons, a list menu, or a call-to-action URL button. `interactive_type` selects the variant.
+Reply buttons, a list menu, a call-to-action URL button, or a Flow. `interactive_type` selects the variant.
 
 **Common fields**
 
@@ -252,7 +252,7 @@ Reply buttons, a list menu, or a call-to-action URL button. `interactive_type` s
 |---|---|---|---|
 | `phone_id` / `phone_number_id` | UUID / string | One of | The sending number |
 | `to` | string, 5 to 20 chars | Yes | Recipient in E.164 |
-| `interactive_type` | enum | Yes | `button`, `list` or `cta_url` |
+| `interactive_type` | enum | Yes | `button`, `list`, `cta_url` or `flow` |
 | `body_text` | string, 1 to 1024 chars | Yes | The main message body |
 | `footer_text` | string, max 60 | No | Small footer line |
 | `header` | object | No | Header block, passed through to WhatsApp. For `list` only its `text` is used |
@@ -264,6 +264,19 @@ Reply buttons, a list menu, or a call-to-action URL button. `interactive_type` s
 | `button` | `buttons` | 1 to 3 objects, each `{ "id": string (1-256), "title": string (1-20) }` |
 | `list` | `button_text`, `sections` | `button_text` max 20. Each section is `{ "title": string (1-24), "rows": [{ "id": string (1-200), "title": string (1-24), "description"?: string (max 72) }] }`, at least one row per section |
 | `cta_url` | `button_text`, `button_url` | `button_url` max 2048 |
+| `flow` | `flow_cta`, and exactly one of `flow_id` / `flow_name` | The flow fields below |
+
+**Flow fields** (`interactive_type: "flow"` only)
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `flow_cta` | string, 1 to 30 chars | Yes | The button label that opens the flow. Emojis are not supported |
+| `flow_id` | string, max 64 | Exactly one of | The published flow's id |
+| `flow_name` | string, max 200 | Exactly one of | The flow's name. Cannot be combined with `flow_id` |
+| `flow_action` | enum | No | `navigate` (default) or `data_exchange` |
+| `flow_action_payload` | object | For `navigate` | Must carry `screen`, the first screen to open. On `data_exchange` the first screen comes from your endpoint's response instead |
+| `flow_token` | string, max 512 | No | Your own identifier for this flow session, echoed back to you with the customer's submission |
+| `flow_mode` | enum | No | `published` (default) or `draft`, to send an unpublished flow while you are still building it |
 
 :::tabs
 ```bash [Buttons]
@@ -320,16 +333,160 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/interactive \
     "button_url": "https://acme.example.com/invoices/AC-10294"
   }'
 ```
+```bash [Flow]
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/interactive \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone_number_id": "1234567890",
+    "to": "+919000000000",
+    "interactive_type": "flow",
+    "body_text": "Book your tasting session in a few taps.",
+    "footer_text": "Acme Coffee",
+    "flow_id": "1122334455667788",
+    "flow_cta": "Book a slot",
+    "flow_action": "navigate",
+    "flow_action_payload": { "screen": "PICK_DATE" },
+    "flow_token": "booking-4471"
+  }'
+```
 :::
 
-Returns the common send response. The customer's tap arrives back on your webhook as an inbound message with `type: "interactive"` or `type: "button"`.
+Returns the common send response. The customer's tap arrives back on your webhook as an inbound message with `type: "interactive"` or `type: "button"`. A completed flow arrives as an interactive reply carrying your `flow_token` alongside the screen data the customer submitted, so use `flow_token` to tie the submission back to the order, booking or ticket you sent it for.
 
 **Failures**
 
 | Code | Meaning |
 |---|---|
-| `400` | `buttons` missing for `button`, or `button_text` and `sections` missing for `list`, or `button_text` and `button_url` missing for `cta_url` |
+| `400` | `buttons` missing for `button`, or `button_text` and `sections` missing for `list`, or `button_text` and `button_url` missing for `cta_url`, or for `flow`: `flow_cta` missing, neither or both of `flow_id` / `flow_name` supplied, or `flow_action_payload.screen` missing while `flow_action` is `navigate` |
 | `422` | The 24-hour window is closed, or WhatsApp rejected the layout |
+
+## Send an order details message
+
+`POST /api/v1/whatsapp/messages/order_details` · scope `whatsapp:send`
+
+An itemised bill the customer can pay from the chat with UPI. Needs a payment configuration on the WABA first, see [WhatsApp Payments](/docs/whatsapp-payments). India and UPI only: any other `payment_type` returns `501`.
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `phone_id` / `phone_number_id` | UUID / string | One of | The sending number |
+| `to` | string, 5 to 20 chars | Yes | Recipient in E.164 |
+| `reference_id` | string, max 35 | Yes | Your order reference. Letters, digits, `_`, `-` and `.` only, and unique per order details message. This is the key an [order status](#send-an-order-status-update) update quotes to settle the bill |
+| `goods_type` | string | Yes | `digital-goods` or `physical-goods` |
+| `payment_configuration` | string, 1 to 60 chars | Yes | The `configuration_name` of the payment configuration to charge into |
+| `total_amount` | object | Yes | `{ "value": integer, "offset": 100 }` |
+| `order` | object | Yes | The line items and money breakdown, below |
+| `body_text` | string, 1 to 1024 chars | Yes | The message body above the bill |
+| `footer_text` | string, max 60 | No | Small footer line |
+| `header` | object | No | Image header, passed through to WhatsApp |
+| `beneficiaries` | array of objects | For shipped physical goods | India addresses only, see the shape below |
+| `preferred_payment_methods` | array of objects | No | At most one, `[{ "method": "gpay" }]`. One of `gpay`, `phonepe`, `paytm`, `amazonpay`, `cred`, `mobikwik` |
+| `payment_type` | string | No | Default `upi`. Anything else returns `501` |
+| `currency` | string | No | Default `INR`, the only accepted value |
+
+**Money is integer minor units.** Every amount is `{ "value": …, "offset": 100 }`, where `value` is paise and `offset` must be `100`, so ₹499.00 is `{ "value": 49900, "offset": 100 }`. Floats are not accepted, because binary floating point cannot represent decimal currency exactly and this is a bill.
+
+**The `order` object**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `items` | array, at least 1 | Yes | Each item is `{ "name": string (1-60), "amount": Amount, "quantity": integer >= 1 }`, plus optional `sale_amount`, `retailer_id`, `image: { "link": … }`, `country_of_origin`, `importer_name`, `importer_address` |
+| `subtotal` | object | Yes | Amount. Must equal the sum of the line items |
+| `tax` | object | Yes | Amount, with an optional `description` (max 60) |
+| `shipping` | object | No | Amount |
+| `discount` | object | No | Amount |
+| `catalog_id` | string | No | When the items come from a catalog. Cannot be combined with a custom item `image` |
+| `expiration` | object | No | `{ "timestamp": …, "description": string (max 120) }`. `timestamp` is UTC epoch seconds and must be at least 300 seconds in the future |
+| `type` | string | No | Only `quick_pay` is accepted, which shows a single "Pay Now" button |
+| `status` | string | No | Only `pending` is accepted on an order details message |
+
+`total_amount.value` must equal `subtotal + tax + shipping - discount`. Using a custom item `image` limits the order to 10 items.
+
+**The `beneficiaries` shape** — required for shipped physical goods, and India-only:
+
+| Field | Type | Notes |
+|---|---|---|
+| `name` | string, 1 to 200 | |
+| `address_line1` | string, 1 to 100 | `address_line2` optional, same cap |
+| `city` / `state` / `country` | string | `country` must be `India` |
+| `postal_code` | string | A 6-digit PIN code |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/order_details \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone_number_id": "1234567890",
+    "to": "+919000000000",
+    "reference_id": "AC-10294",
+    "goods_type": "physical-goods",
+    "payment_configuration": "acme-upi",
+    "body_text": "Here is your order. Pay with any UPI app to confirm it.",
+    "footer_text": "Acme Coffee",
+    "total_amount": { "value": 61800, "offset": 100 },
+    "order": {
+      "type": "quick_pay",
+      "status": "pending",
+      "items": [
+        {
+          "name": "Ratnagiri Dark Roast 500g",
+          "amount": { "value": 55000, "offset": 100 },
+          "quantity": 1
+        }
+      ],
+      "subtotal": { "value": 55000, "offset": 100 },
+      "tax": { "value": 6800, "offset": 100, "description": "GST 12%" },
+      "expiration": { "timestamp": 1776000000, "description": "Pay within 30 minutes" }
+    },
+    "preferred_payment_methods": [{ "method": "gpay" }]
+  }'
+```
+
+Returns the common send response.
+
+> **Always follow up with an order status update.** The customer's order screen keeps showing "Order pending" until you send one, so an order that was paid still looks unpaid.
+
+**Failures**
+
+| Code | Meaning |
+|---|---|
+| `400` | A money rule failed (`offset` not `100`, total does not equal subtotal plus tax plus shipping minus discount, subtotal does not equal the line items), an invalid `reference_id` charset, an unknown `goods_type` or `status`, more than one `preferred_payment_methods` entry, or an unlisted payment app |
+| `402` | Not enough credits. Nothing was sent |
+| `422` | The 24-hour window is closed, or WhatsApp rejected the order |
+| `501` | `payment_type` is not `upi`. Only India and UPI are supported |
+
+## Send an order status update
+
+`POST /api/v1/whatsapp/messages/order_status` · scope `whatsapp:send`
+
+The update that settles a bill. It moves the customer's order screen off "Order pending" and updates the buttons on the original order details message. Send one on every transaction update.
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `phone_id` / `phone_number_id` | UUID / string | One of | The sending number |
+| `to` | string, 5 to 20 chars | Yes | Recipient in E.164 |
+| `reference_id` | string, max 35 | Yes | The same reference you sent the order details message with |
+| `status` | enum | Yes | `pending`, `processing`, `partially-shipped`, `shipped`, `completed` or `canceled`. `partially_shipped` and `cancelled` are accepted and normalised |
+| `body_text` | string, 1 to 1024 chars | Yes | The message body |
+| `description` | string, max 120 | No | A line of detail under the status |
+| `footer_text` | string, max 60 | No | Small footer line |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/order_status \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone_number_id": "1234567890",
+    "to": "+919000000000",
+    "reference_id": "AC-10294",
+    "status": "shipped",
+    "body_text": "Your order is on its way and should arrive by Thursday.",
+    "description": "Picked up by the courier this morning",
+    "footer_text": "Acme Coffee"
+  }'
+```
+
+Returns the common send response. `400` for an unknown `status` or a `reference_id` outside the allowed charset, and `422` when the window is closed or WhatsApp rejected the update.
 
 ## Send a location
 

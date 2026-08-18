@@ -16,7 +16,9 @@ The Voice Session API provides a two-step flow for voice agent interactions:
 1. **Create a session** via REST — returns a LiveKit room URL + JWT
 2. **Connect via LiveKit WebRTC** — stream audio with the `livekit-client` SDK; the agent joins automatically and handles STT → LLM → TTS
 
-Audio flows over WebRTC to the LiveKit room. There is **no direct WebSocket between the browser and the CallMissed API** — the REST endpoints handle session metadata, token issuance, usage tracking, and transcript storage.
+Audio flows over WebRTC to the LiveKit room; on this API the REST endpoints handle session metadata, token issuance, usage tracking and transcript storage.
+
+If you would rather stream audio straight to us over a plain WebSocket — no WebRTC and no client SDK — use the [Managed Voice Agent](/docs/managed-voice-agent) instead. This page covers the LiveKit-based session API, which remains the right choice when you want WebRTC transport (browser calls with adaptive bitrate, or an existing LiveKit setup).
 
 **Authentication:** All REST endpoints accept both **JWT** (`Authorization: Bearer <jwt>`) and **API key** (`Authorization: Bearer cm_<key>`). API keys must have `stt`, `tts`, and `llm` permissions to create a session.
 
@@ -78,7 +80,7 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 | `system_prompt` | string | "You are a helpful voice assistant..." | Max 4096 chars. Overrides bot's prompt if both set |
 | `voice` | string | `shubh` | TTS voice ID (37 voices) |
 | `language` | string | `en-IN` | BCP-47 language for STT + TTS |
-| `llm_model` | string | `kimi-k2.5` | Any catalog model (`sarvam-30b`, `sarvam-105b`, `openai/*`, etc.). `kimi-k2.5-fast` is currently under maintenance. |
+| `llm_model` | string | `kimi-k2.5` | Any catalog LLM (`sarvam-105b`, `sarvam-105b-conversations`, `kimi-k2.6`, `gpt-5.6-luna`, …). `kimi-k2.5-fast` is under maintenance. |
 | `tts_provider` | string | `sarvam` | Currently `sarvam` only |
 | `max_duration_seconds` | int | `300` | 30–3600 |
 | `webhook_url` | string | — | Receives session events (see below) |

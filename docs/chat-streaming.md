@@ -56,7 +56,7 @@ client = OpenAI(
 )
 
 stream = client.chat.completions.create(
-    model="sarvam-30b",
+    model="sarvam-105b",
     messages=[{"role": "user", "content": "Hello"}],
     stream=True,
     stream_options={"include_usage": True}
@@ -68,7 +68,7 @@ for chunk in stream:
 ```
 ```javascript [JavaScript]
 const stream = await client.chat.completions.create({
-  model: "sarvam-30b",
+  model: "sarvam-105b",
   messages: [{ role: "user", content: "Hello" }],
   stream: true,
   stream_options: { include_usage: true },
@@ -83,6 +83,6 @@ for await (const chunk of stream) {
 curl -X POST https://api.callmissed.com/v1/chat/completions \
   -H "Authorization: Bearer cm_your_key" \
   -H "Content-Type: application/json" \
-  -d '{"model":"sarvam-30b","messages":[{"role":"user","content":"Hello"}],"stream":true}'
+  -d '{"model":"sarvam-105b","messages":[{"role":"user","content":"Hello"}],"stream":true}'
 ```
 :::

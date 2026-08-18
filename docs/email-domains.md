@@ -101,6 +101,7 @@ A newly verified domain starts on a warm-up quota that rises automatically as it
 | `GET /api/v1/email/domains/{id}/records` | Re-fetch a domain's DNS records at any time, the same set the create call returned |
 | `GET /api/v1/email/domains/{id}/provider` | Detect the domain's DNS host from its nameservers and return a deep link to the right DNS-management page |
 | `POST /api/v1/email/domains/{id}/verify` | Run verification and return the per-check states |
+| `PATCH /api/v1/email/domains/{id}` | Toggle [open/click tracking and sending](#tracking-and-sending-toggles) |
 | `DELETE /api/v1/email/domains/{id}` | Remove a domain (`204`). Sending from it stops immediately |
 
 ```bash
@@ -120,9 +121,45 @@ curl -X DELETE https://api.callmissed.com/api/v1/email/domains/9d0f8b3a-1c2e-4a5
 
 A domain id that isn't yours returns `404` with `{"detail": "Domain not found"}`.
 
+### Tracking and sending toggles
+
+**`PATCH /api/v1/email/domains/{id}`** sets per-domain behaviour. Needs a write key.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `open_tracking` | boolean | Track opens on HTML mail from this domain. Also accepted as `track_opens` |
+| `click_tracking` | boolean | Track link clicks on HTML mail from this domain. Also accepted as `track_clicks` |
+| `sending` | boolean | `false` pauses sending from this domain; `true` resumes it |
+
+Only the fields you send are applied, so an omitted toggle is left untouched. An unsupported field is a `422` rather than a silent no-op, so you always know whether a setting took effect.
+
+```bash
+# Turn on open + click tracking
+curl -X PATCH https://api.callmissed.com/api/v1/email/domains/9d0f8b3a-1c2e-4a5b-8f7d-6e2a1b0c9d4e \
+  -H "Authorization: Bearer cm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"open_tracking": true, "click_tracking": true}'
+
+# Pause sending from this domain
+curl -X PATCH https://api.callmissed.com/api/v1/email/domains/9d0f8b3a-1c2e-4a5b-8f7d-6e2a1b0c9d4e \
+  -H "Authorization: Bearer cm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"sending": false}'
+```
+
+The response is `DomainSettingsOut`: every `DomainOut` field plus `track_opens` and `track_clicks`, so you can see what the call just set.
+
+**Tracking.** Both toggles are off by default and independent. Once on, HTML sends from the domain get an open pixel and/or signed click-redirect links. Details of what gets rewritten are on [Send Email](/docs/email-send#open-and-click-tracking); read the numbers back from [engagement metrics](/docs/email-logs#engagement-metrics).
+
+**Sending.** `sending: false` takes effect immediately: sends from the domain stop, and its `status` becomes `paused`. `sending: true` resumes it.
+
+One important limit: **`sending: true` only resumes a domain you paused yourself.** A domain paused automatically for deliverability reasons (too many bounces or complaints for its volume) stays paused and returns `409`. That pause is a circuit breaker, and a breaker a caller can clear is only advice. Fix the underlying list quality, then contact support. `pause_reason` on `DomainOut` tells the two cases apart.
+
 ### Response objects
 
 `DomainOut` returns `id`, `domain`, `status` (`pending` / `verified` / `failed` / `paused`), `dkim_selector`, `daily_quota`, `verified_at`, `last_checked_at`, `paused_at`, `pause_reason`, `sent_count`, `bounce_count`, `complaint_count`, `created_at`.
+
+`DomainSettingsOut`, returned by `PATCH /domains/{id}`, is `DomainOut` plus `track_opens` and `track_clicks`.
 
 `DnsRecordOut` returns `type`, `name` (the full FQDN), `host` (the panel-ready name), `value`, `purpose`, `required`, and `priority` (MX only; `null` otherwise).
 
@@ -136,6 +173,8 @@ A domain id that isn't yours returns `404` with `{"detail": "Domain not found"}`
 | 401 | string `detail` | Missing, malformed or unrecognised `Authorization` header |
 | 403 | string `detail` | The API key is read-only and this route writes |
 | 404 | `{"detail": "Domain not found"}` | The domain id is not yours |
+| 409 | string `detail` | `PATCH sending=true` on a domain paused automatically for deliverability reasons |
+| 422 | schema array `detail` | An unsupported field in a `PATCH` body |
 | 502 | `reason` nested under `detail` | `acs_unavailable`: domain provisioning or verification is temporarily unavailable, retry the domain call |
 | 503 | string `detail` | `"Domain onboarding is not configured"` |
 
