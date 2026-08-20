@@ -1,16 +1,16 @@
 ---
 title: "Voice Agent"
-description: "Real-time voice AI agent powered by LiveKit (WebRTC) — native speech-to-speech with Nova 2 Sonic by default, plus STT→LLM→TTS fallback."
+description: "Real-time voice AI agent over WebRTC — native speech-to-speech with Nova 2 Sonic by default, plus STT→LLM→TTS fallback."
 slug: "voice-agent"
 breadcrumb: "Voice Agents"
 ---
 
 # Voice Agent
 
-Real-time voice AI agent powered by LiveKit (WebRTC) — native speech-to-speech with Nova 2 Sonic by default, plus STT→LLM→TTS fallback.
+Real-time voice AI agent over WebRTC — native speech-to-speech with Nova 2 Sonic by default, plus STT→LLM→TTS fallback.
 
 :::cards
-/docs/voice-sessions-api | Voice Sessions API | key | Create sessions and generate LiveKit tokens
+/docs/voice-sessions-api | Voice Sessions API | key | Create sessions and generate connection tokens
 /docs/voice-sdk | Voice SDK | package | Client SDK for browser and mobile WebRTC
 /docs/stt-realtime | Real-time STT | mic | Streaming speech-to-text over WebSocket
 /docs/text-to-speech | Text to Speech | volume2 | Indic TTS for agent responses
@@ -18,7 +18,7 @@ Real-time voice AI agent powered by LiveKit (WebRTC) — native speech-to-speech
 
 ## Overview
 
-The Voice Agent is a real-time conversational AI powered by **LiveKit** (open-source WebRTC). By default it uses a native speech-to-speech model:
+The Voice Agent is a real-time conversational AI that streams over **WebRTC**. By default it uses a native speech-to-speech model:
 
 ```
 Mic (WebRTC) → Nova 2 Sonic (speech-to-speech) → Speaker (WebRTC)
@@ -31,15 +31,17 @@ Nova 2 Sonic handles speech understanding, reasoning, turn-taking, function call
 - **Fallback STT:** `saaras:v3` (streaming, 23 languages)
 - **Fallback LLM:** `gpt-oss-120b` (fast no-think pipeline model)
 - **Fallback TTS:** `bulbul:v3` (streaming, 37 voices)
-- **Transport:** LiveKit (WebRTC)
+- **Transport:** WebRTC (via the `livekit-client` SDK)
 
 ## Architecture
 
-You create a session over REST and receive a LiveKit room URL + token. Your client connects to that room with the `livekit-client` SDK; the CallMissed voice agent joins automatically and handles the speech pipeline. Audio flows over WebRTC — there is no direct WebSocket between your client and the CallMissed API.
+You create a session over REST and receive a connection URL + token. Your client connects with the `livekit-client` SDK; the CallMissed voice agent joins automatically and handles the speech pipeline. Audio flows over WebRTC.
+
+This is the WebRTC path. For a plain WebSocket you stream raw audio to — no client SDK, no media hop — see the [Managed Voice Agent](/docs/managed-voice-agent), which runs the same tuned pipeline over `wss://api.callmissed.com`.
 
 :::flow
 icon:app | Browser (livekit-client SDK) | Captures mic audio and streams it over WebRTC
-icon:server | LiveKit room | WebRTC transport that connects your client to the voice agent
+icon:server | Connection | WebRTC transport that connects your client to the voice agent
 icon:bot | CallMissed voice agent | Runs Nova Sonic speech-to-speech, or falls back to the STT → LLM → TTS loop
 icon:done | Browser | Receives synthesized speech back over WebRTC and plays it
 :::
@@ -74,13 +76,15 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 ```json
 {
   "id": "uuid",
-  "ws_url": "wss://livekit.callmissed.com",
+  "ws_url": "wss://…",
   "token": "eyJhbGciOi...",
   "status": "created"
 }
 ```
 
-**2. Connect via LiveKit client:**
+Read `ws_url` from this response and pass it straight to the client — it is issued per session. Do not hardcode it.
+
+**2. Connect with the client SDK:**
 
 ```javascript
 import { Room, RoomEvent, Track } from "livekit-client";
@@ -137,4 +141,4 @@ The direct WebSocket endpoint is still available for backward compatibility:
 WS /ws/voice-agent?key=cm_your_api_key
 ```
 
-Send a config message after connecting, then stream PCM audio. This uses the custom backend pipeline (not LiveKit). See the [Session API](/docs/voice-sessions-api) for the recommended LiveKit-based approach.
+Send a config message after connecting, then stream PCM audio. This is a direct-WebSocket pipeline, separate from the WebRTC path above. See the [Session API](/docs/voice-sessions-api) for the recommended WebRTC approach.

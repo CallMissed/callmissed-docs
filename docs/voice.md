@@ -52,4 +52,4 @@ LLM and TTS run concurrently for minimum latency — audio playback begins while
 
 ## Outbound Calling
 
-The `outbound_call` bot type exists, but a public API to **initiate** outbound calls is not yet available — today the voice pipeline is driven by inbound Twilio calls (and LiveKit voice sessions). Programmatic outbound dialing is on the roadmap. [Talk to us](/docs/talk-to-us) if you need it.
+The `outbound_call` bot type exists, but a public API to **initiate** outbound calls is not yet available — today the voice pipeline is driven by inbound telephony calls (and WebRTC voice sessions). Programmatic outbound dialing is on the roadmap. [Talk to us](/docs/talk-to-us) if you need it.
