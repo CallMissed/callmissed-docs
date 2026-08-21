@@ -81,4 +81,4 @@ icon:tts | TTS (bulbul:v3) | Synthesizes speech — playback starts before gener
 icon:done | Caller | Hears the AI agent respond
 :::
 
-> **Tip:** For browser/mobile WebRTC agents (no phone number required) use the LiveKit-based [Voice Agent](/docs/voice-agent) and [Voice Sessions API](/docs/voice-sessions-api) instead. See the [Voice Calling](/docs/voice) guide for the full telephony protocol.
+> **Tip:** For browser/mobile WebRTC agents (no phone number required) use the [Voice Agent](/docs/voice-agent) and [Voice Sessions API](/docs/voice-sessions-api) instead. See the [Voice Calling](/docs/voice) guide for the full telephony protocol.
