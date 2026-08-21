@@ -1,22 +1,24 @@
 ---
 title: "Voice Session API"
-description: "REST API for creating and managing LiveKit-based voice agent sessions."
+description: "REST API for creating and managing WebRTC voice agent sessions."
 slug: "voice-sessions-api"
 breadcrumb: "Voice Agents"
 ---
 
 # Voice Session API
 
-REST API for creating and managing LiveKit-based voice agent sessions.
+REST API for creating and managing WebRTC voice agent sessions.
 
 ## Overview
 
 The Voice Session API provides a two-step flow for voice agent interactions:
 
-1. **Create a session** via REST — returns a LiveKit room URL + JWT
-2. **Connect via LiveKit WebRTC** — stream audio with the `livekit-client` SDK; the agent joins automatically and handles STT → LLM → TTS
+1. **Create a session** via REST — returns a connection URL + JWT
+2. **Connect over WebRTC** — stream audio with the `livekit-client` SDK; the agent joins automatically and handles STT → LLM → TTS
 
-Audio flows over WebRTC to the LiveKit room. There is **no direct WebSocket between the browser and the CallMissed API** — the REST endpoints handle session metadata, token issuance, usage tracking, and transcript storage.
+Audio flows over WebRTC; on this API the REST endpoints handle session metadata, token issuance, usage tracking and transcript storage.
+
+If you would rather stream audio straight to us over a plain WebSocket — no WebRTC and no client SDK — use the [Managed Voice Agent](/docs/managed-voice-agent) instead. This page covers the WebRTC session API, which remains the right choice for browser calls with adaptive bitrate.
 
 **Authentication:** All REST endpoints accept both **JWT** (`Authorization: Bearer <jwt>`) and **API key** (`Authorization: Bearer cm_<key>`). API keys must have `stt`, `tts`, and `llm` permissions to create a session.
 
@@ -51,9 +53,9 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
     "llm_model": "kimi-k2.5",
     "tts_provider": "sarvam",
     "max_duration_seconds": 300,
-    "livekit_room": "voice-<random>"
+    "room": "voice-<random>"
   },
-  "ws_url": "wss://livekit.callmissed.com",
+  "ws_url": "wss://…",
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "started_at": null,
   "ended_at": null,
@@ -66,8 +68,8 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 }
 ```
 
-- `ws_url` is the **LiveKit server** URL — not the CallMissed API.
-- `token` is a **LiveKit JWT** (not an opaque `vs_*` string). TTL is **1 hour**.
+- `ws_url` is the **media server** URL — not the CallMissed API. It is issued per session; read it from the response and pass it straight to the client, do not hardcode it.
+- `token` is the **connection JWT** (not an opaque `vs_*` string). TTL is **1 hour**.
 - The token is returned **once** on creation and is not fetchable again.
 
 ## Request Body
@@ -78,15 +80,15 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 | `system_prompt` | string | "You are a helpful voice assistant..." | Max 4096 chars. Overrides bot's prompt if both set |
 | `voice` | string | `shubh` | TTS voice ID (37 voices) |
 | `language` | string | `en-IN` | BCP-47 language for STT + TTS |
-| `llm_model` | string | `kimi-k2.5` | Any catalog model (`sarvam-30b`, `sarvam-105b`, `openai/*`, etc.). `kimi-k2.5-fast` is currently under maintenance. |
+| `llm_model` | string | `kimi-k2.5` | Any catalog LLM (`sarvam-105b`, `sarvam-105b-conversations`, `kimi-k2.6`, `gpt-5.6-luna`, …). `kimi-k2.5-fast` is under maintenance. |
 | `tts_provider` | string | `sarvam` | Currently `sarvam` only |
 | `max_duration_seconds` | int | `300` | 30–3600 |
 | `webhook_url` | string | — | Receives session events (see below) |
 | `metadata` | object | — | Arbitrary JSON stored with the session |
 
-## Connect via LiveKit
+## Connect the client
 
-Use `ws_url` + `token` returned by create. **Do not** try to open a WebSocket to the CallMissed API — use the LiveKit client:
+Use `ws_url` + `token` returned by create. **Do not** try to open a WebSocket to the CallMissed API — use the `livekit-client` SDK:
 
 ```bash
 npm install livekit-client
@@ -192,7 +194,7 @@ Returns `204 No Content`. Sessions in `created` or `active` state are marked `co
 | Concurrent active sessions (enterprise) | unlimited | — |
 | Minimum credit balance to create | server-configured | HTTP 402 |
 | Max session duration | 3600s (capped by `max_duration_seconds`) | session auto-ends |
-| LiveKit token TTL | 3600s (1 hour) | reconnect requires a new session |
+| Connection token TTL | 3600s (1 hour) | reconnect requires a new session |
 
 ## Webhook Events
 

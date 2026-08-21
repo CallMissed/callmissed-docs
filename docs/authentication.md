@@ -29,6 +29,26 @@ x-api-key: cm_your_api_key_here
 
 Both header styles work on the Anthropic endpoint — use whichever your SDK sends by default.
 
+### Managed Voice Agent WebSocket (Token header or subprotocol)
+
+The [Managed Voice Agent](/docs/managed-voice-agent) sockets — `/v1/agent/converse`
+and `/v2/voice/agent` — take the key as a `Token`, not a `Bearer`:
+
+```
+Authorization: Token cm_your_api_key_here
+```
+
+Browsers cannot set headers on a `WebSocket`, so the key may instead travel as a
+subprotocol. This is the only option for browser clients:
+
+```js
+new WebSocket(url, ["token", "cm_your_api_key_here"])
+```
+
+The key needs **all three** of `stt`, `tts` and `llm` permissions — the socket runs
+the full speech pipeline, so a key missing any one of them is refused at the
+handshake rather than part-way through a call.
+
 ## Permissions vs. scopes
 
 API keys carry two independent access controls.
@@ -57,5 +77,51 @@ Scopes gate the resource endpoints under `/api/v1/` — bots, conversations, kno
 | `webhooks:write` | Manage outbound webhook subscriptions |
 | `whatsapp:read` / `whatsapp:write` | Read vs. manage WhatsApp messaging |
 | `*` | All resource scopes |
+
+#### Gateway scopes
+
+| Scope | Gates |
+|-------|-------|
+| `usage:read` | [Usage summaries, logs and CSV export](/docs/usage-api) |
+| `prompts:read` / `prompts:write` | [Stored prompts, versions, labels and presets](/docs/gateway-prompts). Rendering counts as a read |
+| `cache:read` / `cache:write` | [Cache statistics vs. purging](/docs/gateway-cache) |
+| `provider_keys:read` / `provider_keys:write` | [Your own provider credentials](/docs/provider-keys) |
+
+#### CRM scopes
+
+| Scope | Gates |
+|-------|-------|
+| `companies:read` / `companies:write` | [Companies](/docs/crm-companies) |
+| `crm_notes:read` / `crm_notes:write` | [Notes](/docs/crm-notes-tasks) |
+| `crm_tasks:read` / `crm_tasks:write` | [Tasks](/docs/crm-notes-tasks) |
+| `crm_deals:read` / `crm_deals:write` | [Deals **and** pipelines](/docs/crm-deals) — one pair covers both |
+| `crm_timeline:read` | [The activity timeline](/docs/crm-lead-scores#timeline). Read-only, no write half |
+| `crm_custom_fields:read` / `crm_custom_fields:write` | [Custom field definitions and values](/docs/crm-custom-fields) |
+| `crm_views:read` / `crm_views:write` | [Saved views](/docs/crm-custom-fields#saved-views) |
+| `crm_search:read` / `crm_search:write` | [Search and duplicates](/docs/crm-import-export) vs. merging |
+| `crm_bulk:write` | [Bulk update and delete](/docs/crm-import-export#bulk-operations). Write-only, no read half |
+| `crm_csv:read` / `crm_csv:write` | [CSV export vs. import](/docs/crm-import-export#csv) |
+| `crm_scores:read` / `crm_scores:write` | [Lead scoring rules and recompute](/docs/crm-lead-scores) |
+
+#### Support desk scopes
+
+| Scope | Gates |
+|-------|-------|
+| `support_tickets:read` / `support_tickets:write` | [Tickets](/docs/support-tickets) |
+| `sla:read` / `sla:write` | [SLA policies, ticket clocks and breaches](/docs/support-sla) |
+| `support_ops:read` / `support_ops:write` | [Macros, tags and routing rules](/docs/support-ops) |
+| `csat:read` / `csat:write` | [Surveys and results](/docs/csat). The customer's response page needs no credential at all |
+
+#### Commerce and voice-agent scopes
+
+| Scope | Gates |
+|-------|-------|
+| `wa_commerce:read` / `wa_commerce:write` | [WhatsApp orders](/docs/whatsapp-orders) |
+| `wa_flows:read` / `wa_flows:write` | [WhatsApp Flows](/docs/whatsapp-flows) |
+| `evals:read` / `evals:write` | [Eval suites, cases and runs](/docs/voice-evals) |
+| `experiments:read` / `experiments:write` | [A/B experiments](/docs/voice-experiments). Assignment needs write |
+| `squads:read` / `squads:write` | [Agent squads](/docs/voice-squads). Handoff simulation needs only read |
+
+Watch for the scopes whose read and write halves do not line up with the HTTP verb. `POST /api/v1/gateway/prompts/{id}/render`, `POST /api/v1/support/ops/routing-rules/evaluate` and `POST /api/v1/voice/squads/{id}/simulate-handoff` are all `POST` requests that write nothing, so they need only the **read** scope.
 
 > A key created for plain inference (the common case) needs only service permissions — leave scopes empty.

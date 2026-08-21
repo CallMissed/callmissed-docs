@@ -11,6 +11,28 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## August 2026
 
+### Managed Voice Agent — speech-to-speech over one WebSocket
+
+- **Managed Voice Agent** — a full speech-to-speech pipeline behind a single WebSocket. Stream microphone audio in, get synthesized speech and conversation events back; speech recognition, the language model, text-to-speech, turn-taking and interruption handling are all run and tuned for you. No WebRTC and no client SDK. Two protocols on the same host and the same engine: `wss://api.callmissed.com/v2/voice/agent` (CallMissed-native) and `wss://api.callmissed.com/v1/agent/converse` (**Deepgram Voice Agent compatible** — an existing Deepgram integration can repoint its URL and work unchanged). Supports in-call tool calling, live model/prompt/voice updates, and sessions up to 2 hours. See [Managed Voice Agent](/docs/managed-voice-agent).
+- **Voice model catalogue** — `GET /api/v1/voice/models` lists every selectable speech-to-text, language and text-to-speech model with a **measured** latency verdict (`eligible`, `too_slow`, `unsupported`, `unmeasured`) plus its p50, sample count and budget. Any eligible combination is valid. Models too slow to hold a conversation are not offered — they are listed with the reason, rather than silently disappearing or being offered with a caveat. Verdicts come from real production traffic, not vendor claims, and a model with too few samples reads `unmeasured` rather than being assumed fast.
+
+### Embeddings, usage API, CRM, support desk and voice-agent operations
+
+- **Embeddings** — `POST /v1/embeddings`, OpenAI-compatible. `text-embedding-3-small` (1536 dims, $0.02 / 1M input tokens) and `text-embedding-3-large` (3072 dims, $0.13 / 1M). Batches of up to 128 inputs, optional `dimensions` shortening and `base64` output. Both are free-plan callable, taking the **free tier to 27 models across five categories**. Gated by the key's `llm` permission. See [Embeddings](/docs/embeddings).
+- **Usage API** — `GET /v1/usage/summary`, `/logs` and `/logs.csv` return your own metering rows for the last 90 days, filterable by service, model, key, `session_id` and `trace_id`. Scope `usage:read`. See [Usage API](/docs/usage-api).
+- **Gateway tooling** — server-side [prompt management](/docs/gateway-prompts) with versions, labels, presets and free rendering; [response cache](/docs/gateway-cache) stats and purge; and [bring your own provider key](/docs/provider-keys) with liveness verification and a write-only secret.
+- **CRM** — [companies](/docs/crm-companies), [notes and tasks](/docs/crm-notes-tasks), [deals and pipelines](/docs/crm-deals), [custom fields and saved views](/docs/crm-custom-fields), [search, bulk and CSV](/docs/crm-import-export), and [lead scoring with a unified timeline](/docs/crm-lead-scores).
+- **Support desk** — [tickets](/docs/support-tickets) with server-managed lifecycle stamps, [SLA policies](/docs/support-sla) with business hours and live breach reporting, [macros, tags and routing rules](/docs/support-ops) with a dry-run evaluator, and [CSAT/NPS surveys](/docs/csat) with a public, token-authenticated response surface.
+- **Voice-agent operations** — [eval suites](/docs/voice-evals) (up to 50 cases per run, credit-charged), [A/B experiments](/docs/voice-experiments) with deterministic assignment, and [agent squads](/docs/voice-squads) with handoff simulation and credit-charged agent drafting.
+- **WhatsApp** — [Flows](/docs/whatsapp-flows) (create, publish, read submissions) and [catalog orders](/docs/whatsapp-orders).
+
+### New models — conversational Indic LLM, Saaras V4 STT, Flux TTS
+
+- **`sarvam-105b-conversations`** — 105B MoE tuned for conversation and voice. 128K context, tool calling, streaming, hybrid thinking. Free-tier, same $0.35 in / $0.35 out per 1M as `sarvam-105b`. See [Indic Models](/docs/models-indic).
+- **`saaras:v4`** — Sarvam STT with five output modes (transcribe, translate, verbatim, transliterate, code-mix) across 24 languages. Free-tier at $0.30 / hour. See [Speech to Text](/docs/speech-to-text).
+- **Deepgram Flux TTS** — streaming-first TTS built for voice agents: turn-based synthesis with prosody carried across turns. 11 English voices including `priya` (Indian-accented English, the default). English only, no expressive controls. Available only through the managed Voice Agent (`tts_engine: "flux"`), billed inside the per-minute voice rate. See [Voices](/docs/tts-voices).
+- **Free tier** — now 27 models (11 LLM, 4 STT, 4 TTS, 6 image, 2 embedding).
+
 ### Model catalog update — retired models
 
 - **Retired LLM IDs** — the following model IDs are no longer served: `openai/gpt-5.4-pro`, `openai/gpt-5.4`, `openai/gpt-5.4-mini`, `openai/gpt-5.4-nano`, `anthropic/claude-opus-4.6`, `anthropic/claude-sonnet-4.6`, `anthropic/claude-haiku-4.5`, `x-ai/grok-4.20`, `qwen/qwen3.5-plus`, `qwen/qwen3.5-flash`, `mistralai/mistral-small-2603`, and the `auto` auto-router.
@@ -20,9 +42,9 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## June 2026
 
-### v1.6.0 — LiveKit Voice, Image Generation & Web Search
+### v1.6.0 — WebRTC Voice, Image Generation & Web Search
 
-- **LiveKit voice sessions** — `POST /v1/voice/sessions` returns a LiveKit token + URL; CallMissed handles the STT→LLM→TTS pipeline. List, fetch, fetch transcript (`json | txt | srt`), and end sessions under `/v1/voice/sessions`. A public, capped browser demo lives at `POST /v1/voice/demo`. The legacy `/ws/voice-agent` WebSocket still works for backward compatibility. See [Voice Session API](/docs/voice-sessions-api).
+- **WebRTC voice sessions** — `POST /v1/voice/sessions` returns a connection token + URL; CallMissed handles the STT→LLM→TTS pipeline. List, fetch, fetch transcript (`json | txt | srt`), and end sessions under `/v1/voice/sessions`. A public, capped browser demo lives at `POST /v1/voice/demo`. The legacy `/ws/voice-agent` WebSocket still works for backward compatibility. See [Voice Session API](/docs/voice-sessions-api).
 - **Image Generation API** — `POST /v1/images/generations` (OpenAI-compatible). Free models include `flux-2-klein-9b`, `flux-2-dev`, `lucid-origin`, `phoenix-1.0`, `sdxl-lightning`, `dreamshaper-8-lcm`; paid models include `flux-2-pro`, `flux-1.1-pro`, `nano-banana-2`, and `nano-banana-pro`. See [Image Generation](/docs/image-generation).
 - **Web Search API** — `POST /v1/search` defaults to Serper web search (Exa, Firecrawl also available); flat 1 credit per query. See [Web Search](/docs/web-search).
 - **Knowledge RAG** — vector knowledge sources at `/api/v1/knowledge/sources` (ingest text, URL, or PDF; chunked + embedded) with semantic search at `POST /api/v1/knowledge/search`.
@@ -45,7 +67,7 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 - **Anthropic Messages API** — New `POST /v1/messages` endpoint. Use the Anthropic SDK with CallMissed by changing only the `base_url`. Full streaming support with Anthropic SSE lifecycle (`message_start`, `content_block_delta`, `message_stop`).
 - **Dual auth headers** — Anthropic endpoint accepts both `x-api-key` and `Authorization: Bearer` headers
-- **Model aliasing** — Send `claude-sonnet-4.6` on the Anthropic endpoint and it auto-routes to `anthropic/claude-sonnet-4.6` in the frontier catalog
+- **Model aliasing** — A bare model name on the Anthropic endpoint resolves against the CallMissed catalog
 - **Audio Translation** — New `POST /v1/audio/translations` endpoint. Translate audio in 24 languages to English text. OpenAI SDK compatible (`client.audio.translations.create()`)
 - **Token counting** — `POST /v1/messages/count_tokens` for input token estimation
 - **Anthropic rate limit headers** — `anthropic-ratelimit-requests-limit`, `anthropic-ratelimit-requests-remaining`, etc.
@@ -89,4 +111,4 @@ Latest updates, new features, and improvements to the CallMissed API.
 - **API Keys** — Scoped API keys with usage tracking
 - **Webhook Delivery** — Outbound webhooks with retry and HMAC signing
 - **Analytics Dashboard** — Real-time conversation and usage analytics
-- **300+ LLM Models** — Access frontier models from OpenAI, Anthropic, Google, xAI, Qwen, and more
+- **Model catalog** — LLM, STT, TTS and image models from one OpenAI-compatible endpoint

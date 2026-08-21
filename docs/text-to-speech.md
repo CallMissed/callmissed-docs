@@ -75,7 +75,7 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 | `input` | string | Text to synthesize |
 | `voice` | string | Voice ID — default `shubh` (37 voices available) |
 | `language` | string | Language code (e.g. `hi-IN`, `ta-IN`) |
-| `speed` | number | Speech speed (default 1.0). `bulbul:v3` 0.5–2.0, `gpt-4o-mini-tts` 0.25–4.0, `deepgram-aura-2`/`-1` 0.7–1.5. Not supported by `aura-2-en`, `aura-2-es`, `melotts`, `gnani-timbre-v2.0` |
+| `speed` | number | Speech speed (default 1.0). `bulbul:v3` 0.5–2.0, `gpt-4o-mini-tts` 0.25–4.0, `deepgram-aura-2`/`-1` 0.7–1.5, `gnani-timbre-v2.0` 0.85–1.15. Not supported by `aura-2-en`, `aura-2-es`, `melotts` |
 | `speech_sample_rate` | integer | 8000, 16000, 22050, 24000, or 48000 Hz |
 | `response_format` | string | Output format — see below |
 | `temperature` | number | Expressiveness, 0.01–2.0. `bulbul:v3` only — higher is more expressive, lower is more consistent. Defaults to 0.9 (warmer than the model's flat default) |
