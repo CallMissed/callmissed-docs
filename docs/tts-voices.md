@@ -22,12 +22,28 @@ shruti · suhani · mohit · kavitha · rehan · soham · rupali
 
 Preview every voice in the [Playground](https://platform.callmissed.com/playground/tts).
 
-**gnani-timbre-v2.0** provides **24 voices** across English and Hindi with context-aware tone for telephony-grade delivery. The default voice is `Karan`; an unrecognized voice falls back to the default.
+**gnani-timbre-v2.0** provides **73 voices** across English, Hindi and other Indian languages with context-aware tone for telephony-grade delivery. The default voice is `Nalini`; an unrecognized voice falls back to the default.
 
 ```text
-Karan · Pranav · Deepak · Raju · Kaveri · Simran · Shubhra · Nara · Riya · Trupti
-Vikrant · Viraj · Shlok · Omkar · Tanmay · Girish · Roopesh · Devika · Poorvi · Nalini
-Bhavna · Yashvi · Urmila · Chitra
+Nalini · Bhavna · Yashvi · Urmila · Jwala · Chitra · Ambuja · Deepak · Roopesh · Vikrant
+Hemraj · Jalaj · Omkar · Aarohi · Bhavini · Charvi · Eishani · Falguni · Gauri · Iravati
+Janaki · Kamakshi · Madhuri · Radhika · Shweta · Tanvi · Vidya · Wamika · Yamini · Abhimanyu
+Chirag · Deven · Farhan · Jatin · Kartik · Kaveri · Trupti · Devika · Pranav · Shlok
+Girish · Asmita · Trisha · Brinda · Vedika · Noopur · Oviya · Parvati · Suhana · Lehara
+Lavanya · Yukti · Varuni · Saanvi · Kavin · Hansika · Reshma · Riyaan · Zahira · Ishaan
+Kirra · Dhruva · Damini · Urvashi · Falak · Veera · Lalita · Nayana · Gaurav · Harshit
+Mehuli · Zayan · Poorvi
 ```
 
 > **Other TTS providers** also expose voices via the same `POST /v1/audio/speech` endpoint — **aura-2-en** (40 English voices, default `luna`), **aura-2-es** (10 Spanish voices), **deepgram-aura-2** (91 voices across English, Spanish, German, French, Dutch, Italian, and Japanese via the direct Deepgram API, default `thalia`), **deepgram-aura-1** (12 legacy English voices via the direct Deepgram API at half the Aura-2 rate, default `asteria`), and **gpt-4o-mini-tts** (`alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`). See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model pricing.
+
+## Flux TTS Voices (managed Voice Agent only)
+
+Deepgram Flux TTS is a voice-agent-first model. It is **not** available on the `POST /v1/audio/speech` endpoint — it is offered only through the managed Voice Agent (see the Voice Sessions API), selectable with `tts_engine: "flux"`, where synthesis is turn-based, prosody carries across turns, and it is billed inside the per-minute voice rate. It provides **11 English voices**; the default is `priya`, an Indian-accented English voice, and an unrecognized voice falls back to the default.
+
+```text
+alexis · bruce · cole · drew · haley · heather
+jack · marcus · priya · rufus · sharon
+```
+
+English only — a multilingual voice set is planned for a later release. The model exposes no expressive/emotion/style controls and does not interpret SSML.

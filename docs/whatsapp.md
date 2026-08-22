@@ -16,11 +16,12 @@ CallMissed connects your **WhatsApp Business Account (WABA)** to an AI agent. In
 | Capability | Where |
 |---|---|
 | AI auto-reply to inbound WhatsApp messages | Automatic once a bot is linked to a number |
-| Send text, template, media, interactive, location, reaction, contact cards | [Sending Messages](/docs/whatsapp-messages) |
-| Create, list, delete and sync message templates | [Message Templates](/docs/whatsapp-templates) |
+| Send text, template, media, interactive, flow, location, reaction, contact cards | [Sending Messages](/docs/whatsapp-messages) |
+| Create, list, delete and sync message templates, including carousel, limited-time offer and coupon formats | [Message Templates](/docs/whatsapp-templates) |
 | Bulk template sends with per-recipient variables | [Campaigns](/docs/whatsapp-campaigns) |
+| Take UPI payments in the chat with order details and order status messages | [Payments](/docs/whatsapp-payments) |
 | Voice calls over WhatsApp, answered by the same agent | [Calling](/docs/whatsapp-calling) |
-| Connected accounts, numbers, delivery funnel, cost | [WhatsApp API](/docs/whatsapp-api) |
+| Connected accounts, numbers, ice breakers and commands, delivery funnel, cost | [WhatsApp API](/docs/whatsapp-api) |
 
 ## Two ways in
 
@@ -186,5 +187,6 @@ Add product facts, FAQs and policies as [knowledge base](/docs/knowledge) entrie
 /docs/whatsapp-messages | Sending Messages | Send | Every send endpoint plus media upload and download.
 /docs/whatsapp-templates | Message Templates | FileText | Create, list, delete and sync approved templates.
 /docs/whatsapp-campaigns | Campaigns | Megaphone | Bulk template sends with per-recipient variables.
+/docs/whatsapp-payments | Payments | IndianRupee | UPI payment configurations, order details and order status messages.
 /docs/whatsapp-calling | Calling | Phone | Voice calls over WhatsApp, answered by the same agent.
 :::
