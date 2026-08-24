@@ -18,7 +18,7 @@ Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, fi
 
 ## Overview
 
-123 models, one OpenAI-compatible API. Same auth, same request shape — change
+122 models, one OpenAI-compatible API. Same auth, same request shape — change
 the `model` field and nothing else.
 
 | Group | What it is |
@@ -325,7 +325,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 ## Models on Demand
 
-`GET /api/v1/models` lists everything that is live today: **123** model IDs
+`GET /api/v1/models` lists everything that is live today: **122** model IDs
 callable right now with a `cm_` key.
 
 Beyond that we deploy **300+ further models on demand** on CallMissed
@@ -372,7 +372,7 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **123** models (57 LLM · 43 STT · 9 TTS · 12 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **122** models (57 LLM · 43 STT · 8 TTS · 12 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
 ### LLM (30 models)
 
