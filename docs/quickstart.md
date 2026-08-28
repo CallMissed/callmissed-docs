@@ -41,7 +41,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 
 :::cards
 /docs/sdks | SDKs & Libraries | package | Install the OpenAI SDK in your language
-/docs/models | Model Catalog | boxes | 123 models — LLM, STT, TTS, realtime voice, image, embeddings
+/docs/models | Model Catalog | boxes | 122 models — LLM, STT, TTS, realtime voice, image, embeddings
 :::
 
 ## Get started

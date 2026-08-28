@@ -35,6 +35,17 @@ Kirra · Dhruva · Damini · Urvashi · Falak · Veera · Lalita · Nayana · Ga
 Mehuli · Zayan · Poorvi
 ```
 
+## Cartesia Voices
+
+**sonic-3.6** (Cartesia Sonic 3.6) provides **16 curated agent voices** — 11 English (American and British) plus **5 native-Hindi voices** — and speaks 44 languages with native-quality Hindi and Hinglish support. Pass the voice ID as the `voice` parameter and a base ISO `language` code (e.g. `en`, `hi`). The default voice is `skylar`; an unrecognized voice falls back to the default.
+
+```text
+skylar · daniel · jacqueline · katie · cathy · caroline · ronald · carson · jameson
+gemma · archie · riya · arushi · siya · parvati · kabir
+```
+
+The `riya`, `arushi`, `siya`, `parvati`, and `kabir` voices are native Hindi speakers (pair them with `"language": "hi"`); the English voices speak Hindi and 40+ other languages with non-native accents.
+
 > **Other TTS providers** also expose voices via the same `POST /v1/audio/speech` endpoint — **aura-2-en** (40 English voices, default `luna`), **aura-2-es** (10 Spanish voices), **deepgram-aura-2** (91 voices across English, Spanish, German, French, Dutch, Italian, and Japanese via the direct Deepgram API, default `thalia`), **deepgram-aura-1** (12 legacy English voices via the direct Deepgram API at half the Aura-2 rate, default `asteria`), and **gpt-4o-mini-tts** (`alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`). See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model pricing.
 
 ## Flux TTS Voices (managed Voice Agent only)
