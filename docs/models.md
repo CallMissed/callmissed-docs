@@ -18,7 +18,7 @@ Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, fi
 
 ## Overview
 
-123 models, one OpenAI-compatible API. Same auth, same request shape — change
+122 models, one OpenAI-compatible API. Same auth, same request shape — change
 the `model` field and nothing else.
 
 | Group | What it is |
@@ -161,6 +161,7 @@ All models are pay-per-use. Pricing is in USD.
 | `aura-2-es` | $0.40 / 10K chars |
 | `deepgram-aura-2` | $0.30 / 10K chars |
 | `deepgram-aura-1` | $0.15 / 10K chars |
+| `sonic-3.6` | $0.50 / 10K chars |
 | `melotts` | $0.05 / 10K chars |
 
 | Intelligence feature (not a model ID) | Price |
@@ -217,6 +218,7 @@ For 99-language general-purpose transcription, see `whisper-large-v3-turbo`. For
 |-------|-------------|--------|
 | `bulbul:v3` | Natural TTS — 37 voices, 11 Indian languages | shubh (default) + 36 more |
 | `gnani-timbre-v2.0` | India-first neural TTS — context-aware tone, low-latency | 73 voices (English + Hindi + Indic) |
+| `sonic-3.6` | Cartesia Sonic 3.6 — most natural conversational speech, 44 languages with native-quality Hindi | Searchable public library + 16 featured aliases (skylar default) |
 
 For low-latency English / Spanish voice agents, see `aura-2-en` / `aura-2-es`. For ultra-cheap en/fr notification audio, see `melotts`. All three are free-tier.
 
@@ -325,7 +327,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 ## Models on Demand
 
-`GET /api/v1/models` lists everything that is live today: **123** model IDs
+`GET /api/v1/models` lists everything that is live today: **122** model IDs
 callable right now with a `cm_` key.
 
 Beyond that we deploy **300+ further models on demand** on CallMissed
@@ -423,12 +425,13 @@ A curated, representative slice of the **123** models (57 LLM · 43 STT · 9 TTS
 | `gpt-4o-mini-transcribe` | Cheaper, faster streaming transcription. | — | No | $0.24 / hr |
 | `gpt-4o-transcribe-diarize` | Streaming transcription with speaker labels. | — | No | $0.40 / hr |
 
-### Text to Speech (6 models)
+### Text to Speech (7 models)
 
 | Model ID | Description | Voices | Free | Pricing |
 |----------|-------------|--------|------|---------|
 | `bulbul:v3` | Indic TTS across 11 Indian languages. | 37 | Yes | $0.30 / 10K chars |
 | `gnani-timbre-v2.0` | India-first neural TTS, English + Hindi + Indic. Context-aware tone. | 73 | No | $0.27 / 10K chars |
+| `sonic-3.6` | Cartesia Sonic 3.6 — most natural conversational TTS. 44 languages, native-quality Hindi + Hinglish, sub-90ms first audio. | Searchable library | No | $0.50 / 10K chars |
 | `aura-2-en` | Conversational English TTS, low-latency streaming. | 40 | Yes | $0.40 / 10K chars |
 | `aura-2-es` | Spanish TTS, low-latency streaming. | 10 | Yes | $0.40 / 10K chars |
 | `melotts` | Lightweight English + French TTS. Cheapest available. | 1 per language | Yes | $0.05 / 10K chars |

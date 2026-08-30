@@ -28,7 +28,7 @@ This cookbook demonstrates a robust, production-ready call analytics pipeline on
 
 ## 1. Get an API Key
 
-1. Create a key in the [dashboard](https://app.callmissed.com/api-keys) — it looks like `cm_live_...`.
+1. Create a key in the [dashboard](https://console.callmissed.com/developer/keys) — it looks like `cm_live_...`.
 2. Set it as an environment variable so it never lands in source control:
 
 ```bash
