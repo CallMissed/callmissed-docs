@@ -80,7 +80,7 @@ curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `model` | string | `saaras:v3`, `saaras:v4`, or any other STT model ID |
+| `model` | string | `saaras:v3`, `saaras:v4`, `ink-whisper`, or any other file-transcription STT model ID. `ink-2` is **not** valid here — see [Cartesia Ink models](#cartesia-ink-models) |
 | `file` | file | Audio file (WAV, MP3, etc.) |
 | `language` | string | Language code (auto-detected if omitted) |
 | `mode` | string | Output mode — see below |
@@ -106,6 +106,57 @@ curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
   -F model=saaras:v4 \
   -F mode=codemix
 ```
+
+## Cartesia Ink models
+
+Two Cartesia STT models, and they are **not interchangeable** — one transcribes
+files, the other only runs on a live voice session.
+
+| Model | Price | Languages | File transcription | Voice sessions |
+|-------|-------|-----------|--------------------|----------------|
+| `ink-whisper` | $0.18 / hr | 100 (incl. Hindi, Urdu, Tamil) | Yes | Yes |
+| `ink-2` | $0.54 / hr | English only (`en`) | **No** | Yes |
+
+### `ink-whisper` — the cheapest 100-language option
+
+Cartesia's fastest and most affordable STT, with better accuracy than baseline
+Whisper. Its dynamic chunking cuts hallucination during pauses and silence, so
+audio with dead air transcribes cleanly instead of inventing text to fill gaps.
+
+```bash
+curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
+  -H "Authorization: Bearer cm_your_key" \
+  -F file=@audio.wav \
+  -F model=ink-whisper \
+  -F language=hi
+```
+
+### `ink-2` — voice agents only
+
+Cartesia's top-ranked STT for voice agents: **8% WER** on AppTek's 14-accent
+call-centre benchmark, against 10% for Deepgram Flux and 12% for ElevenLabs. It
+also self-detects turns, so a voice agent needs no separate turn detector on top.
+
+Two limits decide whether you can use it at all:
+
+**1. It cannot transcribe files.** `ink-2` is streaming-only. POSTing it to
+`/v1/audio/transcriptions` returns `400` rather than quietly substituting a
+different model:
+
+```json
+{
+  "detail": "ink-2 is a streaming-only model and is not available for file transcription. Use ink-whisper here, or ink-2 on a voice session."
+}
+```
+
+Select it on a [voice session](/docs/voice-agent) or the
+[Managed Voice Agent](/docs/managed-voice-agent) instead.
+
+**2. It is English only.** The model accepts `en` and nothing else. Sending it
+Hindi (or any other language) does **not** raise an upstream error — it silently
+produces poor output. Our agent logs a warning and transcribes as `en`. For
+non-English speech use `ink-whisper` (100 languages) or an Indic model such as
+`saaras:v3` / `saaras:v4`.
 
 ## Deepgram feature parameters
 
