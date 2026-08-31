@@ -9,41 +9,23 @@ breadcrumb: "Numbers (PSTN)"
 
 Connect a Twilio voice number to CallMissed so an AI agent answers inbound calls in real time.
 
-Connect a [Twilio](https://www.twilio.com/) voice number so an AI agent answers inbound calls — transcribing the caller, generating a reply, and speaking it back over a real-time audio stream. CallMissed stores your Twilio credentials per tenant and serves the TwiML that bridges the call to its streaming pipeline.
+Connect a [Twilio](https://www.twilio.com/) voice number so an AI agent answers inbound calls — transcribing the caller, generating a reply, and speaking it back with barge-in support.
 
-## Prerequisites
+Twilio connects over **SIP trunking**. CallMissed provisions a trunk against your Twilio account and points it at a per-tenant SIP endpoint; inbound calls land in a room where a voice agent is dispatched to answer them.
+
+## Set it up
+
+The full walkthrough lives in **[Bring Your Own Telephony → Twilio](/docs/bring-your-own-telephony)**: which credentials to copy, what we provision on your account, and how to import your existing numbers.
+
+You will need:
 
 - A **Twilio account** (a trial account works for testing).
-- A **voice-capable phone number** purchased in the [Twilio Console](https://console.twilio.com/) (**Phone Numbers → Manage → Buy a number**, with the *Voice* capability).
+- A **voice-capable number** in the [Twilio Console](https://console.twilio.com/) (**Phone Numbers → Manage → Buy a number**, with the *Voice* capability).
 - A CallMissed account with the **owner** or **admin** role.
 
-## Get your Twilio credentials
+Prefer not to manage a carrier account at all? [Rent a number from us](/docs/telephony-api) instead — KYC and provisioning are handled over the API with your `cm_` key.
 
-From the [Twilio Console](https://console.twilio.com/) home page, copy:
-
-- **Account SID** — starts with `AC…`.
-- **Auth Token** — click to reveal it under *Account Info*.
-- **Phone Number** — your purchased number in **E.164** format (for example `+14155550123`).
-
-## Save credentials in CallMissed
-
-:::steps
-## Open Integration Settings
-
-In the [Dashboard](https://app.callmissed.com), go to **Settings → Integrations → Twilio**. Credentials are saved from the dashboard, signed in as an owner or admin.
-
-## Enter your credentials
-
-Paste the **Account SID**, **Auth Token** and **Phone Number** you copied above, then save. The auth token is stored write-only and shown masked afterwards.
-
-## Verify the connection
-
-Click **Verify**. CallMissed runs a live check against the Twilio API and reports whether the credentials work before you route any calls.
-:::
-
-## Create a voice bot
-
-Create a bot with `type: "inbound_call"` and a system prompt for the agent's persona:
+## Create the agent that answers
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/bots \
@@ -56,29 +38,34 @@ curl -X POST https://api.callmissed.com/api/v1/bots \
   }'
 ```
 
-## Point your number at CallMissed
+Pick the STT, LLM and TTS models on the agent's **Voice** page in the dashboard, then tune the speech knobs your chosen TTS exposes on its **Speech** page. The same agent works over a phone call and over WebRTC, so anything you tune once applies to both.
 
-In the Twilio Console, open your number (**Phone Numbers → Manage → Active numbers → your number**). Under **Voice Configuration → A call comes in**, set:
-
-- **Webhook**, HTTP **POST**, URL:
-
-```
-https://api.callmissed.com/api/v1/webhooks/twilio/voice
-```
-
-Save. Twilio will now POST to CallMissed on every inbound call, and CallMissed handles the call with its real-time voice AI pipeline.
-
-## Test the call
-
-Call your Twilio number. The real-time path is:
+## How the call runs
 
 :::flow
 icon:phone | Caller | Dials your Twilio number
-icon:gateway | Twilio | POSTs to `/webhooks/twilio/voice`; CallMissed returns TwiML opening a media stream
-icon:stt | STT (saaras:v3) | Transcribes the caller's audio in real time
+icon:gateway | Twilio | Routes the call over your SIP trunk to CallMissed
+icon:stt | STT | Transcribes the caller's audio in real time
 icon:llm | LLM | Generates the reply from the bot's system prompt + conversation history
-icon:tts | TTS (bulbul:v3) | Synthesizes speech — playback starts before generation finishes
-icon:done | Caller | Hears the AI agent respond
+icon:tts | TTS | Synthesizes speech — playback starts before generation finishes
+icon:done | Caller | Hears the AI agent respond, and can interrupt it
 :::
 
-> **Tip:** For browser/mobile WebRTC agents (no phone number required) use the [Voice Agent](/docs/voice-agent) and [Voice Sessions API](/docs/voice-sessions-api) instead. See the [Voice Calling](/docs/voice) guide for the full telephony protocol.
+The exact STT, LLM and TTS in that chain are whichever you selected on the agent — the defaults are Indian-language-first, and every option is listed under [Models](/docs/models).
+
+## Not the TwiML webhook
+
+:::warning
+**Do not point your number at `/api/v1/webhooks/twilio/voice`.**
+
+Earlier versions of this page told you to set that URL as the *A call comes in*
+webhook. It returns TwiML that opens a media stream to
+`wss://api.callmissed.com/ws/call/{call_id}`, and **that streaming pipeline was
+never completed** — the socket accepts audio and discards it. A number wired
+that way plays a hold message and then stays silent.
+
+If you configured it from the old instructions, that is why your test calls were
+quiet. Switch to the SIP setup linked above.
+:::
+
+> **Tip:** For browser/mobile WebRTC agents (no phone number required) use the [Voice Agent](/docs/voice-agent) and [Voice Sessions API](/docs/voice-sessions-api) instead. [Voice Calling](/docs/voice) compares the telephony paths.
