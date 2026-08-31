@@ -35,6 +35,31 @@ Kirra · Dhruva · Damini · Urvashi · Falak · Veera · Lalita · Nayana · Ga
 Mehuli · Zayan · Poorvi
 ```
 
+## Cartesia Voices
+
+**sonic-3.6** (Cartesia Sonic 3.6) speaks 44 languages with native-quality Hindi and Hinglish. Pass a featured handle (`skylar`, default) or any public Cartesia voice UUID as `voice`, plus a base ISO `language` code (`en`, `hi`). An unrecognized non-UUID handle falls back to `skylar`.
+
+The live public library is paginated — do not treat the 16 featured aliases as the full set:
+
+```bash
+curl "https://api.callmissed.com/api/v1/models/sonic-3.6/voices?q=hindi&limit=50"
+curl "https://api.callmissed.com/v1/audio/voices?model=sonic-3.6&q=skylar" \
+  -H "Authorization: Bearer cm_YOUR_KEY"
+```
+
+`GET /api/v1/models/sonic-3.6/voices/{id}/preview` streams Cartesia's own pre-recorded sample (no synthesis, no credit charge). Query params: `q`, `language`, `gender` (`masculine` / `feminine` / `gender_neutral`), `limit` (1–100), `starting_after`.
+
+If the upstream library is briefly unreachable, the first page answers `200` with the featured aliases below and an extra `"degraded": true` field instead of failing, so a voice picker still renders and every returned voice remains usable for synthesis. The field is **absent** on a normal response — treat its presence as "this is the short list, retry later for the full library". A request carrying `starting_after` is not degraded: pagination returns `502` so you keep the page you already have.
+
+Featured aliases (stable handles, also valid UUIDs in the library):
+
+```text
+skylar · daniel · jacqueline · katie · cathy · caroline · ronald · carson · jameson
+gemma · archie · riya · arushi · siya · parvati · kabir
+```
+
+`riya`, `arushi`, `siya`, `parvati`, and `kabir` are native Hindi speakers (pair with `"language": "hi"`). Browse the full library in the [console Voices page](https://console.callmissed.com/voice/voices), the [Playground](https://platform.callmissed.com/playground/tts), or [Talk](https://callmissed.com/talk).
+
 > **Other TTS providers** also expose voices via the same `POST /v1/audio/speech` endpoint — **aura-2-en** (40 English voices, default `luna`), **aura-2-es** (10 Spanish voices), **deepgram-aura-2** (91 voices across English, Spanish, German, French, Dutch, Italian, and Japanese via the direct Deepgram API, default `thalia`), **deepgram-aura-1** (12 legacy English voices via the direct Deepgram API at half the Aura-2 rate, default `asteria`), and **gpt-4o-mini-tts** (`alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`). See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model pricing.
 
 ## Flux TTS Voices (managed Voice Agent only)

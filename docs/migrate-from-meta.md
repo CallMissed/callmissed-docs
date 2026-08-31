@@ -14,7 +14,7 @@ Point an existing WhatsApp Cloud API integration at CallMissed by changing only 
 If you already send WhatsApp messages through Meta's Cloud API (directly, or through a BSP that mirrors it), you can move to CallMissed by changing **two things**: the **host** and the **token**. The path, the request bodies, the success envelope and the error envelope are Meta's own — your existing code keeps working.
 
 ```diff
-- https://graph.facebook.com/v21.0/{phone-number-id}/messages
+- https://graph.facebook.com/v25.0/{phone-number-id}/messages
 + https://api.callmissed.com/api/v1/whatsapp/{phone-number-id}/messages
 
 - Authorization: Bearer EAAG...           # Meta access token

@@ -117,7 +117,7 @@ When a free-plan user calls a paid model, the API returns:
 ```json
 {
   "error": {
-    "message": "Model 'gpt-5.6-luna' requires a paid plan. See GET /api/v1/models/access for the full list of free-plan models. Upgrade at https://app.callmissed.com/pricing",
+    "message": "Model 'gpt-5.6-luna' requires a paid plan. See GET /api/v1/models/access for the full list of free-plan models. Upgrade at https://console.callmissed.com/org/billing",
     "type": "invalid_request_error",
     "code": "model_not_available"
   }

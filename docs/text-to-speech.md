@@ -71,11 +71,11 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `model` | string | `bulbul:v3` |
+| `model` | string | `bulbul:v3`, `sonic-3.6`, `gnani-timbre-v2.0`, `deepgram-aura-2`, `deepgram-aura-1`, `aura-2-en`, `aura-2-es`, `gpt-4o-mini-tts`, `melotts` — see [Models](/docs/models) |
 | `input` | string | Text to synthesize |
-| `voice` | string | Voice ID — default `shubh` (37 voices available) |
-| `language` | string | Language code (e.g. `hi-IN`, `ta-IN`) |
-| `speed` | number | Speech speed (default 1.0). `bulbul:v3` 0.5–2.0, `gpt-4o-mini-tts` 0.25–4.0, `deepgram-aura-2`/`-1` 0.7–1.5, `gnani-timbre-v2.0` 0.85–1.15. Not supported by `aura-2-en`, `aura-2-es`, `melotts` |
+| `voice` | string | Voice ID — default `shubh` for `bulbul:v3`, `skylar` for `sonic-3.6` (see [Voices](/docs/tts-voices)) |
+| `language` | string | Language code (e.g. `hi-IN`, `ta-IN`; `sonic-3.6` takes base codes like `en`, `hi`) |
+| `speed` | number | Speech speed (default 1.0). `bulbul:v3` 0.5–2.0, `gpt-4o-mini-tts` 0.25–4.0, `deepgram-aura-2`/`-1` 0.7–1.5, `sonic-3.6` 0.6–1.5, `gnani-timbre-v2.0` 0.85–1.15. Not supported by `aura-2-en`, `aura-2-es`, `melotts` |
 | `speech_sample_rate` | integer | 8000, 16000, 22050, 24000, or 48000 Hz |
 | `response_format` | string | Output format — see below |
 | `temperature` | number | Expressiveness, 0.01–2.0. `bulbul:v3` only — higher is more expressive, lower is more consistent. Defaults to 0.9 (warmer than the model's flat default) |
@@ -123,6 +123,7 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 
 | Want | Use |
 |------|-----|
+| Most natural conversational speech | `sonic-3.6` — 44 languages, native-quality Hindi, sub-90ms first audio |
 | Direct the emotion in words | `gpt-4o-mini-tts` with `instructions` |
 | Indian languages, warm delivery | `bulbul:v3` with `temperature` 0.9–1.2 |
 | Pauses and hesitation in text | `deepgram-aura-2` (91 voices, many tagged expressive/cheerful) |
