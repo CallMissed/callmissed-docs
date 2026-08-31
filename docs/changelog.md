@@ -26,6 +26,11 @@ Latest updates, new features, and improvements to the CallMissed API.
 - **Voice-agent operations** — [eval suites](/docs/voice-evals) (up to 50 cases per run, credit-charged), [A/B experiments](/docs/voice-experiments) with deterministic assignment, and [agent squads](/docs/voice-squads) with handoff simulation and credit-charged agent drafting.
 - **WhatsApp** — [Flows](/docs/whatsapp-flows) (create, publish, read submissions) and [catalog orders](/docs/whatsapp-orders).
 
+### New models — Cartesia Ink STT
+
+- **`ink-whisper`** — Cartesia's fastest and most affordable STT at $0.18 / hour, across **100 languages** including Hindi, Urdu and Tamil. Better accuracy than baseline Whisper, and dynamic chunking that cuts hallucination during pauses and silence. Works for both file transcription and voice sessions. See [Speech to Text](/docs/speech-to-text#cartesia-ink-models).
+- **`ink-2`** — Cartesia's top-ranked STT for voice agents at $0.54 / hour: 8% WER on AppTek's 14-accent call-centre benchmark, against 10% for Deepgram Flux and 12% for ElevenLabs. Self-detects turns, so no separate turn detector is needed. Two limits: it is **English only**, and it is **voice-session only** — the file transcription endpoint returns `400` and points you to `ink-whisper`. See [Speech to Text](/docs/speech-to-text#cartesia-ink-models).
+
 ### New models — conversational Indic LLM, Saaras V4 STT, Flux TTS
 
 - **`sarvam-105b-conversations`** — 105B MoE tuned for conversation and voice. 128K context, tool calling, streaming, hybrid thinking. Free-tier, same $0.35 in / $0.35 out per 1M as `sarvam-105b`. See [Indic Models](/docs/models-indic).

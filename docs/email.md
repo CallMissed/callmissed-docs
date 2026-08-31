@@ -15,7 +15,7 @@ The Email API sends and receives email from a domain you own. You verify the dom
 
 **Base path:** `https://api.callmissed.com/api/v1/email`
 
-Authentication uses your existing CallMissed API key, the same `cm_` key you use for every other API. The key needs the **email** permission enabled (toggle it on the [API keys](https://app.callmissed.com/api-keys) page). No separate email key.
+Authentication uses your existing CallMissed API key, the same `cm_` key you use for every other API. The key needs the **email** permission enabled (toggle it on the [API keys](https://console.callmissed.com/developer/keys) page). No separate email key.
 
 > **Read this before you write your first send.** Verification registers exactly one sender username on the domain, `donotreply`, so `donotreply@your-domain` always works. Any other local part on a verified domain has to be registered as a sender first: either up front with `POST /api/v1/email/domains/{domain_id}/senders`, or implicitly, because the send path registers the `from` local part on its first refusal and retries. Registration is eventually consistent, so a send from a brand-new sender can still come back as `503 sender_propagating`, meaning retry shortly and nothing else is needed. See [Sender Addresses](/docs/email-domains#sender-addresses).
 

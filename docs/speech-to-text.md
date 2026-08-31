@@ -1,13 +1,13 @@
 ---
 title: "Speech to Text"
-description: "Transcribe audio to text with our Indic saaras model and 22 Indic language support."
+description: "Transcribe audio to text across 45 STT models — Indic-first saaras, Cartesia Ink, and Deepgram Nova."
 slug: "speech-to-text"
 breadcrumb: "Speech"
 ---
 
 # Speech to Text
 
-Transcribe audio to text with our Indic saaras model and 22 Indic language support.
+Transcribe audio to text across 45 STT models — Indic-first saaras, Cartesia Ink, and Deepgram Nova.
 
 :::cards
 /docs/stt-realtime | Real-time STT | play | Stream audio for live transcription
@@ -18,20 +18,39 @@ Transcribe audio to text with our Indic saaras model and 22 Indic language suppo
 
 ## Overview
 
-The Speech to Text API transcribes audio files into text. Uses our saaras:v3 model with support for 22 Indian languages + English. Supports auto language detection.
+Transcribe an audio file into text with any of **45 speech-to-text models**. The default, `saaras:v3`, covers 22 Indian languages plus English with automatic language detection — but the `model` field takes any file-transcription STT id, so you can pick per request.
 
 **Endpoint:** `POST /v1/audio/transcriptions`
+
+### Picking a model
+
+| If you need | Use | Why |
+|---|---|---|
+| Indian languages, or code-mixed Hinglish | `saaras:v3` (free tier) or `saaras:v4` | Purpose-built for Indic phonetics; v4 adds 24 languages and serves all five modes |
+| The widest language coverage | `ink-whisper` | 100 languages, and cheaper per hour than the Indic models |
+| English call-centre audio | `deepgram-nova-3` | Strong on accented and noisy telephony English |
+| Turn detection built into the model | `ink-2` or `deepgram-flux-general-en` | Voice sessions only — see the note below |
+
+Four models are on the **free tier**. Full list and pricing: [Models](/docs/models).
 
 ### How transcription works
 
 :::flow
 icon:app | Your app | Upload an audio file (WAV/MP3) to `POST /v1/audio/transcriptions`
-icon:gateway | CallMissed gateway | Validate the key, detect language (or use `language`), apply `mode`
-icon:stt | saaras:v3 | Run speech recognition across 22 Indic languages + English
+icon:gateway | CallMissed gateway | Validate the key, resolve `model`, detect language (or use `language`), apply `mode`
+icon:stt | Your chosen model | Run speech recognition — defaults to `saaras:v3` if `model` is omitted
 icon:done | Your app | Receive `text` (plus word timestamps in `verbose_json`)
 :::
 
-> **Tip:** Leave `language` unset and saaras:v3 auto-detects it. Set `mode=translate` to get English text out of any supported language in a single call.
+> **Tip:** Leave `model` unset to get `saaras:v3`, and leave `language` unset to let it auto-detect. Set `mode=translate` to get English text out of any supported language in a single call.
+
+:::warning
+**Streaming-only models cannot transcribe files.** `ink-2` and the Deepgram Flux
+models do turn detection as part of the model, which only makes sense on a live
+stream. Sending one here returns a 400 naming the file-transcription
+alternative rather than silently substituting a different model — see
+[Cartesia Ink models](#cartesia-ink-models).
+:::
 
 ## Basic Usage
 
@@ -80,7 +99,7 @@ curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `model` | string | `saaras:v3`, `saaras:v4`, or any other STT model ID |
+| `model` | string | `saaras:v3`, `saaras:v4`, `ink-whisper`, or any other file-transcription STT model ID. `ink-2` is **not** valid here — see [Cartesia Ink models](#cartesia-ink-models) |
 | `file` | file | Audio file (WAV, MP3, etc.) |
 | `language` | string | Language code (auto-detected if omitted) |
 | `mode` | string | Output mode — see below |
@@ -106,6 +125,57 @@ curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
   -F model=saaras:v4 \
   -F mode=codemix
 ```
+
+## Cartesia Ink models
+
+Two Cartesia STT models, and they are **not interchangeable** — one transcribes
+files, the other only runs on a live voice session.
+
+| Model | Price | Languages | File transcription | Voice sessions |
+|-------|-------|-----------|--------------------|----------------|
+| `ink-whisper` | $0.18 / hr | 100 (incl. Hindi, Urdu, Tamil) | Yes | Yes |
+| `ink-2` | $0.54 / hr | English only (`en`) | **No** | Yes |
+
+### `ink-whisper` — the cheapest 100-language option
+
+Cartesia's fastest and most affordable STT, with better accuracy than baseline
+Whisper. Its dynamic chunking cuts hallucination during pauses and silence, so
+audio with dead air transcribes cleanly instead of inventing text to fill gaps.
+
+```bash
+curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
+  -H "Authorization: Bearer cm_your_key" \
+  -F file=@audio.wav \
+  -F model=ink-whisper \
+  -F language=hi
+```
+
+### `ink-2` — voice agents only
+
+Cartesia's top-ranked STT for voice agents: **8% WER** on AppTek's 14-accent
+call-centre benchmark, against 10% for Deepgram Flux and 12% for ElevenLabs. It
+also self-detects turns, so a voice agent needs no separate turn detector on top.
+
+Two limits decide whether you can use it at all:
+
+**1. It cannot transcribe files.** `ink-2` is streaming-only. POSTing it to
+`/v1/audio/transcriptions` returns `400` rather than quietly substituting a
+different model:
+
+```json
+{
+  "detail": "ink-2 is a streaming-only model and is not available for file transcription. Use ink-whisper here, or ink-2 on a voice session."
+}
+```
+
+Select it on a [voice session](/docs/voice-agent) or the
+[Managed Voice Agent](/docs/managed-voice-agent) instead.
+
+**2. It is English only.** The model accepts `en` and nothing else. Sending it
+Hindi (or any other language) does **not** raise an upstream error — it silently
+produces poor output. Our agent logs a warning and transcribes as `en`. For
+non-English speech use `ink-whisper` (100 languages) or an Indic model such as
+`saaras:v3` / `saaras:v4`.
 
 ## Deepgram feature parameters
 

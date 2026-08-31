@@ -41,7 +41,7 @@ icon:done | Your app | Receive the completion (all at once, or token-by-token wh
 :::steps
 ## Get an API key
 
-Create a key in the [dashboard](https://app.callmissed.com) (**Profile → API Keys**). It looks like `cm_xxxx…` and is shown once.
+Create a key in the [dashboard](https://console.callmissed.com/developer/keys) (**Developer → API keys**). It looks like `cm_xxxx…` and is shown once.
 
 ## Point your SDK at CallMissed
 
