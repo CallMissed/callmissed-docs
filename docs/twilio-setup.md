@@ -30,7 +30,7 @@ From the [Twilio Console](https://console.twilio.com/) home page, copy:
 :::steps
 ## Open Integration Settings
 
-In the [Dashboard](https://app.callmissed.com), go to **Settings → Integrations → Twilio**. Credentials are saved from the dashboard, signed in as an owner or admin.
+In the [Dashboard](https://console.callmissed.com), go to **Settings → Integrations → Twilio**. Credentials are saved from the dashboard, signed in as an owner or admin.
 
 ## Enter your credentials
 

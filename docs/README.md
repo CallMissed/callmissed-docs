@@ -76,6 +76,7 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 ## Images & Search
 
 - [Image Generation](image-generation.md)
+- [Social Post Studio](social-posts.md)
 - [Web Search API](web-search.md)
 
 ## Numbers (PSTN)
@@ -94,6 +95,13 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Pricing](pricing.md)
 - [Talk to Us](talk-to-us.md)
 - [Call Analytics Pipeline](call-analytics.md)
+
+## Facebook & Instagram
+
+- [Facebook & Instagram API](social-api.md)
+- [Publishing](social-publish.md)
+- [Comments](social-comments.md)
+- [Messaging](social-messaging.md)
 
 ## Speech
 
