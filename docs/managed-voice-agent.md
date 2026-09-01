@@ -112,6 +112,19 @@ vendor claims. A model that is too slow to hold a conversation is not offered �
 it is listed with the reason, so you can see why rather than wondering where it
 went.
 
+Two speech-to-text models are streaming-capable here that you cannot use for file
+transcription in the same way:
+
+- **`ink-2`** ($0.54 / hr) — Cartesia's top-ranked voice-agent STT: 8% WER on
+  AppTek's 14-accent call-centre benchmark, vs 10% Deepgram Flux and 12%
+  ElevenLabs. It self-detects turns. **English only** — set
+  `"language": "en"`. Sending non-English audio does not error; it just
+  transcribes badly. This is the only surface `ink-2` runs on: the file
+  transcription endpoint rejects it with a `400`.
+- **`ink-whisper`** ($0.18 / hr) — 100 languages including Hindi, Urdu and Tamil.
+  Cartesia's cheapest STT, with dynamic chunking that reduces hallucination
+  across pauses. Use this instead of `ink-2` for any non-English call.
+
 ### List available models
 
 ```bash

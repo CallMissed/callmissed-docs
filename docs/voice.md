@@ -1,55 +1,65 @@
 ---
 title: "Voice Calling"
-description: "AI-powered inbound voice call agents via Twilio."
+description: "How an AI agent answers a PSTN call, and which integration path to use."
 slug: "voice"
 breadcrumb: "Numbers (PSTN)"
 ---
 
 # Voice Calling
 
-AI-powered inbound voice call agents via Twilio.
+How an AI agent answers a PSTN call, and which integration path to use.
 
-## Setup
+An AI voice agent answers an inbound phone call, transcribes the caller, generates a reply and speaks it back — with barge-in, so the caller can interrupt mid-sentence.
 
-1. Create a bot with `type: "inbound_call"`
-2. Configure Twilio credentials in Settings
-3. Set your Twilio phone number webhook to:
+There are two ways to get a phone number onto an agent. Both run the same voice pipeline.
 
-```
-https://api.callmissed.com/api/v1/webhooks/twilio/voice
-```
+## Choose a path
 
-## Call Flow
+**You want us to supply the number.** Complete KYC, rent an Indian number, and bind it to a bot — all over the API with your `cm_` key. See [Telephony API](/docs/telephony-api).
 
-```
-Incoming call → Twilio
-  → POST /api/v1/webhooks/twilio/voice
-  → Returns TwiML to open WebSocket stream
-  → WebSocket /ws/call/{call_id} receives audio
-  → Audio chunks → STT → text
-  → Text → LLM → response
-  → Response → TTS → audio
-  → Audio streamed back to caller
-```
+**You already own numbers.** Connect a carrier account you control (Twilio, Plivo, or any SIP provider), import your existing numbers, and point them at an agent. See [Bring Your Own Telephony](/docs/bring-your-own-telephony).
 
-## WebSocket Streaming
+Moving an existing deployment across? [Migrate from Twilio](/docs/migrate-from-twilio) covers the number-by-number cutover.
 
-Connect to the voice WebSocket for real-time audio. Requires an API key:
+## How a call actually runs
+
+Both paths converge on the same flow:
 
 ```
-wss://api.callmissed.com/ws/call/{call_id}?api_key=cm_your_key
+Inbound PSTN call
+  → your carrier's SIP trunk
+  → CallMissed SIP endpoint (per-tenant inbound trunk)
+  → a room is created and a voice agent is dispatched into it
+  → the agent runs STT → LLM → TTS on the live audio
+  → speech is streamed back to the caller
 ```
 
-The WebSocket implements a full STT → LLM → TTS pipeline:
+The agent pipeline is the same one WebRTC voice sessions use, so an agent you have already tuned in the dashboard behaves identically on a phone call. Turn-taking, interruption handling and the model stack all carry over.
 
-1. **Audio in** — Twilio sends 8kHz mulaw audio chunks
-2. **STT** — saaras:v3 transcribes in real-time
-3. **LLM** — Generates response using bot's system prompt + conversation history
-4. **TTS** — bulbul:v3 synthesizes speech (MP3 at 24kHz)
-5. **Audio out** — Streamed back to the caller
+Speaking style is per agent, not per call: pick the STT, LLM and TTS on the agent's **Voice** page, and tune the speech knobs your chosen TTS exposes on its **Speech** page.
 
-LLM and TTS run concurrently for minimum latency — audio playback begins while the LLM is still generating.
+## Outbound calling
 
-## Outbound Calling
+Outbound is available through the [Telephony API](/docs/telephony-api) — place a call, attach an agent, and fetch the recording afterwards.
 
-The `outbound_call` bot type exists, but a public API to **initiate** outbound calls is not yet available — today the voice pipeline is driven by inbound telephony calls (and WebRTC voice sessions). Programmatic outbound dialing is on the roadmap. [Talk to us](/docs/talk-to-us) if you need it.
+## Legacy: the TwiML media-stream route
+
+:::warning
+**Not implemented — do not build against this.**
+
+Earlier versions of these docs described a Twilio TwiML route that opened
+`wss://api.callmissed.com/ws/call/{call_id}` and ran a streaming
+STT → LLM → TTS pipeline over it. **That pipeline was never completed.** The
+WebSocket accepts audio and discards it: nothing is transcribed, no reply is
+generated, and no audio is sent back.
+
+A number pointed at `/api/v1/webhooks/twilio/voice` therefore never works. What
+the caller hears depends on the deployment: the endpoint returns `503` unless a
+Twilio auth token is configured, and where one is, the call used to play a hold
+message and then stay silent for its whole duration. It now says the number is
+not set up and hangs up, so the failure is at least audible.
+
+It is documented here only so that anyone who wired it up from the old
+instructions knows why their calls never connected. Use one of the two supported
+paths above instead.
+:::

@@ -25,12 +25,25 @@ Connect to `WS /ws/voice-agent`, send audio chunks, and receive `transcript` mes
 {"type": "transcript", "text": "Hello, how are you?", "is_final": true}
 ```
 
+## Authentication
+
+Pass your API key as a WebSocket subprotocol: `Sec-WebSocket-Protocol: token, cm_your_key`. That is a request header, so the key stays out of access logs and proxy history, which a query string does not. In the browser the constructor's second argument sets it, and the order matters: the literal `token` first, then the key.
+
+```javascript
+new WebSocket(url, ["token", "cm_your_key"]);
+```
+
+Clients that can set headers may send `Authorization: Bearer cm_your_key` instead.
+
+The `?key=cm_your_key` query parameter is **deprecated**. It still works so existing integrations keep connecting, but prefer the subprotocol for anything new.
+
 ## Example
 
 :::tabs
 ```javascript [JavaScript]
 const ws = new WebSocket(
-  "wss://api.callmissed.com/ws/voice-agent?key=cm_your_key"
+  "wss://api.callmissed.com/ws/voice-agent",
+  ["token", "cm_your_key"]
 );
 
 ws.onopen = () => {
@@ -70,8 +83,10 @@ import websockets
 import json
 
 async def realtime_stt():
-    uri = "wss://api.callmissed.com/ws/voice-agent?key=cm_your_key"
-    async with websockets.connect(uri) as ws:
+    uri = "wss://api.callmissed.com/ws/voice-agent"
+    async with websockets.connect(
+        uri, subprotocols=["token", "cm_your_key"]
+    ) as ws:
         # Send config
         await ws.send(json.dumps({
             "type": "config",

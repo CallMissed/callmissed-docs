@@ -23,7 +23,7 @@ create (DRAFT) ──▶ publish (PUBLISHED) ──▶ send ──▶ read respo
 
 1. **Create** with a `flow_json` screen document and one or more categories. It starts as `DRAFT`.
 2. **Publish** it. One way, and after publishing the screen document is frozen — a change means a new Flow.
-3. **Send** it with [`POST /api/v1/whatsapp/messages/interactive`](/docs/whatsapp-messages#flow) using `interactive_type: "flow"`. That is the billed, window-aware send path for every interactive message.
+3. **Send** it with [`POST /api/v1/whatsapp/messages/interactive`](/docs/whatsapp-messages#send-an-interactive-message) using `interactive_type: "flow"`. That is the billed, window-aware send path for every interactive message.
 4. **Read** the submissions here.
 
 ## Authentication
@@ -182,4 +182,4 @@ One submission by its CallMissed id. `404 Flow response not found`.
 
 Errors originating at WhatsApp keep their status code and message, so a validation failure reads the same as it would against the Cloud API directly.
 
-Creating, publishing, deleting and reading Flows do not consume credits. Sending a Flow message is billed on the [interactive message endpoint](/docs/whatsapp-messages#flow).
+Creating, publishing, deleting and reading Flows do not consume credits. Sending a Flow message is billed on the [interactive message endpoint](/docs/whatsapp-messages#send-an-interactive-message).

@@ -89,7 +89,7 @@ curl -X POST https://api.callmissed.com/api/v1/companies \
 
 Returns `201`.
 
-> `domain` is the natural key. Reusing one returns `409 A company with this domain already exists` — that is what stops two syncs from creating the same account twice. Look the domain up with `?q=` before creating, or use [duplicate detection and merge](/docs/crm-import-export#duplicates-and-merge) to clean up after the fact.
+> `domain` is the natural key. Reusing one returns `409 A company with this domain already exists` — that is what stops two syncs from creating the same account twice. Look the domain up with `?q=` before creating, or use [duplicate detection and merge](/docs/crm-import-export#get-apiv1crmsearchduplicates) to clean up after the fact.
 
 ## GET / PATCH / DELETE `/api/v1/companies/{company_id}`
 

@@ -150,7 +150,7 @@ The wizard is the same for every self-serve provider.
 :::steps
 ## Open the Phone numbers page
 
-In the [Dashboard](https://app.callmissed.com), go to **Phone numbers**. The **Bring your own telephony** card sits next to the rent-a-number card. Choose **Connect**.
+In the [Dashboard](https://console.callmissed.com), go to **Phone numbers**. The **Bring your own telephony** card sits next to the rent-a-number card. Choose **Connect**.
 
 ## Pick a provider
 

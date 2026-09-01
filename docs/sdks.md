@@ -194,5 +194,5 @@ curl https://api.callmissed.com/v1/chat/completions \
 | Resource | Link |
 |----------|------|
 | API Reference | [docs.callmissed.com](https://docs.callmissed.com) |
-| Dashboard | [app.callmissed.com](https://app.callmissed.com) |
+| Dashboard | [console.callmissed.com](https://console.callmissed.com) |
 | LinkedIn | [linkedin.com/company/callmissed](https://www.linkedin.com/company/callmissed) |
