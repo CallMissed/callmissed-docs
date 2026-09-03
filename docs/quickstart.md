@@ -41,7 +41,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 
 :::cards
 /docs/sdks | SDKs & Libraries | package | Install the OpenAI SDK in your language
-/docs/models | Model Catalog | boxes | 123 models — LLM, STT, TTS, realtime voice, image, embeddings
+/docs/models | Model Catalog | boxes | 125 models — LLM, STT, TTS, realtime voice, image, embeddings
 :::
 
 ## Get started
@@ -49,7 +49,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 ::::steps
 ## Create an API Key
 
-Visit the [CallMissed Dashboard](https://app.callmissed.com) and create a new API key. Keep this key secure — you'll need it to authenticate your requests.
+Visit the [CallMissed Dashboard](https://console.callmissed.com) and create a new API key. Keep this key secure — you'll need it to authenticate your requests.
 
 ## Set up your environment
 
@@ -208,5 +208,4 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 /docs/chat-completion | Chat Completion | message-square | Streaming, tool calling, vision, and the Responses API
 /docs/managed-voice-agent | Managed Voice Agent | audio-lines | Speech-to-speech over one WebSocket — no SDK, Deepgram-compatible
 /docs/voice-agent | Voice Agent | phone | Real-time WebRTC voice agents with Indic STT/TTS
-/docs/call-analytics | Cookbooks | bar-chart | Step-by-step tutorials for production workflows
 :::

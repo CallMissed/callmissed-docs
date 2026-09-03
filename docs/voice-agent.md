@@ -138,7 +138,19 @@ The agent joins automatically, greets the user, and responds to speech.
 The direct WebSocket endpoint is still available for backward compatibility:
 
 ```
-WS /ws/voice-agent?key=cm_your_api_key
+WS /ws/voice-agent
+Sec-WebSocket-Protocol: token, cm_your_api_key
 ```
+
+Authenticate with the subprotocol header. It is a request header, so the key stays out of access logs and proxy history, which a query string does not. In the browser, pass it as the constructor's second argument, with the literal `token` first and the key second:
+
+```javascript
+new WebSocket("wss://api.callmissed.com/ws/voice-agent", [
+  "token",
+  "cm_your_api_key",
+]);
+```
+
+Clients that can set headers may send `Authorization: Bearer cm_your_api_key` instead. The `?key=cm_your_api_key` query parameter is **deprecated** and still accepted for existing integrations.
 
 Send a config message after connecting, then stream PCM audio. This is a direct-WebSocket pipeline, separate from the WebRTC path above. See the [Session API](/docs/voice-sessions-api) for the recommended WebRTC approach.

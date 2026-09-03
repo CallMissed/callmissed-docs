@@ -67,7 +67,7 @@ for await (const chunk of stream) {
 
 ## 2. Pick the right model
 
-Same prompt, three different routes — measured first-token and total times:
+Same prompt, three different routes. The first-token and total times below are **indicative only**, not a dated benchmark: they were carried over unchanged when the model list was last revised, so they have not been measured against the models now named. Use them for rough shape and measure your own prompt size and region before designing around them.
 
 | Model | Route | TTFB | Total |
 | --- | --- | --- | --- |
@@ -155,7 +155,7 @@ async function ask(prompt: string) {
 }
 ```
 
-Three back-to-back streaming calls on a reused HTTP/2 connection clock in around **400-460ms each** for a small prompt; the first call without reuse pays an extra TLS handshake on top.
+Three back-to-back streaming calls on a reused HTTP/2 connection land in the region of **400-460ms each** for a small prompt, again indicative rather than a dated measurement; the first call without reuse pays an extra TLS handshake on top.
 
 ## Checklist
 

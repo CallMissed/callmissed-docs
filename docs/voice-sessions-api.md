@@ -81,8 +81,8 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 | `voice` | string | `shubh` | TTS voice ID (37 voices) |
 | `language` | string | `en-IN` | BCP-47 language for STT + TTS |
 | `llm_model` | string | `kimi-k2.5` | Any catalog LLM (`sarvam-105b`, `sarvam-105b-conversations`, `kimi-k2.6`, `gpt-5.6-luna`, …). `kimi-k2.5-fast` is under maintenance. |
-| `tts_provider` | string | `sarvam` | Currently `sarvam` only |
-| `max_duration_seconds` | int | `300` | 30–3600 |
+| `tts_provider` | string | `sarvam` | `sarvam`, `elevenlabs` or `cartesia` |
+| `max_duration_seconds` | int | `1800` | 30–3600 |
 | `webhook_url` | string | — | Receives session events (see below) |
 | `metadata` | object | — | Arbitrary JSON stored with the session |
 

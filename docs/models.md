@@ -18,7 +18,7 @@ Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, fi
 
 ## Overview
 
-123 models, one OpenAI-compatible API. Same auth, same request shape — change
+125 models, one OpenAI-compatible API. Same auth, same request shape — change
 the `model` field and nothing else.
 
 | Group | What it is |
@@ -142,6 +142,8 @@ All models are pay-per-use. Pricing is in USD.
 | `saaras:v3` | $0.30 / hour (₹30/hr) |
 | `saaras:v4` | $0.30 / hour (₹30/hr) |
 | `gnani-prisma-v2.5` | $0.27 / hour |
+| `ink-whisper` | $0.18 / hour |
+| `ink-2` | $0.54 / hour *(voice sessions only)* |
 | `whisper-large-v3-turbo` | $0.06 / hour |
 | `nova-3` | $0.50 / hour |
 | `deepgram-nova-3` | $0.29 / hour |
@@ -161,6 +163,7 @@ All models are pay-per-use. Pricing is in USD.
 | `aura-2-es` | $0.40 / 10K chars |
 | `deepgram-aura-2` | $0.30 / 10K chars |
 | `deepgram-aura-1` | $0.15 / 10K chars |
+| `sonic-3.6` | $0.50 / 10K chars |
 | `melotts` | $0.05 / 10K chars |
 
 | Intelligence feature (not a model ID) | Price |
@@ -211,12 +214,15 @@ response = client.chat.completions.create(
 
 For 99-language general-purpose transcription, see `whisper-large-v3-turbo`. For diarization + smart-format on calls, see `nova-3`. Both are free-tier and live under the [audio model routes](#audio-models).
 
+`ink-whisper` also covers Hindi, Urdu and Tamil as part of its 100-language set at $0.18 / hr — cheaper than the Indic-specialist models, though without their code-mix output modes. `ink-2` is **English only**, so it is not an option for Indic speech.
+
 ### Text to Speech
 
 | Model | Description | Voices |
 |-------|-------------|--------|
 | `bulbul:v3` | Natural TTS — 37 voices, 11 Indian languages | shubh (default) + 36 more |
 | `gnani-timbre-v2.0` | India-first neural TTS — context-aware tone, low-latency | 73 voices (English + Hindi + Indic) |
+| `sonic-3.6` | Cartesia Sonic 3.6 — most natural conversational speech, 44 languages with native-quality Hindi | Searchable public library + 16 featured aliases (skylar default) |
 
 For low-latency English / Spanish voice agents, see `aura-2-en` / `aura-2-es`. For ultra-cheap en/fr notification audio, see `melotts`. All three are free-tier.
 
@@ -325,7 +331,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 ## Models on Demand
 
-`GET /api/v1/models` lists everything that is live today: **123** model IDs
+`GET /api/v1/models` lists everything that is live today: **125** model IDs
 callable right now with a `cm_` key.
 
 Beyond that we deploy **300+ further models on demand** on CallMissed
@@ -409,13 +415,15 @@ A curated, representative slice of the **123** models (57 LLM · 43 STT · 9 TTS
 | `gpt-realtime-2.1` | Latest realtime speech-to-speech — better alphanumeric recognition, silence/noise + interruption handling, configurable reasoning effort. Voice-agent only. | 128K | No | $4.00 in / $24.00 out per 1M • $0.375/min |
 | `gpt-realtime-2.1-mini` | Distilled, lower-cost realtime for faster voice interactions. Voice-agent only. | 128K | No | $0.60 in / $2.40 out per 1M • $0.117/min |
 
-### Speech to Text (9 models)
+### Speech to Text (11 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
 | `saaras:v3` | 23 languages (22 Indic + English). Best on code-mixed speech. | — | Yes | $0.30 / hr |
 | `saaras:v4` | 24 languages. Five output modes: transcribe, translate, verbatim, transliterate, code-mix. | — | Yes | $0.30 / hr |
 | `gnani-prisma-v2.5` | India-first telephony STT. 10 Indian languages, code-switching. | — | No | $0.27 / hr |
+| `ink-whisper` | Cartesia Ink Whisper — 100 languages including Hindi, Urdu and Tamil. Dynamic chunking reduces hallucination across pauses and silence. File transcription + streaming. | — | No | $0.18 / hr |
+| `ink-2` | Cartesia Ink 2 — top-ranked for voice agents (8% WER on AppTek's 14-accent call-centre benchmark, vs 10% Deepgram Flux and 12% ElevenLabs). Self-detects turns. **English only. Voice sessions only — not available for file transcription.** | — | No | $0.54 / hr |
 | `whisper-large-v3-turbo` | 99 languages with auto-detect. Transcribe + translate. | — | Yes | $0.06 / hr |
 | `nova-3` | Diarization, punctuation, smart-format. Streaming-capable. | — | Yes | $0.50 / hr |
 | `whisper` | 99 languages. Transcription + translation to English. | — | No | $0.40 / hr |
@@ -423,12 +431,13 @@ A curated, representative slice of the **123** models (57 LLM · 43 STT · 9 TTS
 | `gpt-4o-mini-transcribe` | Cheaper, faster streaming transcription. | — | No | $0.24 / hr |
 | `gpt-4o-transcribe-diarize` | Streaming transcription with speaker labels. | — | No | $0.40 / hr |
 
-### Text to Speech (6 models)
+### Text to Speech (7 models)
 
 | Model ID | Description | Voices | Free | Pricing |
 |----------|-------------|--------|------|---------|
 | `bulbul:v3` | Indic TTS across 11 Indian languages. | 37 | Yes | $0.30 / 10K chars |
 | `gnani-timbre-v2.0` | India-first neural TTS, English + Hindi + Indic. Context-aware tone. | 73 | No | $0.27 / 10K chars |
+| `sonic-3.6` | Cartesia Sonic 3.6 — most natural conversational TTS. 44 languages, native-quality Hindi + Hinglish, sub-90ms first audio. | Searchable library | No | $0.50 / 10K chars |
 | `aura-2-en` | Conversational English TTS, low-latency streaming. | 40 | Yes | $0.40 / 10K chars |
 | `aura-2-es` | Spanish TTS, low-latency streaming. | 10 | Yes | $0.40 / 10K chars |
 | `melotts` | Lightweight English + French TTS. Cheapest available. | 1 per language | Yes | $0.05 / 10K chars |

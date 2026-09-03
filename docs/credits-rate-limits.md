@@ -85,7 +85,7 @@ Every response to a metered endpoint carries the current cap state.
 ```json
 {
   "error": {
-    "message": "Insufficient credits (balance: 0.0). Purchase more at https://app.callmissed.com/billing",
+    "message": "Insufficient credits (balance: 0.0). Purchase more at https://console.callmissed.com/org/billing",
     "type": "insufficient_quota",
     "code": "insufficient_credits"
   }
@@ -99,7 +99,7 @@ Do not retry. Top up first.
 ```json
 {
   "error": {
-    "message": "Plan limit exceeded: 100/100 llm calls this month. Upgrade your plan at app.callmissed.com/billing",
+    "message": "Plan limit exceeded: 100/100 llm calls this month. Upgrade your plan at console.callmissed.com/org/billing",
     "type": "insufficient_quota",
     "code": "quota_exceeded"
   }

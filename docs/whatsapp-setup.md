@@ -22,7 +22,7 @@ There are two ways to connect, and one thing you never have to do: **you do not 
 
 ## Option 1: connect from the dashboard
 
-Go to **Settings → Integrations → WhatsApp** in the [dashboard](https://app.callmissed.com) and follow Embedded Signup. Meta's popup handles the account selection and consent, and CallMissed does the rest: exchanging the authorisation code, subscribing to webhooks, and registering the number with a two-step verification PIN.
+Go to **Settings → Integrations → WhatsApp** in the [dashboard](https://console.callmissed.com) and follow Embedded Signup. Meta's popup handles the account selection and consent, and CallMissed does the rest: exchanging the authorisation code, subscribing to webhooks, and registering the number with a two-step verification PIN.
 
 This is the recommended path. It is also the only path that registers a brand-new number for you.
 
