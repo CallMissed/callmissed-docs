@@ -1,13 +1,13 @@
 ---
 title: "Voice Agent"
-description: "Real-time voice AI agent over WebRTC — native speech-to-speech with Nova 2 Sonic by default, plus STT→LLM→TTS fallback."
+description: "Real-time voice agents over WebRTC with one selected speech-to-speech or STT-to-LLM-to-TTS stack."
 slug: "voice-agent"
 breadcrumb: "Voice Agents"
 ---
 
 # Voice Agent
 
-Real-time voice AI agent over WebRTC — native speech-to-speech with Nova 2 Sonic by default, plus STT→LLM→TTS fallback.
+Real-time voice agents over WebRTC with one selected speech-to-speech or STT-to-LLM-to-TTS stack.
 
 :::cards
 /docs/voice-sessions-api | Voice Sessions API | key | Create sessions and generate connection tokens
@@ -18,20 +18,13 @@ Real-time voice AI agent over WebRTC — native speech-to-speech with Nova 2 Son
 
 ## Overview
 
-The Voice Agent is a real-time conversational AI that streams over **WebRTC**. By default it uses a native speech-to-speech model:
+The Voice Agent streams conversations over **WebRTC**. Choose one configuration for the call:
 
-```
-Mic (WebRTC) → Nova 2 Sonic (speech-to-speech) → Speaker (WebRTC)
-```
+- **CallMissed-managed pipeline:** select one speech-recognition model, one language model, and one speech-generation model and voice.
+- **Deepgram-managed pipeline:** select a `deepgram-voice-*` model and its supported recognition and voice settings.
+- **Native speech-to-speech:** select a GPT Realtime or Nova Sonic model and voice.
 
-Nova 2 Sonic handles speech understanding, reasoning, turn-taking, function calling, and speech output in one model. If the speech-to-speech model is unavailable, the agent falls back to a cascaded STT→LLM→TTS stack automatically so sessions still connect.
-
-**Default stack:**
-- **LLM / voice:** `nova-sonic-2` (Amazon Nova 2 Sonic, speech-to-speech, 16 voices)
-- **Fallback STT:** `saaras:v3` (streaming, 23 languages)
-- **Fallback LLM:** `gpt-oss-120b` (fast no-think pipeline model)
-- **Fallback TTS:** `bulbul:v3` (streaming, 37 voices)
-- **Transport:** WebRTC (via the `livekit-client` SDK)
+An omitted `llm_model` selects `deepgram-voice-open-ai-gpt-5.4-nano`. Calls do not switch to another model or provider on failure. Same-provider transient retries remain; if the selected stack cannot run, the session fails or ends instead of substituting another stack. Retired `voice_fallbacks` settings are no longer used.
 
 ## Architecture
 
@@ -42,7 +35,7 @@ This is the WebRTC path. For a plain WebSocket you stream raw audio to — no cl
 :::flow
 icon:app | Browser (livekit-client SDK) | Captures mic audio and streams it over WebRTC
 icon:server | Connection | WebRTC transport that connects your client to the voice agent
-icon:bot | CallMissed voice agent | Runs Nova Sonic speech-to-speech, or falls back to the STT → LLM → TTS loop
+icon:bot | CallMissed voice agent | Runs the selected speech-to-speech model or STT → LLM → TTS pipeline
 icon:done | Browser | Receives synthesized speech back over WebRTC and plays it
 :::
 
@@ -120,9 +113,9 @@ The agent joins automatically, greets the user, and responds to speech.
 | `system_prompt` | string | "You are a helpful voice assistant..." | System prompt for LLM |
 | `voice` | string | `shubh` | TTS voice ID (37 voices available) |
 | `language` | string | `en-IN` | Language code for STT and TTS |
-| `llm_model` | string | `kimi-k2.5` | LLM model (`kimi-k2.5`, `sarvam-105b`, or any catalog model). `kimi-k2.5-fast` is currently under maintenance. |
-| `tts_provider` | string | `sarvam` | TTS provider (currently only `sarvam`) |
-| `max_duration_seconds` | int | 300 | Max session duration (30-3600) |
+| `llm_model` | string | resolved server side | One supported voice model. Unavailable selections are not replaced. |
+| `tts_provider` | string | `sarvam` | Legacy TTS selector; use `tts_model` for per-model selection |
+| `max_duration_seconds` | int | 1800 | Max session duration (30-3600) |
 
 ## Features
 

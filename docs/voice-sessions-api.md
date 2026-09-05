@@ -18,6 +18,8 @@ The Voice Session API provides a two-step flow for voice agent interactions:
 
 Audio flows over WebRTC; on this API the REST endpoints handle session metadata, token issuance, usage tracking and transcript storage.
 
+Each session runs one selected voice stack. There is no automatic model/provider failover, and `voice_fallbacks` is no longer a request field. Same-provider transient retries remain supported. Select another model explicitly if the requested stack is unavailable.
+
 If you would rather stream audio straight to us over a plain WebSocket — no WebRTC and no client SDK — use the [Managed Voice Agent](/docs/managed-voice-agent) instead. This page covers the WebRTC session API, which remains the right choice for browser calls with adaptive bitrate.
 
 **Authentication:** All REST endpoints accept both **JWT** (`Authorization: Bearer <jwt>`) and **API key** (`Authorization: Bearer cm_<key>`). API keys must have `stt`, `tts`, and `llm` permissions to create a session.
