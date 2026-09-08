@@ -51,6 +51,7 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Libraries & SDKs](sdks.md)
 - [Docs MCP Server](mcp-server.md)
 - [Account MCP Server](agent-tools-mcp.md)
+- [Connect Your Store](connect-your-store.md)
 - [How CallMissed Works](how-it-works.md)
 - [Idempotency](idempotency.md)
 - [Rate Limits & Quotas](rate-limits.md)
