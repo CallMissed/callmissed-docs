@@ -313,7 +313,6 @@ The optional `config` object holds per-number call-handling overrides that **win
 | `greeting` | string | Opening line spoken on the call |
 | `system_prompt` | string | Overrides the bot's persona for this number |
 | `max_call_duration_seconds` | integer | 30–14400 |
-| `voice_fallbacks` | array of strings | Up to 2 fallback model ids |
 | `tools` | array of strings | Up to 20 agent tool names |
 
 ```bash
