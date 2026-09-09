@@ -18,6 +18,8 @@ The Voice Session API provides a two-step flow for voice agent interactions:
 
 Audio flows over WebRTC; on this API the REST endpoints handle session metadata, token issuance, usage tracking and transcript storage.
 
+Each session runs one selected voice stack. There is no automatic model/provider failover, and `voice_fallbacks` is no longer a request field. Same-provider transient retries remain supported. Select another model explicitly if the requested stack is unavailable.
+
 If you would rather stream audio straight to us over a plain WebSocket — no WebRTC and no client SDK — use the [Managed Voice Agent](/docs/managed-voice-agent) instead. This page covers the WebRTC session API, which remains the right choice for browser calls with adaptive bitrate.
 
 **Authentication:** All REST endpoints accept both **JWT** (`Authorization: Bearer <jwt>`) and **API key** (`Authorization: Bearer cm_<key>`). API keys must have `stt`, `tts`, and `llm` permissions to create a session.
@@ -81,7 +83,7 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 | `voice` | string | `shubh` | TTS voice ID (37 voices) |
 | `language` | string | `en-IN` | BCP-47 language for STT + TTS |
 | `llm_model` | string | `kimi-k2.5` | Any catalog LLM (`sarvam-105b`, `sarvam-105b-conversations`, `kimi-k2.6`, `gpt-5.6-luna`, …). `kimi-k2.5-fast` is under maintenance. |
-| `tts_provider` | string | `sarvam` | `sarvam`, `elevenlabs` or `cartesia` |
+| `tts_provider` | string | *plan-dependent* | `sarvam`, `elevenlabs` or `cartesia`. Omit it and the server picks by plan: paid plans (starter, pro, enterprise) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
 | `max_duration_seconds` | int | `1800` | 30–3600 |
 | `webhook_url` | string | — | Receives session events (see below) |
 | `metadata` | object | — | Arbitrary JSON stored with the session |
