@@ -126,7 +126,7 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 | Most natural conversational speech | `sonic-3.6` — 44 languages, native-quality Hindi, sub-90ms first audio |
 | Direct the emotion in words | `gpt-4o-mini-tts` with `instructions` |
 | Indian languages, warm delivery | `bulbul:v3` with `temperature` 0.9–1.2 |
-| Pauses and hesitation in text | `deepgram-aura-2` (91 voices, many tagged expressive/cheerful) |
+| Pauses and hesitation in text | `deepgram-aura-2` (90 voices, many tagged expressive/cheerful) |
 | Lowest cost | `melotts` — no expressive controls; rely on `humanize` |
 
 ## Streaming (Deepgram Aura-2)

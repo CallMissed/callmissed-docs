@@ -60,11 +60,11 @@ gemma · archie · riya · arushi · siya · parvati · kabir
 
 `riya`, `arushi`, `siya`, `parvati`, and `kabir` are native Hindi speakers (pair with `"language": "hi"`). Browse the full library in the [console Voices page](https://console.callmissed.com/voice/voices), the [Playground](https://platform.callmissed.com/playground/tts), or [Talk](https://callmissed.com/talk).
 
-> **Other TTS providers** also expose voices via the same `POST /v1/audio/speech` endpoint — **aura-2-en** (40 English voices, default `luna`), **aura-2-es** (10 Spanish voices), **deepgram-aura-2** (91 voices across English, Spanish, German, French, Dutch, Italian, and Japanese via the direct Deepgram API, default `thalia`), **deepgram-aura-1** (12 legacy English voices via the direct Deepgram API at half the Aura-2 rate, default `asteria`), and **gpt-4o-mini-tts** (`alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`). See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model pricing.
+> **Other TTS providers** also expose voices via the same `POST /v1/audio/speech` endpoint — **aura-2-en** (40 English voices, default `luna`), **aura-2-es** (10 Spanish voices), **deepgram-aura-2** (90 voices across English, Spanish, German, French, Dutch, Italian, and Japanese via the direct Deepgram API, default `thalia`), **deepgram-aura-1** (12 legacy English voices via the direct Deepgram API at half the Aura-2 rate, default `asteria`), and **gpt-4o-mini-tts** (`alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`). See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model pricing.
 
 ## Flux TTS Voices (managed Voice Agent only)
 
-Deepgram Flux TTS is a voice-agent-first model. It is **not** available on the `POST /v1/audio/speech` endpoint — it is offered only through the managed Voice Agent (see the Voice Sessions API), selectable with `tts_engine: "flux"`, where synthesis is turn-based, prosody carries across turns, and it is billed inside the per-minute voice rate. It provides **11 English voices**; the default is `priya`, an Indian-accented English voice, and an unrecognized voice falls back to the default.
+Deepgram Flux TTS is a voice-agent-first model. It is **not** available on the `POST /v1/audio/speech` endpoint — it is offered only through the managed Voice Agent (see the Voice Sessions API), selectable with `tts_engine: "flux"`, where synthesis is turn-based, prosody carries across turns, and it is billed inside the per-minute voice rate. It provides **36 English voices** (American, British, Indian, Irish, Australian, Singaporean and Filipino accents); the default is `priya`, an Indian-accented English voice, and an unrecognized voice falls back to the default.
 
 ```text
 alexis · bruce · cole · drew · haley · heather
