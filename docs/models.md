@@ -106,6 +106,8 @@ The free tier includes **27 models** across five categories. Use `GET /api/v1/mo
 | `text-embedding-3-large` | 3072 dimensions, 8,192-token inputs — highest accuracy |
 | `flux-2-pro` | Flux 2 Pro — flagship BFL quality *(paid)* |
 | `flux-1.1-pro` | Flux 1.1 Pro — fast high-quality *(paid)* |
+| `gpt-image-2.5-sunburst` | OpenAI GPT Image 2.5 Sunburst — most capable image generation + editing *(paid)* |
+| `gpt-image-2.5-flare` | OpenAI GPT Image 2.5 Flare — fast, high-quality everyday generation *(paid)* |
 | `gpt-image-2` | OpenAI GPT Image 2 — accurate on-image text *(paid)* |
 | `gpt-image-1.5` | OpenAI GPT Image 1.5 — precise image editing, strong logo/face preservation *(paid)* |
 | `nano-banana-2` | Google Gemini 3.1 Flash Image — multimodal, highest LM-Arena Elo *(paid · maintenance)* |
@@ -113,7 +115,7 @@ The free tier includes **27 models** across five categories. Use `GET /api/v1/mo
 
 A free-plan key calling a paid model gets `403 model_not_available` — it is not billed, it is refused. Upgrade to Starter or above first.
 
-All other models — including `kimi-k2.5-fast`, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `nova-sonic*`, first-party STT/TTS), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
+All other models — including `kimi-k2.5-fast`, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `nova-sonic*`, first-party STT/TTS), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`) — require Starter, Pro, or Enterprise.
 
 ### Pricing
 
@@ -378,7 +380,7 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **123** models (57 LLM · 43 STT · 9 TTS · 12 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **127** models (57 LLM · 45 STT · 9 TTS · 14 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
 ### LLM (30 models)
 
@@ -443,7 +445,7 @@ A curated, representative slice of the **123** models (57 LLM · 43 STT · 9 TTS
 | `melotts` | Lightweight English + French TTS. Cheapest available. | 1 per language | Yes | $0.05 / 10K chars |
 | `gpt-4o-mini-tts` | Steerable — takes an `instructions` field to direct tone. | 6 | No | $0.20 / 10K chars |
 
-### Image Generation (12 models)
+### Image Generation (14 models)
 
 | Model ID | Description | Free | Pricing |
 |----------|-------------|------|---------|
@@ -451,6 +453,8 @@ A curated, representative slice of the **123** models (57 LLM · 43 STT · 9 TTS
 | `flux-2-dev` | Flux 2 Dev. Higher fidelity, 50-step inference. | Yes | $0.12 / image |
 | `flux-2-pro` | Flux 2 Pro. Flagship BFL fidelity. | No | $0.10 / image |
 | `flux-1.1-pro` | Flux 1.1 Pro. Fast, production-grade. | No | $0.05 / image |
+| `gpt-image-2.5-sunburst` | Most capable generation + editing. Inpainting, quality tiers to `max`. | No | $0.25 / image |
+| `gpt-image-2.5-flare` | Fast, high-quality everyday generation. On-image text + edits. | No | $0.25 / image |
 | `gpt-image-2` | Accurate on-image text rendering. | No | $0.25 / image |
 | `gpt-image-1.5` | Precise image editing. Strong logo/face preservation. | No | $0.25 / image |
 | `lucid-origin` | Vibrant, cinematic compositions. | Yes | $0.08 / image |
