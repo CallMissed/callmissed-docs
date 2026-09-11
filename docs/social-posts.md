@@ -98,8 +98,8 @@ curl -X POST https://api.callmissed.com/v1/social/posts/generate \
 | `image_prompt` | string | — | An explicit prompt for the image. When omitted, the image prompt is written **for you** from the `topic` — see below. Max 4000 characters. |
 | `size` | string | — | Width×height for the image, e.g. `1024x1024`, `1024x1280`. Defaults to a 4:5 portrait, the ratio the Instagram and Facebook feeds prioritise. |
 | `quality` | string | — | For models that support it (GPT Image): `low`, `medium`, `high` or `auto`. Ignored by models without a quality tier. |
-| `reference_images` | string[] | — | Up to **16** base64 PNG/JPEG images used as visual references, so the picture is built **from your own** logo or product shot. Requires `gpt-image-2` or `gpt-image-1.5`. |
-| `reference_pdf` | string | — | One base64 PDF. Its extracted **text** becomes brand context for the image prompt. Requires `gpt-image-2` or `gpt-image-1.5`. |
+| `reference_images` | string[] | — | Up to **16** base64 PNG/JPEG images used as visual references, so the picture is built **from your own** logo or product shot. Requires a `gpt-image-*` model (`gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`). |
+| `reference_pdf` | string | — | One base64 PDF. Its extracted **text** becomes brand context for the image prompt. Requires a `gpt-image-*` model (`gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`). |
 
 Caption length follows the platform: 2,200 characters for `instagram`, 5,000 for
 `facebook`. `generic` uses the smaller of the two, so one draft is publishable on
@@ -123,8 +123,8 @@ context. The file itself never reaches the image model, and a PDF with no
 extractable text (a scan) is ignored rather than failing the call. At most 10 MB
 decoded.
 
-**Both require an image model with an edit surface: `gpt-image-2` or
-`gpt-image-1.5`.** Sent with any other `image_model`, the request fails `422`
+**Both require an image model with an edit surface: `gpt-image-2.5-sunburst`,
+`gpt-image-2.5-flare`, `gpt-image-2` or `gpt-image-1.5`.** Sent with any other `image_model`, the request fails `422`
 before a single credit is reserved. That is deliberate — the alternative is
 quietly dropping your references and charging full price for a picture carrying
 none of your branding. For the same reason, a reference-carrying request will not
@@ -140,7 +140,7 @@ curl -X POST https://api.callmissed.com/v1/social/posts/generate \
   -d '{
     "topic": "our winter service package, booked till February",
     "platform": "instagram",
-    "image_model": "gpt-image-2",
+    "image_model": "gpt-image-2.5-sunburst",
     "reference_images": ["data:image/png;base64,iVBORw0KGgoAAAANS..."],
     "reference_pdf": "JVBERi0xLjQKJcfs..."
   }'

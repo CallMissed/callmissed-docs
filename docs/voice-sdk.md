@@ -94,7 +94,7 @@ return Response.json({ wsUrl: session.ws_url, token: session.token });
 | `variables` | object | none | Values for `{{token}}` placeholders in the greeting and prompt |
 | `metadata` | object | none | Arbitrary JSON stored with the session |
 
-`bot_id`, `webhook_url`, `tts_provider`, `tts_model`, `stt_model`, `tts_engine` and `voice_fallbacks` are also accepted. The [Voice Session API](/docs/voice-sessions-api) page is the full reference for the request body, the other endpoints and the webhook events.
+`bot_id`, `webhook_url`, `tts_provider`, `tts_model`, `stt_model` and `tts_engine` are also accepted. Each call uses one selected stack without automatic model or provider substitution. The [Voice Session API](/docs/voice-sessions-api) page is the full reference for the request body, the other endpoints and the webhook events.
 
 ## Step 2: what the response gives you
 
