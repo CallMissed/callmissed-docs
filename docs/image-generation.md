@@ -108,6 +108,9 @@ curl -X POST https://api.callmissed.com/v1/images/generations \
 | `dreamshaper-8-lcm` | Lykon | Free | Fast | Stylised illustrations |
 | `flux-2-pro` | Black Forest Labs | Paid | Medium | Flagship FLUX fidelity |
 | `flux-1.1-pro` | Black Forest Labs | Paid | Fast | Production-grade at lower cost |
+| `gpt-image-2.5-sunburst` | OpenAI | Paid | Medium | Most capable generation + editing, inpainting |
+| `gemini-3.1-flash-lite-image` | Google | Paid | Fast | Low-cost generation with reference edits |
+| `gpt-image-2.5-flare` | OpenAI | Paid | Fast | Fast everyday generation, on-image text |
 | `gpt-image-2` | OpenAI | Paid | Medium | Accurate on-image text, marketing visuals |
 | `gpt-image-1.5` | OpenAI | Paid | Medium | Precise editing, logo/face preservation |
 | `nano-banana-pro` *(maintenance)* | Google | Paid | Medium | Infographics, accurate typography |
@@ -131,6 +134,8 @@ Flat per-image price, converted to credits at 1 credit = ₹1.
 
 | Model | USD per image | Credits per image |
 |-------|---------------|-------------------|
+| `gpt-image-2.5-sunburst` | $0.25 | 25 |
+| `gpt-image-2.5-flare` | $0.25 | 25 |
 | `gpt-image-2` | $0.25 | 25 |
 | `gpt-image-1.5` | $0.25 | 25 |
 | `nano-banana-pro` *(maintenance)* | $0.134 | 13.4 |
@@ -143,6 +148,7 @@ Flat per-image price, converted to credits at 1 credit = ₹1.
 | `flux-1.1-pro` | $0.05 | 5 |
 | `sdxl-lightning` | $0.04 | 4 |
 | `dreamshaper-8-lcm` | $0.04 | 4 |
+| `gemini-3.1-flash-lite-image` | $0.0336 | 3.36 |
 
 Prices are for a standard-resolution (1K) image.
 
