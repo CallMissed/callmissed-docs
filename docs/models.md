@@ -18,7 +18,7 @@ Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, fi
 
 ## Overview
 
-125 models, one OpenAI-compatible API. Same auth, same request shape — change
+126 models, one OpenAI-compatible API. Same auth, same request shape — change
 the `model` field and nothing else.
 
 | Group | What it is |
@@ -137,6 +137,7 @@ All models are pay-per-use. Pricing is in USD.
 | `gpt-realtime-1.5` | $4.00 | $16.00 |
 | `gpt-realtime-2.1` | $4.00 | $24.00 |
 | `gpt-realtime-2.1-mini` | $0.60 | $2.40 |
+| `gpt-live-1` | per-minute only | $0.05/min *(voice-agent only)* |
 | `deepgram-voice-*` | per-minute Voice Agent tier | Standard $0.075/min, Advanced $0.163/min *(voice-agent only)* |
 
 | STT Model | Price |
@@ -333,7 +334,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 ## Models on Demand
 
-`GET /api/v1/models` lists everything that is live today: **125** model IDs
+`GET /api/v1/models` lists everything that is live today: **126** model IDs
 callable right now with a `cm_` key.
 
 Beyond that we deploy **300+ further models on demand** on CallMissed
@@ -370,6 +371,7 @@ Credit-covered first-party models. Use the bare model ID in API requests — e.g
 | `gpt-realtime-1.5` | Realtime voice | Pinned 1.5 snapshot of gpt-realtime, live |
 | `gpt-realtime-2.1` | Realtime voice | Latest realtime — better recognition, silence/interrupt handling, configurable reasoning, live |
 | `gpt-realtime-2.1-mini` | Realtime voice | Distilled low-cost 2.1 realtime, live |
+| `gpt-live-1` | Realtime voice | GPT Live speech-to-speech — audio + text only, 14 voices, $0.05/min, live |
 | `whisper` | STT | OpenAI Whisper — 99 langs |
 | `gpt-4o-transcribe` | STT | Streaming transcription |
 | `gpt-4o-mini-transcribe` | STT | Low-cost streaming STT |
@@ -380,9 +382,9 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **135** models (64 LLM · 45 STT · 9 TTS · 15 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **136** models (65 LLM · 45 STT · 9 TTS · 15 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
-### LLM (37 models)
+### LLM (38 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
@@ -423,6 +425,7 @@ A curated, representative slice of the **135** models (64 LLM · 45 STT · 9 TTS
 | `gpt-realtime-1.5` | Pinned 1.5 snapshot of gpt-realtime. Use when you want version stability. | 32K | No | $4.00 in / $16.00 out per 1M • $0.375/min |
 | `gpt-realtime-2.1` | Latest realtime speech-to-speech — better alphanumeric recognition, silence/noise + interruption handling, configurable reasoning effort. Voice-agent only. | 128K | No | $4.00 in / $24.00 out per 1M • $0.375/min |
 | `gpt-realtime-2.1-mini` | Distilled, lower-cost realtime for faster voice interactions. Voice-agent only. | 128K | No | $0.60 in / $2.40 out per 1M • $0.117/min |
+| `gpt-live-1` | GPT Live speech-to-speech — audio + text in and out, function calling, 14 voices (default `marin`). No image or video input. Voice-agent only. | — | No | $0.05/min (billed per second) |
 
 ### Speech to Text (11 models)
 
