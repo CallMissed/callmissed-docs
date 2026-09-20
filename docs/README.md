@@ -117,8 +117,10 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 
 - [Voice Agent](voice-agent.md)
 - [Managed Voice Agent](managed-voice-agent.md)
+- [Full-Duplex Voice](full-duplex-voice.md)
 - [Voice Session API](voice-sessions-api.md)
 - [Voice Client Libraries](voice-sdk.md)
+- [Voice Agent Tools](voice-agent-tools.md)
 - [Agent Evals](voice-evals.md)
 - [A/B Experiments](voice-experiments.md)
 - [Agent Squads](voice-squads.md)
