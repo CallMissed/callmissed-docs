@@ -1,13 +1,13 @@
 ---
 title: "Account MCP Server"
-description: "Give an AI agent 41 tools that act on your CallMissed account: place and review calls, work the inbox, search and update the CRM, send WhatsApp and email, generate images, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
+description: "Give an AI agent 60 tools that act on your CallMissed account: draft, build and configure voice agents, place and review calls, work the inbox, search and update the CRM, send WhatsApp and email, generate images, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
 slug: "agent-tools-mcp"
 breadcrumb: "Getting Started"
 ---
 
 # Account MCP Server
 
-Give an AI agent 41 tools that act on your CallMissed account: place and review calls, work the inbox, search and update the CRM, send WhatsApp and email, generate images, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
+Give an AI agent 60 tools that act on your CallMissed account: draft, build and configure voice agents, place and review calls, work the inbox, search and update the CRM, send WhatsApp and email, generate images, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
 
 :::cards
 /docs/mcp-server | Docs MCP Server | book | Searchable CallMissed docs inside your coding agent
@@ -16,7 +16,7 @@ Give an AI agent 41 tools that act on your CallMissed account: place and review 
 
 ## Overview
 
-The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 41 tools: place and inspect phone calls, read transcripts, work the shared inbox, search and update the CRM, summarise and score calls, send WhatsApp messages and email, generate images, and check what it all cost.
+The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 60 tools: draft, build and configure voice agents end to end, place and inspect phone calls, read transcripts, work the shared inbox, search and update the CRM, summarise and score calls, send WhatsApp messages and email, generate images, and check what it all cost.
 
 It is hosted, so there is nothing to install and nothing to run locally.
 
@@ -52,19 +52,22 @@ If your client cannot complete the sign-in, use an API key instead (option 2 bel
 
 #### Choose what to allow
 
-The consent screen offers three permission groups.
+The consent screen offers four permission groups.
 
 | Group | What it allows | On by default | Can spend credits |
 | --- | --- | --- | --- |
 | **Read your data** | See your calls, contacts, companies, deals, tasks, notes, conversations, agents and usage. Cannot change anything. | Yes | No |
 | **Read call transcripts** | Read what was said on your voice calls, and what each one cost. This also lets the connection use AI models on your account, which spends credits. | No | Yes |
-| **Take actions** | Create and update records, send WhatsApp messages and email, place and end calls, and generate images. Spends credits. | No | Yes |
+| **Take actions** | Create and update records, send WhatsApp messages and email, place and end calls, rent phone numbers, and generate images. Spends credits, and a rented number is a recurring charge. | No | Yes |
+| **Set up and change your agents** | Create agents and change their instructions, voice, tools and knowledge, draft a new agent from a description, and change how a team of agents hands callers between them. Cannot send messages or place calls. Indexing knowledge and drafting an agent spend credits. | No | Yes |
 
-**Read your data** is the only group ticked when the screen opens. The other two start off and are granted only if you tick them yourself, so a single click cannot hand an agent the ability to message a customer or spend credits.
+**Read your data** is the only group ticked when the screen opens. The other three start off and are granted only if you tick them yourself, so a single click cannot hand an agent the ability to message a customer or spend credits.
+
+Building an agent is its own tick rather than part of **Take actions**: letting an assistant send a WhatsApp message should not also let it rewrite the instructions, voice and tools of the agent answering your phone.
 
 At least one group has to be ticked. Approving nothing would create a connection that fails every call, so the consent screen asks you to choose something or press **Deny**.
 
-Against the tool tables further down: **Read your data** covers every `:read` scope, **Read call transcripts** grants the `stt`, `tts` and `llm` permissions the three voice-session tools need, and **Take actions** covers every `:write` scope plus `whatsapp:send` and the `image` and `email` permissions.
+Against the tool tables further down: **Read your data** covers every `:read` scope, **Read call transcripts** grants the `stt`, `tts` and `llm` permissions the three voice-session tools need, **Take actions** covers the record, messaging and telephony `:write` scopes plus `whatsapp:send` and the `image` and `email` permissions, and **Set up and change your agents** covers `bots:write`, `knowledge:write` and `squads:write`.
 
 #### The connection appears as an API key
 
@@ -126,12 +129,12 @@ Two different gates decide whether a tool works, whether the connection came fro
 Give each key only what its agent needs. A read-only key is a perfectly good way to let an agent look at the account without letting it spend anything or reach a real person.
 
 <Callout type="warn">
-  Eight tools spend credits and several of them reach real people. They are marked in the tables below. For an agent that should look but not act, tick only **Read your data** when you sign in, or use a key holding only the read scopes.
+  Ten tools spend credits and several of them reach real people. They are marked in the tables below. For an agent that should look but not act, tick only **Read your data** when you sign in, or use a key holding only the read scopes.
 </Callout>
 
 ## Tools
 
-41 tools in eight groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
+60 tools in eight groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
 
 ### Voice and calls
 
@@ -144,6 +147,9 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 | `get_call_recording` | Get a short-lived download link for a call's recording | Read | `telephony:read` | No |
 | `click_to_call` | Ring one of your people, dial the contact, and bridge the two. No AI agent involved | Write | `telephony:write` | Yes |
 | `list_phone_numbers` | List your numbers and their status, to find the `from_number_id` `place_call` takes | Read | `telephony:read` | No |
+| `search_available_numbers` | Search the numbers you could rent, with monthly price and whether each takes calls. Buys nothing | Read | `telephony:read` | No |
+| `provision_phone_number` | Rent a number. It is bought immediately and renews monthly until released; needs an approved compliance application | Write | `telephony:write` | Yes |
+| `attach_number_to_agent` | Point one of your numbers at an agent, so calls to it are answered by that agent. Pass `bot_id: null` to detach | Write | `telephony:write` | No |
 | `list_voice_sessions` | List voice agent sessions, newest first | Read | `stt` + `tts` + `llm` permissions | No |
 | `get_voice_session_transcript` | Get a session's full turn-by-turn transcript | Read | `stt` + `tts` + `llm` permissions | No |
 | `get_voice_session_cost` | Break down what one voice session cost in credits | Read | `stt` + `tts` + `llm` permissions | No |
@@ -204,8 +210,37 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 | --- | --- | --- | --- | --- |
 | `list_agents` | List the voice and chat agents on the account, to find a `bot_id` | Read | `bots:read` | No |
 | `get_agent` | Fetch one agent's configuration by id | Read | `bots:read` | No |
+| `get_agent_prompt` | An agent's instructions split into the four boxes its owner edits: objective, response guidelines, conversation script and first message | Read | `bots:read` | No |
+| `get_agent_config_schema` | Every configuration key an agent accepts, with allowed values, defaults, what happens when a key is omitted, and a minimal working example | Read | `bots:read` | No |
+| `validate_agent_config` | Check a config you assembled and get one finding per problem. Writes nothing | Read | `bots:read` | No |
+| `list_agent_tool_catalog` | The agent-tool names that go in the config's `tools` list, with what each does and the channels it cannot run on | Read | `bots:read` | No |
+| `list_agent_skills` | The skill names that go in the config's `skills` list, with the tools each bundles and a preview of the instructions it injects. Chat channels only | Read | `bots:read` | No |
+| `create_agent` | Create a voice or WhatsApp agent. Active immediately | Write | `bots:write` | No |
+| `update_agent` | Rename an agent, or replace its instructions with one flat block | Write | `bots:write` | No |
+| `update_agent_prompt` | Change the instructions section by section, so the objective / guidelines / script structure survives the write | Write | `bots:write` | No |
+| `update_agent_config` | Change configuration keys in place — set some, remove others, leave the rest alone | Write | `bots:write` | No |
+| `toggle_agent` | Flip an agent between active and paused | Write | `bots:write` | No |
+| `add_agent_knowledge` | Add a document to one agent's knowledge base | Write | `knowledge:write` | No |
 | `knowledge_search` | Search the knowledge base and get the passages that match | Read | `knowledge:read` | No |
 | `add_agent_memory` | Store a durable fact for one agent, applied on every future conversation | Write | `bots:write` | No |
+| `list_agent_custom_tools` | List the custom HTTP tools this account has defined. Stored credentials are never returned | Read | `bots:read` | No |
+| `create_agent_custom_tool` | Define an HTTP endpoint an agent may call mid-conversation | Write | `bots:write` | No |
+| `update_agent_custom_tool` | Change a custom HTTP tool. Omitted fields, including secrets, are kept | Write | `bots:write` | No |
+| `test_agent_custom_tool` | Run a saved custom tool once. This **really calls** the endpoint with its stored credentials | Write | `bots:write` | No |
+| `draft_agent_from_description` | Describe the agent you want and get a complete, reviewable draft back. Creates nothing | Write | `squads:write` | Yes |
+
+#### Building an agent with these tools
+
+`create_agent` is not the first call. An agent's `config` is a free-form object whose keys are mostly not checked when written — a wrong value is stored and then fails on the call, usually without an error. So the order is:
+
+1. `get_agent_config_schema` — the keys this agent type accepts, and a `minimal_example` that works. `draft_agent_from_description` is the shortcut past the blank page: describe the agent and review what comes back. It creates nothing, so whatever it proposes still goes through the steps below.
+2. `validate_agent_config` — fix every `error` finding before writing anything.
+3. `create_agent`, then `add_agent_knowledge`.
+4. For a voice agent: `search_available_numbers` → `provision_phone_number` → `attach_number_to_agent`, then `place_call` and `get_voice_session_transcript` to hear the result.
+5. `update_agent_config` to change one key later; it merges, so it cannot wipe the rest of the configuration.
+6. `get_agent_prompt` → `update_agent_prompt` to change the instructions. An agent's prompt is edited in four boxes — objective, response guidelines, conversation script and first message — and `update_agent`'s flat `system_prompt` collapses them into one, silently. The pair above is what keeps them.
+
+The same flow over plain HTTP, with curl for every step and the five ways a config silently misbehaves, is on [Build an Agent](/docs/build-an-agent).
 
 ### Usage and credits
 
@@ -216,7 +251,7 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 
 ### Telephony tools are deployment-gated
 
-Seven of the 41 tools are the telephony ones: `place_call`, `list_calls`, `get_call`, `end_call`, `get_call_recording`, `click_to_call` and `list_phone_numbers`. They appear only where calling is switched on for the deployment. Where it is not, `tools/list` returns the other 34 and the seven are simply absent, because the REST routes behind them are not mounted there. Calling one by name anyway returns the same `Unknown tool` error as a typo.
+Ten of the 60 tools are the telephony ones: `place_call`, `list_calls`, `get_call`, `end_call`, `get_call_recording`, `click_to_call`, `list_phone_numbers`, `search_available_numbers`, `provision_phone_number` and `attach_number_to_agent`. They appear only where calling is switched on for the deployment. Where it is not, `tools/list` returns the other 50 and the ten are simply absent, because the REST routes behind them are not mounted there. Calling one by name anyway returns the same `Unknown tool` error as a typo.
 
 If you do not see them and you expect to, talk to us and we will get calling turned on for you.
 
@@ -236,7 +271,7 @@ curl https://api.callmissed.com/api/v1/mcp/catalog
 {
   "serverUrl": "https://api.callmissed.com/api/v1/mcp",
   "protocolVersion": "2025-06-18",
-  "count": 41,
+  "count": 60,
   "categories": { "voice": "Voice and calls", "crm": "CRM" },
   "tools": [
     {
