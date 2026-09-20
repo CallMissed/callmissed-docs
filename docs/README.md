@@ -14,6 +14,7 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Authentication](authentication.md)
 - [API Keys](keys.md)
 - [Bots](bots.md)
+- [Build an Agent](build-an-agent.md)
 - [Agent Tools](agent-tools.md)
 - [Agent Memories](agent-memories.md)
 - [Conversations](conversations.md)
@@ -87,6 +88,8 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Voice Calling](voice.md)
 - [Twilio Voice Setup](twilio-setup.md)
 - [Telephony API](telephony-api.md)
+- [Call Handling API](call-handling-api.md)
+- [Campaigns API](voice-campaigns.md)
 - [Bring Your Own Telephony](bring-your-own-telephony.md)
 - [Migrate from Twilio](migrate-from-twilio.md)
 
@@ -117,8 +120,10 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 
 - [Voice Agent](voice-agent.md)
 - [Managed Voice Agent](managed-voice-agent.md)
+- [Full-Duplex Voice](full-duplex-voice.md)
 - [Voice Session API](voice-sessions-api.md)
 - [Voice Client Libraries](voice-sdk.md)
+- [Voice Agent Tools](voice-agent-tools.md)
 - [Agent Evals](voice-evals.md)
 - [A/B Experiments](voice-experiments.md)
 - [Agent Squads](voice-squads.md)
