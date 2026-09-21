@@ -18,7 +18,7 @@ Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, fi
 
 ## Overview
 
-125 models, one OpenAI-compatible API. Same auth, same request shape — change
+126 models, one OpenAI-compatible API. Same auth, same request shape — change
 the `model` field and nothing else.
 
 | Group | What it is |
@@ -62,7 +62,7 @@ The free tier includes **27 models** across five categories. Use `GET /api/v1/mo
 | Model ID | Description |
 |----------|-------------|
 | `sarvam-105b` | 105B MoE — complex reasoning, Indic languages |
-| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice — 128K context, tool calling |
+| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice — 32K context, tool calling |
 | `kimi-k2.5` | Moonshot K2.5 — 256K context, reasoning |
 | `kimi-k2.6` | Moonshot K2.6 — improved reasoning + coding, 262K context |
 | `kimi-k2.7-code` | Moonshot K2.7 Code — frontier 1T-param agentic coding, 262K context, vision + tools |
@@ -137,6 +137,7 @@ All models are pay-per-use. Pricing is in USD.
 | `gpt-realtime-1.5` | $4.00 | $16.00 |
 | `gpt-realtime-2.1` | $4.00 | $24.00 |
 | `gpt-realtime-2.1-mini` | $0.60 | $2.40 |
+| `gpt-live-1` | per-minute only | $0.05/min *(voice-agent only)* |
 | `deepgram-voice-*` | per-minute Voice Agent tier | Standard $0.075/min, Advanced $0.163/min *(voice-agent only)* |
 
 | STT Model | Price |
@@ -233,7 +234,7 @@ For low-latency English / Spanish voice agents, see `aura-2-en` / `aura-2-es`. F
 | Model | Params | Context | Best For |
 |-------|--------|---------|----------|
 | `sarvam-105b` | 105B MoE | 128K tokens | Complex reasoning, agentic tasks, long documents |
-| `sarvam-105b-conversations` | 105B MoE | 128K tokens | Conversation and voice agents, tool calling |
+| `sarvam-105b-conversations` | 105B MoE | 32K tokens | Conversation and voice agents, tool calling |
 
 Both Sarvam models support hybrid thinking via `reasoning_effort: "low" | "medium" | "high"`. `"none"` and `"minimal"` map down to `"low"`, so an OpenAI-style client sending `"none"` gets a 200 rather than an error — but thinking stays on. To turn thinking fully off, use `kimi-k2.5`, `kimi-k2.6`, `glm-4.7-flash`, `glm-5.2`, or `gemma-4-26b-a4b-it` with `reasoning_effort: "none"`. See the [per-model matrix](/docs/api-speed#3-reasoning-effort-by-model).
 
@@ -325,7 +326,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 | `kimi-k2.6` | Moonshot AI | 262K |
 | `kimi-k2.7-code` | Moonshot AI | 262K |
 | `gpt-oss-120b` | OpenAI (open-weights) | 128K |
-| `gemma-4-26b-a4b-it` | Google | 128K |
+| `gemma-4-26b-a4b-it` | Google | 256K |
 | `glm-4.7-flash` | Zhipu | 128K |
 | `glm-5.2` | Z.ai | 262K |
 | `nemotron-3-super` | NVIDIA | 256K |
@@ -333,7 +334,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 ## Models on Demand
 
-`GET /api/v1/models` lists everything that is live today: **125** model IDs
+`GET /api/v1/models` lists everything that is live today: **126** model IDs
 callable right now with a `cm_` key.
 
 Beyond that we deploy **300+ further models on demand** on CallMissed
@@ -355,12 +356,12 @@ Credit-covered first-party models. Use the bare model ID in API requests — e.g
 | `gpt-4o` | LLM | Multimodal text + vision, 128K context |
 | `gpt-4.1` | LLM | Long-context (1M) multimodal |
 | `gpt-5-mini` | LLM | Fast reasoning, 400K context |
-| `gpt-5.5` | LLM | GPT-5.5 reasoning flagship, 1M context, vision + tools |
+| `gpt-5.5` | LLM | GPT-5.5 reasoning flagship, 1.05M context, vision + tools |
 | `gpt-5.6-sol` | LLM | GPT-5.6 flagship, 1.05M context, vision + tools |
 | `gpt-5.6-terra` | LLM | GPT-5.6 balanced intelligence/cost, 1.05M context |
 | `gpt-5.6-luna` | LLM | GPT-5.6 fast + affordable, 1.05M context |
 | `grok-4.3` | LLM | xAI Grok, 200K context |
-| `DeepSeek-V4-Pro` | LLM | Flagship DeepSeek reasoning, 1M context, vision + tools |
+| `DeepSeek-V4-Pro` | LLM | Flagship DeepSeek reasoning, 1M context, tools (text-only) |
 | `DeepSeek-V4-Flash` | LLM | Fast DeepSeek reasoning, 1M context, tools |
 | `nova-sonic-2` | Realtime voice | Default speech-to-speech voice model — 16 voices, Hindi + en-IN, live |
 | `nova-sonic` | Realtime voice | First-generation Amazon speech-to-speech voice model |
@@ -370,6 +371,7 @@ Credit-covered first-party models. Use the bare model ID in API requests — e.g
 | `gpt-realtime-1.5` | Realtime voice | Pinned 1.5 snapshot of gpt-realtime, live |
 | `gpt-realtime-2.1` | Realtime voice | Latest realtime — better recognition, silence/interrupt handling, configurable reasoning, live |
 | `gpt-realtime-2.1-mini` | Realtime voice | Distilled low-cost 2.1 realtime, live |
+| `gpt-live-1` | Realtime voice | GPT Live speech-to-speech — audio + text only, 14 voices, $0.05/min, live |
 | `whisper` | STT | OpenAI Whisper — 99 langs |
 | `gpt-4o-transcribe` | STT | Streaming transcription |
 | `gpt-4o-mini-transcribe` | STT | Low-cost streaming STT |
@@ -380,14 +382,14 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **135** models (64 LLM · 45 STT · 9 TTS · 15 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **136** models (65 LLM · 45 STT · 9 TTS · 15 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
-### LLM (37 models)
+### LLM (38 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
 | `sarvam-105b` | 105B MoE. Complex reasoning, agentic tasks, long documents. | 131K | Yes | $0.35 in / $0.35 out per 1M |
-| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. Tool calling. | 131K | Yes | $0.35 in / $0.35 out per 1M |
+| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. Tool calling. | 32K | Yes | $0.35 in / $0.35 out per 1M |
 | `gpt-4o` | Multimodal text + vision. | 128K | No | $2.50 in / $10.00 out per 1M |
 | `gemini-3.8-flash` | Fast multimodal flagship. Thinking low/medium/high. | 1M | No | $1.50 in / $7.50 out per 1M |
 | `gemini-3.7-flash` | Fast multimodal. Thinking low/medium/high. | 1M | No | $1.50 in / $7.50 out per 1M |
@@ -398,12 +400,12 @@ A curated, representative slice of the **135** models (64 LLM · 45 STT · 9 TTS
 | `gemini-3.1-flash-lite` | Low-cost multimodal, tool use. | 1M | No | $0.25 in / $1.50 out per 1M |
 | `gpt-4.1` | Long-context multimodal. Strong instruction following. | 1M | No | $2.00 in / $8.00 out per 1M |
 | `gpt-5-mini` | Fast, affordable reasoning. | 400K | No | $0.25 in / $2.00 out per 1M |
-| `gpt-5.5` | Reasoning flagship. Vision, tools, prompt caching. | 1M | No | $5.00 in / $30.00 out per 1M |
+| `gpt-5.5` | Reasoning flagship. Vision, tools, prompt caching. | 1.05M | No | $5.00 in / $30.00 out per 1M |
 | `gpt-5.6-sol` | Frontier model for complex professional work. Vision, reasoning, tools. | 1.05M | No | $5.00 in / $30.00 out per 1M |
 | `gpt-5.6-terra` | Balances intelligence and cost. Vision, reasoning, tools. | 1.05M | No | $2.00 in / $12.00 out per 1M |
 | `gpt-5.6-luna` | Cost-sensitive, high-volume workloads. Vision, reasoning, tools. | 1.05M | No | $0.20 in / $1.20 out per 1M |
 | `grok-4.3` | xAI Grok 4.3. Reasoning + vision. | 200K | No | $3.50 in / $15.00 out per 1M |
-| `DeepSeek-V4-Pro` | Flagship DeepSeek reasoning. Vision + tools. | 1M | No | $1.32 in / $3.96 out per 1M |
+| `DeepSeek-V4-Pro` | Flagship DeepSeek reasoning. Tools. Text-only. | 1M | No | $1.32 in / $3.96 out per 1M |
 | `DeepSeek-V4-Flash` | Fast, affordable DeepSeek reasoning. Tools. | 1M | No | $0.44 in / $1.32 out per 1M |
 | `kimi-k2.5` | Strong on coding and math. Vision. | 256K | Yes | $0.81 in / $4.05 out per 1M |
 | `kimi-k2.5-fast` *(maintenance)* | Kimi K2.5 at ~414 tok/s for voice-agent latency. | 256K | No | $0.81 in / $4.05 out per 1M |
@@ -413,7 +415,7 @@ A curated, representative slice of the **135** models (64 LLM · 45 STT · 9 TTS
 | `glm-5.2` | Flagship agentic coding. Tools + reasoning. | 262K | Yes | $1.89 in / $5.94 out per 1M |
 | `gpt-oss-120b` | Open-weight 120B MoE. Reasoning-grade at lower cost. | 128K | Yes | $1.00 in / $4.00 out per 1M |
 | `nemotron-3-super` | 120B MoE tuned for long-context reasoning. | 256K | Yes | $1.50 in / $6.00 out per 1M |
-| `gemma-4-26b-a4b-it` | 26B MoE (4B active). Efficient instruct model. Vision. | 131K | Yes | $0.40 in / $1.60 out per 1M |
+| `gemma-4-26b-a4b-it` | 26B MoE (4B active). Efficient instruct model. Vision. | 256K | Yes | $0.40 in / $1.60 out per 1M |
 | `mistral-small-3.1` | 24B instruct. Strong tool use, fast. Vision. | 128K | Yes | $0.47 in / $0.76 out per 1M |
 | `nova-sonic-2` | Amazon Nova 2 Sonic. Native speech-to-speech voice model — STT, reasoning, and TTS in one; 16 voices across 8 languages including Hindi + en-IN. | 32K | No | $4.00 in / $15.00 out per 1M • $0.064/min |
 | `nova-sonic` | Amazon Nova Sonic 1.0. Native speech-to-speech voice model with 11 voices across English, Spanish, French, Italian, and German. | 32K | No | $4.50 in / $17.00 out per 1M • $0.071/min |
@@ -423,6 +425,7 @@ A curated, representative slice of the **135** models (64 LLM · 45 STT · 9 TTS
 | `gpt-realtime-1.5` | Pinned 1.5 snapshot of gpt-realtime. Use when you want version stability. | 32K | No | $4.00 in / $16.00 out per 1M • $0.375/min |
 | `gpt-realtime-2.1` | Latest realtime speech-to-speech — better alphanumeric recognition, silence/noise + interruption handling, configurable reasoning effort. Voice-agent only. | 128K | No | $4.00 in / $24.00 out per 1M • $0.375/min |
 | `gpt-realtime-2.1-mini` | Distilled, lower-cost realtime for faster voice interactions. Voice-agent only. | 128K | No | $0.60 in / $2.40 out per 1M • $0.117/min |
+| `gpt-live-1` | GPT Live speech-to-speech — audio + text in and out, function calling, 14 voices (default `marin`). No image or video input. Voice-agent only. | — | No | $0.05/min (billed per second) |
 
 ### Speech to Text (11 models)
 
