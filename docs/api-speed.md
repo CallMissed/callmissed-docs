@@ -106,6 +106,8 @@ Behaviour per model — verified live against each upstream on 2026-05-01:
 | `glm-5.2` | ✅ off | ⊘ | ⊘ | ⊘ | — | ✅ off |
 | `gemma-4-26b-a4b-it` | ✅ off | ⊘ | ⊘ | ⊘ | — | ✅ off |
 | `sarvam-105b`, `sarvam-105b-conversations` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
+| `glm-5.3` | ↓ `"low"` | ✅ | ↓ `"high"` | ✅ | ↓ `"max"` | ↓ `"low"` |
+| `gemma-4-31b` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `kimi-k2.7-code` | ⊘ | ⊘ | ⊘ | ⊘ | — | ⊘ |
 | `mistral-small-3.1` | ⊘ | ⊘ | ⊘ | ⊘ | — | ⊘ |
 
@@ -114,6 +116,7 @@ Legend: ✅ = sent to upstream verbatim · ✅ off = thinking is switched off ·
 Three notes worth reading before you rely on a value:
 
 - `glm-4.7-flash`, `glm-5.2` and `gemma-4-26b-a4b-it` honour only the off switch. `"none"` and `"minimal"` turn thinking off. `"low"`, `"medium"` and `"high"` are dropped, so the model thinks at its own default — they are not an intensity dial.
+- `glm-5.3` always reasons and defaults to its highest level, `"max"`. Send `"low"` when latency matters: in our tests it cut time to first word from about 3.5s to about 0.9s. `gemma-4-31b` never reasons, so every value is accepted and has no effect.
 - `kimi-k2.7-code` and `mistral-small-3.1` expose no reasoning control. Every value is dropped. Both still return 200.
 - The GPT-5.5 / GPT-5.6 family accepts the full `none`/`low`/`medium`/`high`/`xhigh` ladder. `"minimal"` is rejected upstream, so we map it to `"low"`. Send `xhigh`, not `max` or `ultra`.
 
