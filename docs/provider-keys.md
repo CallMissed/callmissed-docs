@@ -28,14 +28,14 @@ Authorization: Bearer cm_your_api_key
 
 ## Supported providers
 
-`openai`, `anthropic`, `google`, `sarvam`, `deepgram`, `elevenlabs`, and the other providers accepted by the create endpoint. Provider ids are lowercase. An unsupported value returns `422` and lists the accepted set.
+Provider ids are lowercase. The accepted set is intentionally small — only providers whose credentials the gateway can actually inject into inference — for example `google` and `sarvam`. An unsupported value returns `422` and lists the full accepted set.
 
 ## The uniqueness rule
 
 A credential occupies one slot per `(provider, label)`. A record with no label is that provider's **default** slot. Adding a second key to an occupied slot returns `409`:
 
 ```json
-{ "detail": "A default openai key already exists. Delete it first to replace the secret." }
+{ "detail": "A default google key already exists. Delete it first to replace the secret." }
 ```
 
 To hold several keys for one provider, give each a distinct `label` (for example `eu`, `us`, `batch`).
@@ -54,7 +54,7 @@ To hold several keys for one provider, give each a distinct `label` (for example
 [
   {
     "id": "1a2b…",
-    "provider": "openai",
+    "provider": "google",
     "label": "eu",
     "key_last4": "9f3a",
     "is_active": true,
@@ -81,7 +81,7 @@ Unknown fields are rejected with `422` rather than ignored, so a typo in a field
 curl -X POST https://api.callmissed.com/api/v1/gateway/provider-keys \
   -H "Authorization: Bearer cm_your_api_key" \
   -H "Content-Type: application/json" \
-  -d '{ "provider": "openai", "key": "sk-…", "label": "eu" }'
+  -d '{ "provider": "google", "key": "AIza…", "label": "eu" }'
 ```
 
 Returns `201` with the record — note the response has no `key` field.
@@ -108,7 +108,7 @@ Performs a live check against the provider. No request body.
 ```json
 {
   "id": "1a2b…",
-  "provider": "openai",
+  "provider": "google",
   "ok": true,
   "detail": "Credential accepted by the provider.",
   "last_verified_at": "2026-08-17T09:12:00Z"

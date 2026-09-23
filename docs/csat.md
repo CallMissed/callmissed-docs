@@ -129,6 +129,10 @@ Newest first.
 
 `GET` returns one survey. `DELETE` returns `204` and removes its response along with it. `404 Survey not found`.
 
+## POST `/api/v1/csat/surveys/{survey_id}/sent`
+
+Creating a survey does not deliver it: you send the link on your own channel, then call this to record when it went out. Scope: `csat:write`. Returns the survey with `sent_at` set. Idempotent — calling it again keeps the first `sent_at`. `404 Survey not found`.
+
 ---
 
 # Public response endpoints

@@ -1,13 +1,13 @@
 ---
 title: "Account MCP Server"
-description: "Give an AI agent 41 tools that act on your CallMissed account: place and review calls, work the inbox, search and update the CRM, send WhatsApp and email, generate images, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
+description: "Give an AI agent 309 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, manage webhooks, integrations and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
 slug: "agent-tools-mcp"
 breadcrumb: "Getting Started"
 ---
 
 # Account MCP Server
 
-Give an AI agent 41 tools that act on your CallMissed account: place and review calls, work the inbox, search and update the CRM, send WhatsApp and email, generate images, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
+Give an AI agent 309 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, manage webhooks, integrations and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
 
 :::cards
 /docs/mcp-server | Docs MCP Server | book | Searchable CallMissed docs inside your coding agent
@@ -16,7 +16,7 @@ Give an AI agent 41 tools that act on your CallMissed account: place and review 
 
 ## Overview
 
-The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 41 tools: place and inspect phone calls, read transcripts, work the shared inbox, search and update the CRM, summarise and score calls, send WhatsApp messages and email, generate images, and check what it all cost.
+The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 309 tools: draft, build and configure voice agents end to end, set up how inbound calls are answered with flows, menus and queues, place and inspect phone calls, read transcripts, build and run outbound calling campaigns, work the shared inbox and the support desk, search and update the CRM and set up its pipelines, custom fields and lead scoring, summarise and score calls, send WhatsApp messages, catalog products and Flow forms, send email, generate images, wire up webhooks, integrations and managed prompts, version and roll back an agent, run evaluation suites and A/B experiments, and check what it all cost.
 
 It is hosted, so there is nothing to install and nothing to run locally.
 
@@ -52,19 +52,23 @@ If your client cannot complete the sign-in, use an API key instead (option 2 bel
 
 #### Choose what to allow
 
-The consent screen offers three permission groups.
+The consent screen offers five permission groups.
 
 | Group | What it allows | On by default | Can spend credits |
 | --- | --- | --- | --- |
-| **Read your data** | See your calls, contacts, companies, deals, tasks, notes, conversations, agents and usage. Cannot change anything. | Yes | No |
+| **Read your data** | See your calls, contacts, companies, deals, tasks, notes, conversations, agents and usage, plus how your CRM and support desk are set up: pipelines, custom fields, saved views, lead scores, tickets, SLA policies, macros, routing rules and satisfaction scores. Cannot change anything. Searching your knowledge base costs a small amount to read the question. | Yes | Yes |
 | **Read call transcripts** | Read what was said on your voice calls, and what each one cost. This also lets the connection use AI models on your account, which spends credits. | No | Yes |
-| **Take actions** | Create and update records, send WhatsApp messages and email, place and end calls, and generate images. Spends credits. | No | Yes |
+| **Take actions** | Create and update records, send WhatsApp messages and email — including catalog products, order updates and Flow forms — place and end calls, rent phone numbers, and generate images. It can also build outbound calling campaigns and start them, which dials everyone on the list, change how your CRM and support desk are set up — pipelines, custom fields, lead scoring, tickets, SLA policies, macros and routing — and open satisfaction surveys. Spends credits, and a rented number is a recurring charge. | No | Yes |
+| **Set up and change your agents** | Create agents and change their instructions, voice, tools and knowledge, draft a new agent from a description, give them custom tools that call your own URLs, change how a team of agents hands callers between them, and run test suites and A/B experiments against them. Cannot send messages or place calls. Indexing a knowledge source, drafting an agent and running a test suite spend credits. | No | Yes |
+| **Configure your workspace** | Set up where your events are delivered and when you are alerted, connect an external service by handing you a link to approve, and manage the prompts the API resolves by name. Cannot read or write the credentials of a connected service, and cannot disconnect one. Publishing a prompt or pinning a model to one changes what your own API calls do and what they cost. | No | Yes |
 
-**Read your data** is the only group ticked when the screen opens. The other two start off and are granted only if you tick them yourself, so a single click cannot hand an agent the ability to message a customer or spend credits.
+**Read your data** is the only group ticked when the screen opens. The other four start off and are granted only if you tick them yourself, so a single click cannot hand an agent the ability to message a customer or spend credits.
+
+Building an agent is its own tick rather than part of **Take actions**: letting an assistant send a WhatsApp message should not also let it rewrite the instructions, voice and tools of the agent answering your phone. Running an eval suite or an A/B experiment sits on that same tick, because it is work done on the agents it already governs.
 
 At least one group has to be ticked. Approving nothing would create a connection that fails every call, so the consent screen asks you to choose something or press **Deny**.
 
-Against the tool tables further down: **Read your data** covers every `:read` scope, **Read call transcripts** grants the `stt`, `tts` and `llm` permissions the three voice-session tools need, and **Take actions** covers every `:write` scope plus `whatsapp:send` and the `image` and `email` permissions.
+Against the tool tables further down: **Read your data** covers every `:read` scope, including the campaign, CRM-setup, support-desk, commerce, prompt and eval reads; **Read call transcripts** grants the `stt`, `tts` and `llm` permissions the three voice-session tools need; **Take actions** covers the record, CRM-setup, support-desk, messaging, commerce, telephony and campaign `:write` scopes plus `whatsapp:send` and the `image` and `email` permissions; **Set up and change your agents** covers `bots:write`, `knowledge:write`, `squads:write`, `evals:write` and `experiments:write`; and **Configure your workspace** covers `webhooks:write`, `integrations:write` and `prompts:write`.
 
 #### The connection appears as an API key
 
@@ -126,12 +130,12 @@ Two different gates decide whether a tool works, whether the connection came fro
 Give each key only what its agent needs. A read-only key is a perfectly good way to let an agent look at the account without letting it spend anything or reach a real person.
 
 <Callout type="warn">
-  Eight tools spend credits and several of them reach real people. They are marked in the tables below. For an agent that should look but not act, tick only **Read your data** when you sign in, or use a key holding only the read scopes.
+  Seventeen tools spend credits and several of them reach real people. `start_campaign` reaches the most: it dials every person on the campaign's list. They are marked in the tables below. For an agent that should look but not act, tick only **Read your data** when you sign in, or use a key holding only the read scopes.
 </Callout>
 
 ## Tools
 
-41 tools in eight groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
+309 tools in fifteen groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
 
 ### Voice and calls
 
@@ -144,9 +148,80 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 | `get_call_recording` | Get a short-lived download link for a call's recording | Read | `telephony:read` | No |
 | `click_to_call` | Ring one of your people, dial the contact, and bridge the two. No AI agent involved | Write | `telephony:write` | Yes |
 | `list_phone_numbers` | List your numbers and their status, to find the `from_number_id` `place_call` takes | Read | `telephony:read` | No |
+| `search_available_numbers` | Search the numbers you could rent, with monthly price and whether each takes calls. Buys nothing | Read | `telephony:read` | No |
+| `provision_phone_number` | Rent a number. It is bought immediately and renews monthly until released; needs an approved compliance application | Write | `telephony:write` | Yes |
+| `attach_number_to_agent` | Point one of your numbers at an agent, so calls to it are answered by that agent. Pass `bot_id: null` to detach | Write | `telephony:write` | No |
 | `list_voice_sessions` | List voice agent sessions, newest first | Read | `stt` + `tts` + `llm` permissions | No |
 | `get_voice_session_transcript` | Get a session's full turn-by-turn transcript | Read | `stt` + `tts` + `llm` permissions | No |
 | `get_voice_session_cost` | Break down what one voice session cost in credits | Read | `stt` + `tts` + `llm` permissions | No |
+
+#### Call handling
+
+How an inbound call is answered: the flow it walks, the menu it hears, the queue it waits in, the message left on a machine, and whether the number has been flagged as spam. This is the whole console setup journey, available to an agent.
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_call_flows` | List call flows with each one's shape and whether it is live. Returns no graphs | Read | `telephony:read` | No |
+| `get_call_flow` | One flow with its full draft graph; the live snapshot is summarised, not repeated | Read | `telephony:read` | No |
+| `create_call_flow` | Create a flow. It answers nothing until published and attached to a number | Write | `telephony:write` | No |
+| `update_call_flow` | Change the draft. Sending `graph` replaces the whole graph | Write | `telephony:write` | No |
+| `publish_call_flow` | Make the draft the version that answers **real** calls, from the next call on | Write, destructive | `telephony:write` | No |
+| `attach_number_to_flow` | Answer one of your numbers with this flow. `detach: true` undoes it. Not yet available — returns 409 while inbound flow execution is being wired | Write | `telephony:write` | No |
+| `simulate_call_flow` | Dry-run one step and see the instruction a real call would get. Webhook steps are not called | Read | `telephony:read` | No |
+| `list_call_menus` | List press-1-for-sales menus with their prompt and key map | Read | `telephony:read` | No |
+| `get_call_menu` | One menu with its prompt, key map and retry settings | Read | `telephony:read` | No |
+| `create_call_menu` | Create a menu: what the caller hears and where each key sends them | Write | `telephony:write` | No |
+| `update_call_menu` | Change a menu. Sending `options` replaces the whole key map | Write | `telephony:write` | No |
+| `attach_number_to_menu` | Answer one of your numbers with this menu. `detach: true` undoes it. Not yet available — returns 409 while inbound menu execution is being wired | Write | `telephony:write` | No |
+| `list_call_queues` | List queues: how callers are held and in what order they are served | Read | `telephony:read` | No |
+| `get_call_queue` | One queue with its serving order, hold settings and overflow behaviour | Read | `telephony:read` | No |
+| `create_call_queue` | Create a queue that holds callers until a roster member is free | Write | `telephony:write` | No |
+| `update_call_queue` | Change serving order, hold audio, waiting limit or overflow behaviour | Write | `telephony:write` | No |
+| `list_queue_members` | Who answers for a queue, with priority, capacity and how busy each is | Read | `telephony:read` | No |
+| `add_queue_member` | Put an agent (`bot_id`) or a person (`user_id`) on a queue's roster | Write | `telephony:write` | No |
+| `remove_queue_member` | Take an answerer off the roster. They stop receiving calls immediately | Write, destructive | `telephony:write` | No |
+| `attach_number_to_queue` | Send one of your numbers through this queue. `detach: true` undoes it | Write | `telephony:write` | No |
+| `get_queue_live` | Who is holding right now, how long, and how much of the roster is free. Callers show as last four digits only | Read | `telephony:read` | No |
+| `list_voicemail_templates` | The messages your calls leave on a machine, and whether each is ready to play | Read | `telephony:read` | No |
+| `get_voicemail_template` | One voicemail message with its words, voice and state | Read | `telephony:read` | No |
+| `create_voicemail_template` | Write the message a call should leave when a machine answers | Write | `telephony:write` | No |
+| `update_voicemail_template` | Change a message. New words throw away the recording made from the old ones | Write | `telephony:write` | No |
+| `get_number_reputation` | Whether one of your numbers is flagged as spam, and the complaints still open against it | Read | `telephony:read` | No |
+
+Deleting a flow, menu, queue or voicemail message is not an MCP tool: an assistant should not be able to remove a routing object that live numbers still point at. Take one out of service reversibly instead — `enabled: false` on a menu or queue, or detach the number. Clearing a spam complaint needs a proof document and stays in the dashboard.
+
+#### More voice and calls tools
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `get_voice_session` | Get one voice agent session's status, timing and post-call analysis (summary, outcome, sentiment) once it exists | Read | `stt` + `tts` + `llm` permissions | No |
+| `update_number_call_settings` | Set a number's call settings | Write | `telephony:write` | No |
+| `list_telephony_compliance` | List this account's phone-number KYC applications and whether each is approved, pending or rejected (with the reason) | Read | `telephony:read` | No |
+| `unpublish_call_flow` | Stop answering live calls with this flow; numbers on it answer normally again | Write | `telephony:write` | No |
+| `update_queue_member` | Change a queue member's priority, concurrent-call limit, or enabled flag | Write | `telephony:write` | No |
+
+### Calling campaigns
+
+An outbound campaign is a list of people, a voice agent and the rules for when and how fast to dial. Build it as a draft, load the list, then start it. The account-wide do-not-call list lives here too.
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_campaigns` | List campaigns, newest first, with status and contact counts | Read | `campaigns:read` | No |
+| `get_campaign` | Fetch one campaign: status, schedule, calling hours, dial mode | Read | `campaigns:read` | No |
+| `create_campaign` | Create a campaign. It starts as a draft and calls nobody | Write | `campaigns:write` | No |
+| `update_campaign` | Change name, schedule, calling number, calling hours or dial mode | Write | `campaigns:write` | No |
+| `add_campaign_contacts` | Add up to 1000 people to the calling list. Adding calls nobody | Write | `campaigns:write` | No |
+| `list_campaign_contacts` | The per-person result: waiting, calling, done or failed, with attempts and last error | Read | `campaigns:read` | No |
+| `get_campaign_live_state` | What the campaign is doing right now, and in preview mode who is awaiting a go-ahead | Read | `campaigns:read` | No |
+| `start_campaign` | **Starts calling.** Real calls to every person on the list | Write, destructive | `campaigns:write` | Yes |
+| `pause_campaign` | Stop placing new calls. Can be started again later | Write | `campaigns:write` | No |
+| `stop_campaign` | Cancel the campaign for good. Cannot be started again | Write, destructive | `campaigns:write` | No |
+| `list_do_not_call` | List the numbers suppressed from all calling on this account | Read | `campaigns:read` | No |
+| `add_do_not_call` | Suppress numbers so no call is ever placed to them again | Write | `campaigns:write` | No |
+
+Taking a number back **off** the do-not-call list is deliberately not a tool. Adding one is safe in the direction that matters — the worst case is a call that does not happen — but removing one un-does somebody's opt-out, and the next thing that happens is a call to a person who asked not to be called. That stays with a person in the [console](https://console.callmissed.com). The `DELETE /dnc/{entry_id}` endpoint is still there for your own code; see the [Campaigns API](/docs/voice-campaigns).
+
+Uploading a CSV to a campaign is not a tool either: it is a file upload, and MCP arguments are JSON. Use `add_campaign_contacts` for a list the agent already holds, or the [Campaigns API](/docs/voice-campaigns) for a file.
 
 ### Conversations
 
@@ -157,6 +232,15 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 | `set_conversation_status` | Change a conversation's status, for example to close or escalate it | Write | `conversations:write` | No |
 | `list_handoffs` | List conversations escalated to a person and still waiting | Read | `conversations:read` | No |
 | `resolve_handoff` | Mark an escalated conversation handled, optionally keeping the AI quiet | Write | `conversations:write` | No |
+
+#### More conversations tools
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `get_conversation` | Get one conversation's details: channel, status, contact, agent and unread count | Read | `conversations:read` | No |
+| `mark_conversation_read` | Clear a conversation's unread count, as opening it in the inbox does | Write | `conversations:write` | No |
+| `assign_handoff` | Assign a waiting handoff to a teammate, or pass assignee_id null to unassign it | Write | `conversations:write` | No |
+| `callback_handoff` | For a voice handoff, phone your operator number and then the customer and bridge them (two real, billed calls) | Write | `conversations:write` | Yes |
 
 ### CRM
 
@@ -173,6 +257,130 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 | `create_task` | Add a follow-up task, optionally attached to a record | Write | `crm_tasks:write` | No |
 | `complete_task` | Mark a task done | Write | `crm_tasks:write` | No |
 | `create_crm_note` | Attach a note to a contact, company or deal | Write | `crm_notes:write` | No |
+| `list_companies` | List companies, optionally matching a name or domain | Read | `companies:read` | No |
+| `create_company` | Add a company. A domain has to be unique on the account | Write | `companies:write` | No |
+| `update_company` | Change fields on an existing company | Write | `companies:write` | No |
+
+#### Pipelines and stages
+
+The board a deal moves across. Pipelines and stages share the deal scopes, because a stage is only meaningful as part of the pipeline it belongs to.
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_pipelines` | List the sales pipelines, the default one first | Read | `crm_deals:read` | No |
+| `create_pipeline` | Add a pipeline. It starts with no stages | Write | `crm_deals:write` | No |
+| `update_pipeline` | Rename a pipeline, or make it the default | Write | `crm_deals:write` | No |
+| `list_pipeline_stages` | List one pipeline's stages in board order | Read | `crm_deals:read` | No |
+| `create_pipeline_stage` | Add a column, with its win probability and won/lost meaning | Write | `crm_deals:write` | No |
+| `update_pipeline_stage` | Rename a stage, move it, or change what it means | Write | `crm_deals:write` | No |
+| `reorder_pipeline_stages` | Rewrite the whole column order. Must name every stage exactly once | Write | `crm_deals:write` | No |
+
+#### Custom fields
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_custom_fields` | List the custom fields defined on contacts, companies and deals, with each one's type | Read | `crm_custom_fields:read` | No |
+| `create_custom_field` | Define a typed field: text, number, date, boolean or select | Write | `crm_custom_fields:write` | No |
+| `update_custom_field` | Rename, reorder, re-option or (un)require a field. Its key and type never change | Write | `crm_custom_fields:write` | No |
+| `list_custom_field_values` | Read every custom value on one record | Read | `crm_custom_fields:read` | No |
+| `set_custom_field_value` | Set one field on one record. The value has to match the field's type | Write | `crm_custom_fields:write` | No |
+| `clear_custom_field_value` | Unset one field on one record. The stored value is gone | Write, destructive | `crm_custom_fields:write` | No |
+
+Deleting a custom field **definition** is not on this surface: the delete cascades to every value stored against it, on every record. Do that in the console.
+
+#### Saved views
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_saved_views` | List the saved filtered lists you can see: shared ones plus your own | Read | `crm_views:read` | No |
+| `create_saved_view` | Save a named filter, sort and column preset over a CRM list | Write | `crm_views:write` | No |
+
+#### Lead scoring
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_lead_score_rules` | List the rules that award points, oldest first | Read | `crm_scores:read` | No |
+| `create_lead_score_rule` | Add a rule over one of the allowed signals | Write | `crm_scores:write` | No |
+| `update_lead_score_rule` | Change a rule's signal, comparison, points or enabled state | Write | `crm_scores:write` | No |
+| `recompute_lead_scores` | Rescore up to 200 contacts or companies. All or nothing | Write | `crm_scores:write` | No |
+| `list_lead_scores` | The leaderboard: scored records, highest first | Read | `crm_scores:read` | No |
+| `get_lead_score` | One record's score with the breakdown of which rules fired | Read | `crm_scores:read` | No |
+
+A new or changed rule does not move any score until `recompute_lead_scores` runs. The signals a rule may test are a closed list, documented on [Lead scoring](/docs/crm-lead-scores).
+
+#### More cRM tools
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `get_contact` | Get one contact's full record by id | Read | `contacts:read` | No |
+| `list_deals` | List deals, newest first, filtered by pipeline, stage, status, owner, contact or company | Read | `crm_deals:read` | No |
+| `get_deal` | Get one deal by id | Read | `crm_deals:read` | No |
+| `update_deal` | Change a deal's title, value, links, owner, close date, stage or open/won/lost status | Write | `crm_deals:write` | No |
+| `list_tasks` | List CRM tasks, filtered by status, assignee, attached record, overdue or due window | Read | `crm_tasks:read` | No |
+| `update_task` | Edit a task's title, description, due date, assignee, attached record or status | Write | `crm_tasks:write` | No |
+| `list_crm_notes` | List the notes on one contact, company or deal, newest first | Read | `crm_notes:read` | No |
+| `update_crm_note` | Replace the text of a note | Write | `crm_notes:write` | No |
+| `list_crm_duplicates` | Find groups of contacts or companies that look like the same record | Read | `crm_search:read` | No |
+| `merge_crm_duplicates` | Irreversibly fold duplicates into a primary record: their linked records move to it and the duplicates are deleted | Write | `crm_search:write` | No |
+| `update_saved_view` | Rename a saved view or change its filters, sort, columns, layout or sharing; the list it belongs to cannot change | Write | `crm_views:write` | No |
+| `get_company` | Get one company's record by id | Read | `companies:read` | No |
+
+### Support desk
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_tickets` | List tickets by status, priority, assignee, contact, conversation or subject | Read | `support_tickets:read` | No |
+| `get_ticket` | Fetch one ticket with its lifecycle timestamps | Read | `support_tickets:read` | No |
+| `create_ticket` | Open a ticket, optionally linked to a conversation or contact | Write | `support_tickets:write` | No |
+| `update_ticket` | Change subject, description, priority, links or tags | Write | `support_tickets:write` | No |
+| `set_ticket_status` | Move a ticket through its lifecycle, keeping the SLA clocks honest | Write | `support_tickets:write` | No |
+| `assign_ticket` | Hand a ticket to a teammate, or send it back to the queue | Write | `support_tickets:write` | No |
+
+Deleting a ticket is not on this surface — it would destroy the record of a customer interaction and every SLA number computed from it. Close it instead.
+
+#### SLA
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_sla_policies` | List the first-response and resolution targets the desk promises | Read | `sla:read` | No |
+| `create_sla_policy` | Promise a first-response time, a resolution time, or both, with business hours | Write | `sla:write` | No |
+| `update_sla_policy` | Change a policy's targets, priority, hours or enabled state | Write | `sla:write` | No |
+| `get_ticket_sla_status` | Where one ticket stands: due times, what is missed, minutes left | Read | `sla:read` | No |
+| `list_sla_breaches` | Tickets already past a deadline, oldest first | Read | `sla:read` | No |
+
+#### Macros, tags and routing
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_support_macros` | List canned replies, most-used first | Read | `support_ops:read` | No |
+| `create_support_macro` | Save a canned reply, with `{{placeholders}}` and optional actions | Write | `support_ops:write` | No |
+| `update_support_macro` | Change a macro's text, actions, category or enabled state | Write | `support_ops:write` | No |
+| `use_support_macro` | Fill a macro's placeholders and get the finished text. Sends nothing | Write | `support_ops:write` | No |
+| `list_support_tags` | List the tag vocabulary with colours and descriptions | Read | `support_ops:read` | No |
+| `create_support_tag` | Add a tag to the vocabulary | Write | `support_ops:write` | No |
+| `list_ticket_routing_rules` | List the triage rules in evaluation order | Read | `support_ops:read` | No |
+| `create_ticket_routing_rule` | Add a triage rule that assigns, prioritises and tags a match | Write | `support_ops:write` | No |
+| `update_ticket_routing_rule` | Change a rule's conditions, actions, position or enabled state | Write | `support_ops:write` | No |
+| `reorder_ticket_routing_rules` | Rewrite the evaluation order. Must name every rule exactly once | Write | `support_ops:write` | No |
+| `preview_ticket_routing` | Dry run: which rule would match a ticket, and what it would do. Writes nothing | Read | `support_ops:read` | No |
+
+Macros and rules are retired with `is_active: false` rather than deleted, so nothing that a past ticket refers to disappears.
+
+#### Satisfaction
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `create_csat_survey` | Mint a survey and its public response link. **Does not send it** | Write | `csat:write` | No |
+| `list_csat_surveys` | List surveys, optionally only answered or only still-open ones | Read | `csat:read` | No |
+| `get_csat_stats` | Response rate, average rating and NPS over a window of up to a year | Read | `csat:read` | No |
+
+`create_csat_survey` returns a `token`; the link you send is that token on the public response page. Delivering it over WhatsApp or email is a separate call, and that send is what costs credits.
+
+#### More support desk tools
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `update_support_tag` | Rename a support tag or change its color or description | Write | `support_ops:write` | No |
 
 ### Call intelligence
 
@@ -190,12 +398,52 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 | `send_whatsapp_template` | Send an approved template, the only way to reach someone outside that window | Write | `whatsapp:send` | Yes |
 | `list_whatsapp_campaigns` | List broadcast campaigns with status and recipient counts | Read | `whatsapp:read` | No |
 | `send_email` | Send an email from a domain this account has verified | Write | `email` permission | Yes |
+| `send_whatsapp_product` | Send one product from a WhatsApp catalog so the recipient can add it to a cart in the chat | Write | `wa_commerce:write` | Yes |
+| `send_whatsapp_product_list` | Send up to 30 products grouped into titled sections, as one browsable message | Write | `wa_commerce:write` | Yes |
+| `send_whatsapp_catalog` | Send the whole catalog attached to a business number, fronted by one product as the cover | Write | `wa_commerce:write` | Yes |
+| `list_whatsapp_orders` | List the carts customers sent from your catalog, with status, currency and subtotal | Read | `wa_commerce:read` | No |
+| `get_whatsapp_order` | One cart order with every line item: SKU, quantity and unit price | Read | `wa_commerce:read` | No |
+| `update_whatsapp_order_status` | Advance a stored order and tell the customer in the same step. `completed` and `canceled` are final | Write | `wa_commerce:write` | Yes |
+| `list_whatsapp_flows` | List your WhatsApp Flows with status and categories. The design document is left out | Read | `wa_flows:read` | No |
+| `send_whatsapp_flow` | Send a Flow — a form filled in without leaving the chat — and get the token that identifies the reply | Write | `wa_flows:write` | Yes |
+| `list_whatsapp_flow_responses` | The Flow forms customers submitted, with the answers they gave | Read | `wa_flows:read` | No |
+| `publish_whatsapp_flow` | Publish a draft Flow. One-way: the design is then frozen and changing it means a new Flow | Write | `wa_flows:write` | No |
+
+#### More messaging tools
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_whatsapp_numbers` | List your connected WhatsApp Business numbers with their status, quality rating and linked agent | Read | `whatsapp:read` | No |
+| `refresh_whatsapp_number` | Re-read a number's status, name and quality rating from WhatsApp | Write | `whatsapp:write` | No |
+| `link_whatsapp_number_to_agent` | Choose which agent auto-replies on a WhatsApp number; null unlinks it | Write | `whatsapp:write` | No |
+| `set_whatsapp_autoreply` | Turn the linked agent's automatic replies on or off for one number | Write | `whatsapp:write` | No |
+| `get_whatsapp_business_profile` | Read the public business profile customers see on a number | Read | `whatsapp:read` | No |
+| `update_whatsapp_business_profile` | Change the text fields of a number's public business profile | Write | `whatsapp:write` | No |
+| `list_whatsapp_templates` | List your message templates with their review status | Read | `whatsapp:read` | No |
+| `search_whatsapp_template_library` | Search WhatsApp's pre-written utility templates, which can be created by name with create_whatsapp_template | Read | `whatsapp:read` | No |
+| `create_whatsapp_template` | Submit a new message template to WhatsApp for review | Write | `whatsapp:write` | No |
+| `sync_whatsapp_templates` | Pull the latest templates and review statuses from WhatsApp | Write | `whatsapp:write` | No |
+| `draft_whatsapp_template` | Write a template draft from a plain-language intent, with notes on review-rejection risks | Write | `whatsapp:read` | Yes |
+| `create_whatsapp_campaign` | Create a broadcast campaign draft for an approved template | Write | `whatsapp:write` | No |
+| `get_whatsapp_campaign` | Read one campaign with its status and delivery counts | Read | `whatsapp:read` | No |
+| `add_whatsapp_campaign_recipients` | Add recipients, each with optional template variables, to a campaign that has not launched | Write | `whatsapp:write` | No |
+| `launch_whatsapp_campaign` | Start sending a campaign to all its recipients | Write | `whatsapp:write` | Yes |
+| `cancel_whatsapp_campaign` | Stop a campaign; messages already sent are not recalled | Write | `whatsapp:write` | No |
+| `send_whatsapp_media` | Send an image, audio, video, document or sticker from a public link or an uploaded media id, inside the 24-hour window | Write | `whatsapp:send` | Yes |
+| `get_whatsapp_analytics` | Read WhatsApp messaging analytics: the delivery funnel, a daily time series, or credits spent | Read | `whatsapp:read` | No |
+| `list_whatsapp_webhook_events` | List the most recent events WhatsApp delivered to your numbers, for debugging | Read | `whatsapp:read` | No |
+| `list_whatsapp_calls` | List WhatsApp voice calls, newest first | Read | `whatsapp:read` | No |
+| `get_whatsapp_call_settings` | Read whether calling is on for a number, its call hours and callback settings | Read | `whatsapp:read` | No |
+| `update_whatsapp_call_settings` | Turn calling on or off for a number and set its call hours, call icon and callback permission | Write | `whatsapp:write` | No |
+| `request_whatsapp_call_permission` | Send a customer WhatsApp's call-permission prompt; you can only call them after they accept | Write | `whatsapp:send` | No |
+| `place_whatsapp_call` | Call a customer on WhatsApp; the number's linked agent does the talking | Write | `whatsapp:send` | Yes |
+| `end_whatsapp_call` | Hang up a live WhatsApp call | Write | `whatsapp:send` | No |
 
 ### Images
 
 | Tool | What it does | Access | Scope or permission | Credits |
 | --- | --- | --- | --- | --- |
-| `generate_image` | Generate an image from a prompt. Returns the image itself, so the model can see it, plus a link to the full-size version | Write | `image` permission | Yes |
+| `generate_image` | Generate an image from a prompt. `model` picks which image model draws it — its enum lists each model's strength. Returns the image itself, so the model can see it, plus a link to the full-size version | Write | `image` permission | Yes |
 | `list_generated_images` | List images made with this key, with fresh short-lived links | Read | `image` permission | No |
 
 ### Agents and knowledge
@@ -204,8 +452,55 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 | --- | --- | --- | --- | --- |
 | `list_agents` | List the voice and chat agents on the account, to find a `bot_id` | Read | `bots:read` | No |
 | `get_agent` | Fetch one agent's configuration by id | Read | `bots:read` | No |
+| `craft_agent_prompt` | Everything needed to write a strong voice-agent prompt — the four-section structure and limits, the rules that make a prompt work on a phone call, the agent's current prompt, enabled tools and declared `{{variables}}` — plus a scored review of your draft. Free, writes nothing | Read | `bots:read` | No |
+| `get_agent_prompt` | An agent's instructions split into the four boxes its owner edits: objective, response guidelines, conversation script and first message | Read | `bots:read` | No |
+| `list_voice_tiers` | The voice tiers a calling agent can run on: the `voice_tier` id, what it sounds like, what a minute costs in credits, and the voices you may pick from. Read before creating or reconfiguring a calling agent | Read | `bots:read` | No |
+| `get_agent_config_schema` | Every configuration key an agent accepts, with allowed values, defaults, what happens when a key is omitted, and a minimal working example | Read | `bots:read` | No |
+| `validate_agent_config` | Check a config you assembled and get one finding per problem. Writes nothing | Read | `bots:read` | No |
+| `list_agent_tool_catalog` | The agent-tool names that go in the config's `tools` list, with what each does and the channels it cannot run on | Read | `bots:read` | No |
+| `list_agent_skills` | The skill names that go in the config's `skills` list, with the tools each bundles and a preview of the instructions it injects. Chat channels only | Read | `bots:read` | No |
+| `create_agent` | Create a voice or WhatsApp agent. Active immediately | Write | `bots:write` | No |
+| `update_agent` | Rename an agent, or replace its instructions with one flat block | Write | `bots:write` | No |
+| `update_agent_prompt` | Change the instructions section by section, so the objective / guidelines / script structure survives the write | Write | `bots:write` | No |
+| `update_agent_config` | Change configuration keys in place — set some, remove others, leave the rest alone | Write | `bots:write` | No |
+| `toggle_agent` | Flip an agent between active and paused | Write | `bots:write` | No |
+| `add_agent_knowledge` | Add a document to one agent's knowledge base | Write | `knowledge:write` | No |
 | `knowledge_search` | Search the knowledge base and get the passages that match | Read | `knowledge:read` | No |
 | `add_agent_memory` | Store a durable fact for one agent, applied on every future conversation | Write | `bots:write` | No |
+| `list_agent_custom_tools` | List the custom HTTP tools this account has defined. Stored credentials are never returned | Read | `bots:read` | No |
+| `create_agent_custom_tool` | Define an HTTP endpoint an agent may call mid-conversation | Write | `bots:write` | No |
+| `update_agent_custom_tool` | Change a custom HTTP tool. Omitted fields, including secrets, are kept | Write | `bots:write` | No |
+| `test_agent_custom_tool` | Run a saved custom tool once. This **really calls** the endpoint with its stored credentials | Write | `bots:write` | No |
+| `draft_agent_from_description` | Describe the agent you want and get a complete, reviewable draft back. Creates nothing | Write | `squads:write` | Yes |
+
+#### Building an agent with these tools
+
+`create_agent` is not the first call. An agent's `config` is a free-form object whose keys are mostly not checked when written — a wrong value is stored and then fails on the call, usually without an error. So the order is:
+
+1. `get_agent_config_schema` — the keys this agent type accepts, and a `minimal_example` that works. `draft_agent_from_description` is the shortcut past the blank page: describe the agent and review what comes back. It creates nothing, so whatever it proposes still goes through the steps below.
+2. `validate_agent_config` — fix every `error` finding before writing anything.
+3. `create_agent`, then `add_agent_knowledge`.
+4. For a voice agent: `search_available_numbers` → `provision_phone_number` → `attach_number_to_agent`, then `place_call` and `get_voice_session_transcript` to hear the result.
+5. `update_agent_config` to change one key later; it merges, so it cannot wipe the rest of the configuration.
+6. `craft_agent_prompt` → `update_agent_prompt` to write or improve the instructions. `craft_agent_prompt` returns the structure, the phone-call rules and the agent's real tools and variables; write the four sections, pass them back as `draft` until the review has no `error` findings, then save. An agent's prompt is edited in four boxes — objective, response guidelines, conversation script and first message — and `update_agent`'s flat `system_prompt` collapses them into one, silently. The pair above is what keeps them.
+
+The same flow over plain HTTP, with curl for every step and the five ways a config silently misbehaves, is on [Build an Agent](/docs/build-an-agent).
+
+#### More agents and knowledge tools
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_knowledge_sources` | List the documents, URLs and facts in this account's knowledge base, optionally for one agent, with their ingest status | Read | `knowledge:read` | No |
+| `add_agent_knowledge_url` | Fetch a public web page and add its text to one agent's knowledge base | Write | `knowledge:write` | Yes |
+| `list_agent_memories` | List the durable facts one agent has been taught, newest first | Read | `bots:read` | No |
+| `list_agent_squads` | List squads: groups of agents that hand a caller to one another by role | Read | `squads:read` | No |
+| `get_agent_squad` | Fetch a squad with its handoff policy and full member roster | Read | `squads:read` | No |
+| `create_agent_squad` | Create a squad whose entry agent answers the call; the entry agent is enrolled as its first member | Write | `squads:write` | No |
+| `update_agent_squad` | Change a squad's name, description, entry agent (must already be a member), handoff policy, or active flag | Write | `squads:write` | No |
+| `add_squad_member` | Put an agent on a squad's roster under a role; its description is what routing matches callers against | Write | `squads:write` | No |
+| `update_squad_member` | Change a squad member's role, description or position | Write | `squads:write` | No |
+| `remove_squad_member` | Take a member off a squad's roster; the entry agent cannot be removed | Write | `squads:write` | No |
+| `simulate_squad_handoff` | Dry-run a squad's routing: given what a caller said, which member would take the call and why | Read | `squads:read` | No |
 
 ### Usage and credits
 
@@ -214,9 +509,177 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 | `get_credit_balance` | Check how many credits are left on the account | Read | Any valid key | No |
 | `get_usage_summary` | Summarise recent spend, broken down by service | Read | `usage:read` | No |
 
-### Telephony tools are deployment-gated
+### Platform configuration
 
-Seven of the 41 tools are the telephony ones: `place_call`, `list_calls`, `get_call`, `end_call`, `get_call_recording`, `click_to_call` and `list_phone_numbers`. They appear only where calling is switched on for the deployment. Where it is not, `tools/list` returns the other 34 and the seven are simply absent, because the REST routes behind them are not mounted there. Calling one by name anyway returns the same `Unknown tool` error as a typo.
+Webhooks, integrations, managed prompts and agent versions. Every webhook tool
+— including the two that only read — needs `webhooks:write`, because a delivery
+row carries customer conversation data and there is no `webhooks:read` scope to
+grant.
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_webhooks` | List webhook subscriptions with the events each receives. Signing secrets come back masked | Read | `webhooks:write` | No |
+| `create_webhook` | Subscribe an HTTPS endpoint to account events. Returns the signing secret in full, once | Write | `webhooks:write` | No |
+| `update_webhook` | Change a subscription's URL, events, agent scope or active flag. `is_active: false` pauses it | Write | `webhooks:write` | No |
+| `test_webhook` | Send a real signed POST to the configured endpoint and report its status code and latency | Write | `webhooks:write` | No |
+| `list_webhook_deliveries` | Delivery attempts for one webhook, with status code, attempts and error | Read | `webhooks:write` | No |
+| `get_webhook_delivery` | One attempt in full, including the JSON payload that was sent | Read | `webhooks:write` | No |
+| `replay_webhook_delivery` | Re-send a past payload to the current endpoint. Your server really receives it again | Write | `webhooks:write` | No |
+| `list_integrations` | The external services connected to the account. Stored credentials are never returned | Read | `integrations:read` | No |
+| `list_integration_catalog` | What can be connected, annotated with what already is | Read | `integrations:read` | No |
+| `start_integration_oauth` | Begin an OAuth connect and return the consent URL for a person to open | Write | `integrations:write` | No |
+| `list_prompts` | The managed prompts on the account, with each one's current version | Read | `prompts:read` | No |
+| `create_prompt` | Create a managed prompt. Starts empty — add the text as a version | Write | `prompts:write` | No |
+| `list_prompt_versions` | The revision log: version, label, pinned model, declared variables. Template text omitted | Read | `prompts:read` | No |
+| `get_prompt_version` | One version in full, with its template, variables and pinned model and parameters | Read | `prompts:read` | No |
+| `create_prompt_version` | Append a revision. Nothing live changes until a label points at it | Write | `prompts:write` | No |
+| `set_prompt_label` | Point a label such as `production` at a version. This is how a prompt is published | Write | `prompts:write` | No |
+| `render_prompt` | Substitute variables and get the text back, plus any you did not supply. No model call | Read | `prompts:read` | No |
+| `list_prompt_presets` | Saved presets: a named model plus pinned parameters | Read | `prompts:read` | No |
+| `create_prompt_preset` | Save a model and parameters under a name, optionally bound to a prompt version | Write | `prompts:write` | No |
+| `list_agent_versions` | An agent's version history with label, status and commit message. Bodies omitted | Read | `bots:read` | No |
+| `get_agent_version` | One version in full. Stored channel credentials are redacted | Read | `bots:read` | No |
+| `create_agent_version` | Stage a draft from what is live now. Callers are unaffected until it is published | Write | `bots:write` | No |
+| `update_agent_version` | Edit the staged draft. Published versions are immutable | Write | `bots:write` | No |
+| `publish_agent_version` | Publish the draft onto the live agent. The next caller hears the new behaviour | Write | `bots:write` | No |
+| `rollback_agent_version` | Put an older version back on the live agent. Appends rather than rewriting history | Write | `bots:write` | No |
+
+`test_webhook` and `replay_webhook_delivery` both make a real outbound HTTP
+request to **your own** endpoint, so whatever your server does on that event
+happens for real — and a replay makes it happen a second time. Neither takes a
+URL: they use the one already stored on the subscription, which is re-checked
+against private and internal address ranges on every attempt.
+
+Connecting an integration is deliberately only half a tool.
+`start_integration_oauth` hands back a consent URL for a person to open in a
+browser; nothing is connected until they approve it there. There is no tool
+that writes a provider credential, and no tool that disconnects one — both stay
+in the console.
+
+#### More platform configuration tools
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `update_prompt` | Change a prompt's name or description | Write | `prompts:write` | No |
+| `update_prompt_preset` | Change a preset's name, model, default params or pinned prompt version | Write | `prompts:write` | No |
+| `set_integration_spreadsheets` | Replace the list of spreadsheets agents may use through a Google Sheets connection | Write | `integrations:write` | No |
+| `list_usage_logs` | Row-level log of this account's API calls, newest first: service, model, status, latency and cost per call | Read | `usage:read` | No |
+| `list_models` | The public model catalogue with pricing, context window and feature flags | Read | None | No |
+| `get_model` | Pricing, context window and capabilities of one model id from list_models | Read | None | No |
+| `get_platform_status` | Current health of each CallMissed API service, as shown on the public status page | Read | None | No |
+| `get_task` | Fetch one task in full | Read | `crm_tasks:read` | No |
+
+### Testing and quality
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_eval_suites` | Evaluation suites on the account, with the agent each tests and its scorecard | Read | `evals:read` | No |
+| `create_eval_suite` | Create a suite of synthetic conversations for one agent | Write | `evals:write` | No |
+| `list_eval_cases` | The cases in a suite: persona, opening line, turn budget, success criteria | Read | `evals:read` | No |
+| `create_eval_case` | Add one synthetic conversation to a suite | Write | `evals:write` | No |
+| `run_eval_suite` | Run every case against the agent and report what passed. Takes minutes on a big suite | Write | `evals:write` | Yes |
+| `list_eval_runs` | Run history with pass counts, model and credits spent | Read | `evals:read` | No |
+| `get_eval_run` | One run in full, including every synthetic transcript | Read | `evals:read` | No |
+| `list_experiments` | A/B experiments with status, deciding metric and traffic split | Read | `experiments:read` | No |
+| `create_experiment` | Create an experiment on one agent. Starts as a draft taking no traffic | Write | `experiments:write` | No |
+| `create_experiment_arm` | Add a configuration to compare: an agent version plus optional overrides | Write | `experiments:write` | No |
+| `start_experiment` | Put it live. Real callers are split across the arms from this moment | Write | `experiments:write` | No |
+| `stop_experiment` | Stop splitting traffic. Everything already collected is kept | Write | `experiments:write` | No |
+| `conclude_experiment` | Record the winner and close it. Final — it cannot be restarted or changed | Write | `experiments:write` | No |
+| `get_experiment_results` | Per-arm sample sizes and the deciding metric, with a plain-language verdict | Read | `experiments:read` | No |
+| `list_voice_alerts` | Metric alerts with their thresholds, windows and whether each is firing | Read | `webhooks:write` | No |
+| `create_voice_alert` | Be notified when a call metric crosses a threshold over a rolling window | Write | `webhooks:write` | No |
+| `update_voice_alert` | Change a threshold, window, channel or cooldown, or silence an alert | Write | `webhooks:write` | No |
+
+`run_eval_suite` is the one tool here that spends: each case is a real model
+conversation of up to its turn budget, and a suite with a scorecard adds a
+grading call per case. No real caller is ever contacted — the caller is
+synthetic. The balance is checked before anything runs, so a refusal costs
+nothing.
+
+Metric alerts use `webhooks:write` rather than a scope of their own. An alert is
+a notification subscription that sends mail and fires webhooks, which is exactly
+what that scope already governs.
+
+#### More testing and quality tools
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `update_eval_suite` | Rename a suite, change its description or grading scorecard, or turn it on or off | Write | `evals:write` | No |
+| `update_eval_case` | Change one case's name, persona, opening line, turn budget, success criteria or position | Write | `evals:write` | No |
+| `get_experiment` | Fetch an experiment with its status, metric, traffic split and arms | Read | `experiments:read` | No |
+| `update_experiment` | Change an experiment's name, hypothesis, metric (only while a draft) or traffic split | Write | `experiments:write` | No |
+| `update_experiment_arm` | Change an arm's name, agent version, overrides or control flag | Write | `experiments:write` | No |
+| `list_scorecards` | List the rubrics used to grade calls and eval runs | Read | `conversations:read` | No |
+| `create_scorecard` | Create a grading rubric: up to 20 criteria, each a unique label, a relative weight (0-100] and optional guidance | Write | `conversations:write` | No |
+| `update_scorecard` | Replace a rubric's name and full criteria list; scores already taken keep their old breakdown | Write | `conversations:write` | No |
+
+### Facebook and Instagram
+
+Facebook Pages and Instagram accounts: publish and schedule posts, answer comments and DMs, read analytics. Posting, comments and DMs are not billed.
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_facebook_pages` | List your connected Facebook Pages with their ids and linked agent | Read | `whatsapp:read` | No |
+| `list_instagram_accounts` | List your connected Instagram professional accounts with their ids and linked agent | Read | `whatsapp:read` | No |
+| `set_social_account_agent` | Choose which agent auto-replies to DMs on a Facebook Page or Instagram account; null unlinks it | Write | `whatsapp:write` | No |
+| `publish_facebook_post` | Publish to a Facebook Page: text, a link, photos by URL, or a Reel from a video URL | Write | `whatsapp:send` | No |
+| `publish_instagram_post` | Publish an image, video, Reel, story or carousel from public media URLs | Write | `whatsapp:send` | No |
+| `get_instagram_container_status` | Check whether Instagram has finished processing a post's media | Read | `whatsapp:send` | No |
+| `publish_instagram_container` | Publish a processed media container once its status is FINISHED | Write | `whatsapp:send` | No |
+| `get_instagram_publishing_limit` | How many posts the account has published in the last 24 hours against Instagram's cap | Read | `whatsapp:send` | No |
+| `generate_social_post` | Draft a ready-to-publish post: a caption, hashtags and, unless generate_image is false, an image link | Write | None | Yes |
+| `list_social_comments` | List comments on a Facebook post or Instagram media | Read | `whatsapp:read` | No |
+| `list_social_comment_replies` | List the replies under one comment | Read | `whatsapp:read` | No |
+| `reply_to_social_comment` | Post a public reply to a Facebook or Instagram comment as the Page or account | Write | `whatsapp:send` | No |
+| `hide_social_comment` | Hide a comment from everyone but its author, or unhide it | Write | `whatsapp:send` | No |
+| `list_social_conversations` | List Facebook Messenger or Instagram DM threads, most recent first | Read | `whatsapp:read` | No |
+| `get_social_conversation_messages` | Read the messages in one Facebook or Instagram DM thread | Read | `whatsapp:read` | No |
+| `send_social_message` | Send a text reply into an existing Facebook Messenger or Instagram DM thread; Meta only allows it within its reply window | Write | `whatsapp:send` | No |
+| `get_social_analytics` | Read Facebook or Instagram DM analytics: the conversation funnel or a daily time series | Read | `whatsapp:read` | No |
+
+### Email
+
+Domains, templates, suppressions, inbound addresses and send history for the Email API. Every tool needs a key with the `email` permission.
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_email_domains` | List your sending domains and whether each is verified | Read | `email` permission | No |
+| `add_email_domain` | Add a sending domain | Write | `email` permission | No |
+| `get_email_domain_records` | List the DNS records a domain needs and whether each is found | Read | `email` permission | No |
+| `verify_email_domain` | Check a domain's DNS records now and mark it verified if they pass | Write | `email` permission | No |
+| `list_email_sends` | List recent sends with their delivery status | Read | `email` permission | No |
+| `get_email_usage` | Read email send volume and spend for the last 30 days | Read | `email` permission | No |
+| `list_email_suppressions` | List addresses that will not be emailed (bounces, complaints, manual) | Read | `email` permission | No |
+| `add_email_suppression` | Stop all future email to an address | Write | `email` permission | No |
+| `list_inbound_email_addresses` | List the addresses that receive email on your verified domains | Read | `email` permission | No |
+| `create_inbound_email_address` | Start receiving email at an address on a verified domain, optionally forwarding each message to a webhook URL | Write | `email` permission | No |
+| `list_inbound_emails` | List recently received emails, newest first | Read | `email` permission | No |
+| `list_email_templates` | List your saved email templates | Read | `email` permission | No |
+| `create_email_template` | Save a reusable email template | Write | `email` permission | No |
+| `update_email_template` | Change an email template; only the fields given change | Write | `email` permission | No |
+| `get_scheduled_email` | Look up scheduled sends by the send id or batchId a send returned | Read | `email` permission | No |
+| `cancel_scheduled_email` | Cancel every still-pending send for a send id or batchId | Write | `email` permission | No |
+
+### Guides and playbooks
+
+Step-by-step playbooks an assistant follows before it builds anything: it interviews you about the use case first. The same playbooks are served as MCP prompts (`build_voice_agent`, `build_whatsapp_agent`, `launch_campaign`, `setup_support_desk`, `setup_crm`).
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `get_playbook` | Get a step-by-step playbook | Read | None | No |
+
+### Calling tools are deployment-gated
+
+30 of the 309 tools are gated on whether calling is switched on for your account, in two independent groups.
+
+**18 telephony tools:** `place_call`, `list_calls`, `get_call`, `end_call`, `get_call_recording`, `click_to_call`, `list_phone_numbers`, `search_available_numbers`, `provision_phone_number`, `attach_number_to_agent`, the four voicemail-message tools, `get_number_reputation`, `update_number_call_settings`, `list_telephony_compliance` and `callback_handoff`. With telephony off, `tools/list` returns the other 291.
+
+**12 campaign tools:** the whole **Calling campaigns** table above. With campaigns off, `tools/list` returns the other 297.
+
+The flow, menu and queue tools are **not** in either group. Call routing is authored before calling is switched on, so those routes are always mounted and those tools are always served.
+
+Each group appears only where that feature is switched on. Where neither is, `tools/list` returns the other 279 and those 30 are simply absent, because the REST routes behind them are not mounted there. Calling one by name anyway returns the same `Unknown tool` error as a typo.
 
 If you do not see them and you expect to, talk to us and we will get calling turned on for you.
 
@@ -236,7 +699,7 @@ curl https://api.callmissed.com/api/v1/mcp/catalog
 {
   "serverUrl": "https://api.callmissed.com/api/v1/mcp",
   "protocolVersion": "2025-06-18",
-  "count": 41,
+  "count": 309,
   "categories": { "voice": "Voice and calls", "crm": "CRM" },
   "tools": [
     {

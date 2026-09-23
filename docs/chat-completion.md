@@ -191,7 +191,7 @@ resp = client.chat.completions.create(
 )
 ```
 
-Vision-capable models: `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
+Vision-capable models: `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
 `gpt-5.5`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `kimi-k2.5`,
 `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code`, `gemma-4-26b-a4b-it`,
 `mistral-small-3.1`.
@@ -222,15 +222,16 @@ Snapshot — `GET /v1/models` is authoritative:
 
 | Model | context_window |
 |-------|----------------|
-| `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna` | 1,050,000 |
+| `gpt-5.5`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna` | 1,050,000 |
+| `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash`, `glm-5.3` | 1,048,576 |
 | `gpt-4.1` | 1,047,576 |
-| `gpt-5.5`, `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash` | 1,000,000 |
 | `gpt-5-mini` | 400,000 |
 | `kimi-k2.6`, `kimi-k2.7-code`, `glm-5.2` | 262,144 |
-| `kimi-k2.5`, `kimi-k2.5-fast`, `nemotron-3-super` | 256,000 |
+| `kimi-k2.5`, `kimi-k2.5-fast`, `nemotron-3-super`, `gemma-4-26b-a4b-it` | 256,000 |
 | `grok-4.3` | 200,000 |
-| `sarvam-105b`, `sarvam-105b-conversations`, `glm-4.7-flash`, `gemma-4-26b-a4b-it` | 131,072 |
+| `sarvam-105b`, `glm-4.7-flash`, `gemma-4-31b` | 131,072 |
 | `gpt-4o`, `gpt-oss-120b`, `mistral-small-3.1` | 128,000 |
+| `sarvam-105b-conversations` | 32,768 |
 
 ## Responses API
 
