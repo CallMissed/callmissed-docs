@@ -12,6 +12,8 @@ Real-time voice agents over WebRTC with one selected speech-to-speech or STT-to-
 :::cards
 /docs/voice-sessions-api | Voice Sessions API | key | Create sessions and generate connection tokens
 /docs/voice-sdk | Voice SDK | package | Client SDK for browser and mobile WebRTC
+/docs/voice-agent-tools | Voice Agent Tools | wrench | What the agent can call mid-conversation
+/docs/full-duplex-voice | Full-Duplex Voice | radio | `gpt-live-1` listens and speaks at once
 /docs/stt-realtime | Real-time STT | mic | Streaming speech-to-text over WebSocket
 /docs/text-to-speech | Text to Speech | volume2 | Indic TTS for agent responses
 :::
@@ -24,7 +26,9 @@ The Voice Agent streams conversations over **WebRTC**. Choose one configuration 
 - **Deepgram-managed pipeline:** select a `deepgram-voice-*` model and its supported recognition and voice settings.
 - **Native speech-to-speech:** select a GPT Realtime or Nova Sonic model and voice.
 
-An omitted `llm_model` selects `deepgram-voice-open-ai-gpt-5.4-nano`. Calls do not switch to another model or provider on failure. Same-provider transient retries remain; if the selected stack cannot run, the session fails or ends instead of substituting another stack. Retired `voice_fallbacks` settings are no longer used.
+- **Full-duplex speech-to-speech:** select `gpt-live-1`, which listens and speaks at the same time. It behaves differently enough that it has [its own page](/docs/full-duplex-voice).
+
+An omitted `llm_model` selects `gemma-4-31b` on the STT → LLM → TTS pipeline, with thinking off for the fastest replies. If the selected stack cannot start, the call runs on a backup stack instead of failing, and usage records the model that actually served it. With `gemma-4-31b`, if the model stops answering mid-call, a backup model answers the remaining turns, billed at the `gemma-4-31b` rate. Retired `voice_fallbacks` settings are no longer used.
 
 ## Architecture
 
@@ -125,6 +129,7 @@ The agent joins automatically, greets the user, and responds to speech.
 - **Streaming pipeline** — each stage streams to the next, no buffering between stages
 - **Session management** — REST API for creating, listing, deleting sessions and retrieving transcripts
 - **Per-model pricing** — usage tracked and billed per model ($0.81/$4.05 per 1M tokens)
+- **Tool calling** — built-in tools, your own REST endpoints and MCP servers, mid-conversation. See [Voice Agent Tools](/docs/voice-agent-tools)
 
 ## Legacy WebSocket
 
