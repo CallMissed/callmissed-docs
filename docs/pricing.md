@@ -13,6 +13,8 @@ Simple, transparent pricing. Pay only for what you use.
 
 Visit our [Pricing Page](https://callmissed.com/pricing) for detailed plan comparisons and per-API pricing.
 
+Everything is billed in credits: **1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96).** US$ prices are the ₹ price divided by 96.
+
 For API-specific pricing and rate limits, see the [Credits & Rate Limits](/docs/credits-rate-limits) page.
 
 For enterprise pricing, [talk to us](/docs/talk-to-us).
@@ -42,4 +44,4 @@ Every plan also comes with the following allowances. These are shown on your pla
 | Storage | 100 MB | 1 GB | 10 GB | Unlimited |
 | Team members | 2 | 5 | 20 | Unlimited |
 
-**Enterprise ($200/mo)** grants 26,000 bonus credits/month, the highest rate limit (10,000 req/min), and priority support. It has no monthly call quota ("No cap") — usage is metered pay-as-you-go from your credits at the same per-model rates as every other plan. Need more than Enterprise? [Talk to us](/docs/talk-to-us) for a custom volume deal.
+**Enterprise (₹20,000/mo ≈ US$208.33)** grants 26,000 bonus credits/month, the highest rate limit (10,000 req/min), and priority support. It has no monthly call quota ("No cap") — usage is metered pay-as-you-go from your credits at the same per-model rates as every other plan. Need more than Enterprise? [Talk to us](/docs/talk-to-us) for a custom volume deal.

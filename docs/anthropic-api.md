@@ -243,7 +243,7 @@ curl https://api.callmissed.com/anthropic/v1/models \
       "category": "llm",
       "context_window": 1050000,
       "context_length": 1050000,
-      "pricing": {"input": 5.00, "output": 30.00, "unit": "per_million_tokens", "currency": "USD"},
+      "pricing": {"input": 5.208, "output": 31.25, "unit": "per_million_tokens", "currency": "USD"},
       "supports_streaming": true,
       "supports_tools": true,
       "supports_reasoning": true,
