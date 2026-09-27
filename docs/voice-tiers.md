@@ -21,7 +21,7 @@ The alternative is a **custom stack**: you set `stt_model`, `voice_model` and `t
 | Expressive | `t2` | ₹5 (5 credits) | `multilingual` | Richer, more expressive voices across Indian and world languages |
 | Best latency | `t3` | ₹6 (6 credits) | `multilingual`, `english` | The fastest replies and the best-sounding voices |
 
-1 credit = ₹1 = $0.01. Always read the live list from [`GET /api/v1/bots/config-schema`](/docs/bots) (the `voice_tiers` array) rather than hard-coding it.
+1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96). Always read the live list from [`GET /api/v1/bots/config-schema`](/docs/bots) (the `voice_tiers` array) rather than hard-coding it.
 
 ## How a plan call is billed
 

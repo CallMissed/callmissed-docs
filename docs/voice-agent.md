@@ -128,7 +128,7 @@ The agent joins automatically, greets the user, and responds to speech.
 - **Preemptive generation** — LLM starts generating before STT fully confirms the transcript
 - **Streaming pipeline** — each stage streams to the next, no buffering between stages
 - **Session management** — REST API for creating, listing, deleting sessions and retrieving transcripts
-- **Per-model pricing** — usage tracked and billed per model ($0.81/$4.05 per 1M tokens)
+- **Per-model pricing** — usage tracked and billed per model ($0.8438/$4.219 per 1M tokens)
 - **Tool calling** — built-in tools, your own REST endpoints and MCP servers, mid-conversation. See [Voice Agent Tools](/docs/voice-agent-tools)
 
 ## Legacy WebSocket
