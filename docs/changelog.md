@@ -9,6 +9,16 @@ breadcrumb: "Resources"
 
 Latest updates, new features, and improvements to the CallMissed API.
 
+## September 2026
+
+### New models — GPT-6 Sol and GPT-6 Luna
+
+- **`gpt-6-sol`** — OpenAI's GPT-6 frontier reasoning model for enterprise agents, coding and complex knowledge work; succeeds `gpt-5.6-sol`. 1.05M context, 128K output, text + image input, reasoning and tool calling. $2.00 in / $10.00 out per 1M tokens ($0.20 cached input).
+- **`gpt-6-luna`** — the efficient GPT-6 model for high-volume, cost-sensitive workloads; succeeds `gpt-5.6-luna`. Same 1.05M context, vision, reasoning and tools. $0.10 in / $0.50 out per 1M tokens ($0.01 cached input).
+- **Long prompts** — requests with more than 272K input tokens are billed at 2× input and cached-input rates and 1.5× output for the whole request.
+- **`reasoning_effort`** — both accept `none`, `low`, `medium`, `high` and `xhigh` (`minimal` is sent as `low`). When a request includes `tools`, reasoning is set to `none` automatically. `max_tokens` must be at least 3. See [API speed](/docs/api-speed).
+- Paid plans only. See [Models](/docs/models).
+
 ## August 2026
 
 ### Managed Voice Agent — speech-to-speech over one WebSocket
