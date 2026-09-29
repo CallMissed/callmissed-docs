@@ -127,25 +127,25 @@ Any width/height from 64 to 4096 is accepted, but providers may clamp or round d
 
 ## Pricing
 
-Flat per-image price, converted to credits at 1 credit = ₹1.
+Flat per-image price, converted to credits at 1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96).
 
 | Model | USD per image | Credits per image |
 |-------|---------------|-------------------|
-| `gpt-image-2.5-sunburst` | $0.25 | 25 |
-| `gpt-image-2.5-flare` | $0.25 | 25 |
-| `gpt-image-2` | $0.25 | 25 |
-| `gpt-image-1.5` | $0.25 | 25 |
-| `nano-banana-pro` | $0.134 | 13.4 |
-| `flux-2-dev` | $0.12 | 12 |
-| `flux-2-klein-9b` | $0.10 | 10 |
-| `flux-2-pro` | $0.10 | 10 |
-| `phoenix-1.0` | $0.10 | 10 |
-| `lucid-origin` | $0.08 | 8 |
-| `nano-banana-2` | $0.067 | 6.7 |
-| `flux-1.1-pro` | $0.05 | 5 |
-| `sdxl-lightning` | $0.04 | 4 |
-| `dreamshaper-8-lcm` | $0.04 | 4 |
-| `gemini-3.1-flash-lite-image` | $0.0336 | 3.36 |
+| `gpt-image-2.5-sunburst` | $0.2604 | 25 |
+| `gpt-image-2.5-flare` | $0.2604 | 25 |
+| `gpt-image-2` | $0.2604 | 25 |
+| `gpt-image-1.5` | $0.2604 | 25 |
+| `nano-banana-pro` | $0.1396 | 13.4 |
+| `flux-2-dev` | $0.125 | 12 |
+| `flux-2-klein-9b` | $0.1042 | 10 |
+| `flux-2-pro` | $0.1042 | 10 |
+| `phoenix-1.0` | $0.1042 | 10 |
+| `lucid-origin` | $0.08333 | 8 |
+| `nano-banana-2` | $0.06979 | 6.7 |
+| `flux-1.1-pro` | $0.05208 | 5 |
+| `sdxl-lightning` | $0.04167 | 4 |
+| `dreamshaper-8-lcm` | $0.04167 | 4 |
+| `gemini-3.1-flash-lite-image` | $0.035 | 3.36 |
 
 Prices are for a standard-resolution (1K) image.
 

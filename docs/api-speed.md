@@ -96,6 +96,7 @@ Behaviour per model — verified live against each upstream on 2026-05-01:
 | --- | --- | --- | --- | --- | --- | --- |
 | `gpt-6-sol` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
+| `gpt-6.1-sol` | ↓ `"low"` | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5.6-sol` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5.6-terra` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5.6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
@@ -121,6 +122,7 @@ Three notes worth reading before you rely on a value:
 - `glm-5.3` always reasons and defaults to its highest level, `"max"`. Send `"low"` when latency matters: in our tests it cut time to first word from about 3.5s to about 0.9s. `gemma-4-31b` does not think unless asked. Any of `"low"`, `"medium"` or `"high"` switches thinking on (in our tests it did not track the level), and `"none"` or `"minimal"` keep it off at about 0.25s to first word.
 - `kimi-k2.7-code` and `mistral-small-3.1` expose no reasoning control. Every value is dropped. Both still return 200.
 - The GPT-5.5 / GPT-5.6 family accepts the full `none`/`low`/`medium`/`high`/`xhigh` ladder. `"minimal"` is rejected upstream, so we map it to `"low"`. Send `xhigh`, not `max` or `ultra`.
+- `gpt-6.1-sol` always reasons: it accepts `low`/`medium`/`high`/`xhigh` (default `medium`) and cannot switch thinking off, so `"none"` and `"minimal"` are sent as `"low"` and `"max"` is sent as `"xhigh"`.
 
 Concrete numbers on `kimi-k2.6` answering "What is 2+2?":
 
