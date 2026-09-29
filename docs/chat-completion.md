@@ -191,7 +191,7 @@ resp = client.chat.completions.create(
 )
 ```
 
-Vision-capable models: `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
+Vision-capable models: `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
 `gpt-5.5`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `kimi-k2.5`,
 `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code`, `gemma-4-26b-a4b-it`,
 `mistral-small-3.1`.
@@ -222,7 +222,7 @@ Snapshot — `GET /v1/models` is authoritative:
 
 | Model | context_window |
 |-------|----------------|
-| `gpt-5.5`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna` | 1,050,000 |
+| `gpt-5.5`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna`, `gpt-6.1-sol` | 1,050,000 |
 | `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash`, `glm-5.3` | 1,048,576 |
 | `gpt-4.1` | 1,047,576 |
 | `gpt-5-mini` | 400,000 |
