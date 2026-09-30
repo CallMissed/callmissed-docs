@@ -95,7 +95,9 @@ curl -X POST https://api.callmissed.com/v1/messages \
   "stop_sequence": null,
   "usage": {
     "input_tokens": 25,
-    "output_tokens": 12
+    "output_tokens": 12,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0
   }
 }
 ```
@@ -243,7 +245,7 @@ curl https://api.callmissed.com/anthropic/v1/models \
       "category": "llm",
       "context_window": 1050000,
       "context_length": 1050000,
-      "pricing": {"input": 5.00, "output": 30.00, "unit": "per_million_tokens", "currency": "USD"},
+      "pricing": {"input": 5.208, "output": 31.25, "unit": "per_million_tokens", "currency": "USD"},
       "supports_streaming": true,
       "supports_tools": true,
       "supports_reasoning": true,
@@ -313,6 +315,22 @@ anthropic-ratelimit-requests-limit: 60
 anthropic-ratelimit-requests-remaining: 45
 anthropic-ratelimit-requests-reset: 2026-05-01T00:00:00+00:00
 ```
+
+## Prompt caching
+
+Models that support prompt caching reuse repeated prompt prefixes automatically. Usage uses
+Anthropic's field names, with the same meaning:
+
+- `input_tokens` — prompt tokens that were not read from or written to the cache
+- `cache_read_input_tokens` — prompt tokens served from the cache (billed at the model's cached-input rate)
+- `cache_creation_input_tokens` — prompt tokens written to the cache
+
+Total prompt = `input_tokens + cache_read_input_tokens + cache_creation_input_tokens`.
+When streaming, the final counts arrive in the `message_delta` event.
+
+`cache_control` blocks (on `system`, message content or `tools`) are accepted
+so Anthropic SDK code runs unchanged, but explicit breakpoints and `ttl` are not
+applied today — caching works from the prompt prefix automatically.
 
 ## Differences from Anthropic
 

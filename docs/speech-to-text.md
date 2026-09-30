@@ -141,8 +141,8 @@ files, the other only runs on a live voice session.
 
 | Model | Price | Languages | File transcription | Voice sessions |
 |-------|-------|-----------|--------------------|----------------|
-| `ink-whisper` | $0.18 / hr | 100 (incl. Hindi, Urdu, Tamil) | Yes | Yes |
-| `ink-2` | $0.54 / hr | English only (`en`) | **No** | Yes |
+| `ink-whisper` | $0.1875 / hr | 100 (incl. Hindi, Urdu, Tamil) | Yes | Yes |
+| `ink-2` | $0.5625 / hr | English only (`en`) | **No** | Yes |
 
 ### `ink-whisper` — the cheapest 100-language option
 
