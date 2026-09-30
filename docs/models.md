@@ -18,7 +18,7 @@ Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, fi
 
 ## Overview
 
-128 models, one OpenAI-compatible API. Same auth, same request shape — change
+129 models, one OpenAI-compatible API. Same auth, same request shape — change
 the `model` field and nothing else.
 
 | Group | What it is |
@@ -119,62 +119,63 @@ All other models — including `kimi-k2.5-fast`, first-party IDs (`gpt-4o`, `gpt
 
 ### Pricing
 
-All models are pay-per-use. Pricing is in USD.
+All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credits, where 1 credit = ₹1 ≈ US$0.0104.
 
 | Model | Input / 1M tokens | Output / 1M tokens |
 |-------|-------------------|-------------------|
-| `kimi-k2.5-fast` | $0.81 | $4.05 |
-| `sarvam-105b` | $0.35 (₹30) | $0.35 (₹30) |
-| `sarvam-105b-conversations` | $0.35 (₹30) | $0.35 (₹30) |
-| `gpt-5.6-sol` | $5.00 | $30.00 |
-| `gpt-5.6-terra` | $2.00 | $12.00 |
-| `gpt-5.6-luna` | $0.20 | $1.20 |
-| `gpt-6-sol` | $2.00 | $10.00 |
-| `gpt-6-luna` | $0.10 | $0.50 |
-| `nova-sonic-2` | $4.00 | $15.00 |
-| `nova-sonic` | $4.50 | $17.00 |
-| `gpt-realtime` | $4.00 | $16.00 |
-| `gpt-realtime-mini` | $0.60 | $2.40 |
-| `gpt-realtime-2` | $4.00 | $24.00 |
-| `gpt-realtime-1.5` | $4.00 | $16.00 |
-| `gpt-realtime-2.1` | $4.00 | $24.00 |
-| `gpt-realtime-2.1-mini` | $0.60 | $2.40 |
-| `gpt-live-1` | per-minute only | $0.05/min *(voice-agent only)* |
-| `deepgram-voice-*` | per-minute Voice Agent tier | Standard $0.075/min, Advanced $0.163/min *(voice-agent only)* |
+| `kimi-k2.5-fast` | $0.8438 | $4.219 |
+| `sarvam-105b` | $0.3646 (₹35) | $0.3646 (₹35) |
+| `sarvam-105b-conversations` | $0.3646 (₹35) | $0.3646 (₹35) |
+| `gpt-5.6-sol` | $5.208 | $31.25 |
+| `gpt-5.6-terra` | $2.083 | $12.5 |
+| `gpt-5.6-luna` | $0.2083 | $1.25 |
+| `gpt-6-sol` | $2.083 | $10.42 |
+| `gpt-6-luna` | $0.1042 | $0.5208 |
+| `gpt-6.1-sol` | $2.083 | $10.42 |
+| `nova-sonic-2` | $4.167 | $15.63 |
+| `nova-sonic` | $4.688 | $17.71 |
+| `gpt-realtime` | $4.167 | $16.67 |
+| `gpt-realtime-mini` | $0.625 | $2.5 |
+| `gpt-realtime-2` | $4.167 | $25 |
+| `gpt-realtime-1.5` | $4.167 | $16.67 |
+| `gpt-realtime-2.1` | $4.167 | $25 |
+| `gpt-realtime-2.1-mini` | $0.625 | $2.5 |
+| `gpt-live-1` | per-minute only | $0.05208/min *(voice-agent only)* |
+| `deepgram-voice-*` | per-minute Voice Agent tier | Standard $0.07813/min, Advanced $0.1698/min *(voice-agent only)* |
 
 | STT Model | Price |
 |-----------|-------|
-| `saaras:v3` | $0.30 / hour (₹30/hr) |
-| `saaras:v4` | $0.30 / hour (₹30/hr) |
-| `gnani-prisma-v2.5` | $0.27 / hour |
-| `ink-whisper` | $0.18 / hour |
-| `ink-2` | $0.54 / hour *(voice sessions only)* |
-| `whisper-large-v3-turbo` | $0.06 / hour |
-| `nova-3` | $0.50 / hour |
-| `deepgram-nova-3` | $0.29 / hour |
-| `deepgram-nova-3-medical` | $0.29 / hour |
-| `deepgram-flux-general-en` | $0.39 / hour |
-| `deepgram-flux-general-multi` | $0.47 / hour |
-| `deepgram-nova-2` (+ domain variants) | $0.35 / hour |
-| `deepgram-nova` / `deepgram-whisper-*` | $0.35 / hour |
-| `deepgram-enhanced` (+ variants) | $0.99 / hour |
-| `deepgram-base` (+ variants) | $0.87 / hour |
+| `saaras:v3` | $0.3125 / hour (₹30/hr) |
+| `saaras:v4` | $0.3125 / hour (₹30/hr) |
+| `gnani-prisma-v2.5` | $0.2813 / hour |
+| `ink-whisper` | $0.1875 / hour |
+| `ink-2` | $0.5625 / hour *(voice sessions only)* |
+| `whisper-large-v3-turbo` | $0.0625 / hour |
+| `nova-3` | $0.5208 / hour |
+| `deepgram-nova-3` | $0.3021 / hour |
+| `deepgram-nova-3-medical` | $0.3021 / hour |
+| `deepgram-flux-general-en` | $0.4063 / hour |
+| `deepgram-flux-general-multi` | $0.4896 / hour |
+| `deepgram-nova-2` (+ domain variants) | $0.3646 / hour |
+| `deepgram-nova` / `deepgram-whisper-*` | $0.3646 / hour |
+| `deepgram-enhanced` (+ variants) | $1.031 / hour |
+| `deepgram-base` (+ variants) | $0.9063 / hour |
 
 | TTS Model | Price |
 |-----------|-------|
-| `bulbul:v3` | $0.30 / 10K chars (₹30/10K) |
-| `gnani-timbre-v2.0` | $0.27 / 10K chars |
-| `aura-2-en` | $0.40 / 10K chars |
-| `aura-2-es` | $0.40 / 10K chars |
-| `deepgram-aura-2` | $0.30 / 10K chars |
-| `deepgram-aura-1` | $0.15 / 10K chars |
-| `sonic-3.6` | $0.50 / 10K chars |
-| `melotts` | $0.05 / 10K chars |
+| `bulbul:v3` | $0.3125 / 10K chars (₹30/10K) |
+| `gnani-timbre-v2.0` | $0.2813 / 10K chars |
+| `aura-2-en` | $0.4167 / 10K chars |
+| `aura-2-es` | $0.4167 / 10K chars |
+| `deepgram-aura-2` | $0.3125 / 10K chars |
+| `deepgram-aura-1` | $0.1563 / 10K chars |
+| `sonic-3.6` | $0.5208 / 10K chars |
+| `melotts` | $0.05208 / 10K chars |
 
 | Intelligence feature (not a model ID) | Price |
 |-------------------------------|-------|
-| `deepgram-summarize` / `-topics` / `-sentiment` / `-intents` (audio) | $0.0003 / 1K input + $0.0006 / 1K output tokens |
-| `deepgram-text-summarize` / `-text-topics` / `-text-sentiment` / `-text-intents` | $0.0003 / 1K input + $0.0006 / 1K output tokens |
+| `deepgram-summarize` / `-topics` / `-sentiment` / `-intents` (audio) | $0.0003125 / 1K input + $0.000625 / 1K output tokens |
+| `deepgram-text-summarize` / `-text-topics` / `-text-sentiment` / `-text-intents` | $0.0003125 / 1K input + $0.000625 / 1K output tokens |
 
 These eight values go in the `features` field, not in `model`. They are not
 catalog models — `GET /api/v1/models/deepgram-summarize` returns 404.
@@ -219,7 +220,7 @@ response = client.chat.completions.create(
 
 For 99-language general-purpose transcription, see `whisper-large-v3-turbo`. For diarization + smart-format on calls, see `nova-3`. Both are free-tier and live under the [audio model routes](#audio-models).
 
-`ink-whisper` also covers Hindi, Urdu and Tamil as part of its 100-language set at $0.18 / hr — cheaper than the Indic-specialist models, though without their code-mix output modes. `ink-2` is **English only**, so it is not an option for Indic speech.
+`ink-whisper` also covers Hindi, Urdu and Tamil as part of its 100-language set at $0.1875 / hr — cheaper than the Indic-specialist models, though without their code-mix output modes. `ink-2` is **English only**, so it is not an option for Indic speech.
 
 ### Text to Speech
 
@@ -252,38 +253,38 @@ Free-tier on every plan. See the [Pricing](/docs/pricing) page for current rates
 
 | Model | Languages | Best for | Price |
 |-------|-----------|----------|-------|
-| `whisper-large-v3-turbo` | 99 with auto-detect | Multilingual general-purpose; transcribe + translate | $0.06 / hour |
-| `nova-3` | 11 BCP-47 incl. `multi` auto-detect | Diarization, smart-format, streaming voice agents | $0.50 / hour |
-| `whisper` | 99 with auto-detect | Whisper batch + translate | $0.40 / hour |
-| `gpt-4o-transcribe` | Streaming | Higher-accuracy OpenAI transcription | $0.40 / hour |
-| `gpt-4o-mini-transcribe` | Streaming | Low-cost OpenAI transcription | $0.24 / hour |
-| `gpt-4o-transcribe-diarize` | Streaming + diarization | Multi-speaker meetings / calls | $0.40 / hour |
+| `whisper-large-v3-turbo` | 99 with auto-detect | Multilingual general-purpose; transcribe + translate | $0.0625 / hour |
+| `nova-3` | 11 BCP-47 incl. `multi` auto-detect | Diarization, smart-format, streaming voice agents | $0.5208 / hour |
+| `whisper` | 99 with auto-detect | Whisper batch + translate | $0.4167 / hour |
+| `gpt-4o-transcribe` | Streaming | Higher-accuracy OpenAI transcription | $0.4167 / hour |
+| `gpt-4o-mini-transcribe` | Streaming | Low-cost OpenAI transcription | $0.25 / hour |
+| `gpt-4o-transcribe-diarize` | Streaming + diarization | Multi-speaker meetings / calls | $0.4167 / hour |
 
 **Deepgram (direct)** — the full Deepgram speech-to-text line, billed per audio hour at the rates below:
 
 | Model | Languages | Best for | Price |
 |-------|-----------|----------|-------|
-| `deepgram-flux-general-en` | English | Conversational voice agents — model-native turn detection, ultra-low latency | $0.39 / hour |
-| `deepgram-flux-general-multi` | 10 (multilingual) | Multilingual voice agents with code-switching | $0.47 / hour |
-| `deepgram-nova-3` | 45+ incl. `multi` | Flagship general-purpose ASR, keyterm prompting, PII redaction | $0.29 / hour |
-| `deepgram-nova-3-medical` | English | Clinical / medical terminology | $0.29 / hour |
-| `deepgram-nova-2` | 36 incl. `multi` | High-accuracy ASR + filler-word detection | $0.35 / hour |
-| `deepgram-nova-2-{meeting,phonecall,finance,conversationalai,voicemail,video,medical,drivethru,automotive,atc}` | English | Domain-tuned Nova-2 variants | $0.35 / hour |
-| `deepgram-nova` / `-phonecall` / `-medical` | en/es/hi | Legacy Nova-1 | $0.35 / hour |
-| `deepgram-enhanced` (+ meeting/phonecall/finance) | 13 | Legacy, keyword boosting | $0.99 / hour |
-| `deepgram-base` (+ 6 variants) | 17 | Legacy, high-volume batch | $0.87 / hour |
-| `deepgram-whisper-{tiny,base,small,medium,large}` | 99 | Deepgram-managed Whisper Cloud | $0.35 / hour |
+| `deepgram-flux-general-en` | English | Conversational voice agents — model-native turn detection, ultra-low latency | $0.4063 / hour |
+| `deepgram-flux-general-multi` | 10 (multilingual) | Multilingual voice agents with code-switching | $0.4896 / hour |
+| `deepgram-nova-3` | 45+ incl. `multi` | Flagship general-purpose ASR, keyterm prompting, PII redaction | $0.3021 / hour |
+| `deepgram-nova-3-medical` | English | Clinical / medical terminology | $0.3021 / hour |
+| `deepgram-nova-2` | 36 incl. `multi` | High-accuracy ASR + filler-word detection | $0.3646 / hour |
+| `deepgram-nova-2-{meeting,phonecall,finance,conversationalai,voicemail,video,medical,drivethru,automotive,atc}` | English | Domain-tuned Nova-2 variants | $0.3646 / hour |
+| `deepgram-nova` / `-phonecall` / `-medical` | en/es/hi | Legacy Nova-1 | $0.3646 / hour |
+| `deepgram-enhanced` (+ meeting/phonecall/finance) | 13 | Legacy, keyword boosting | $1.031 / hour |
+| `deepgram-base` (+ 6 variants) | 17 | Legacy, high-volume batch | $0.9063 / hour |
+| `deepgram-whisper-{tiny,base,small,medium,large}` | 99 | Deepgram-managed Whisper Cloud | $0.3646 / hour |
 
 ### Text to Speech
 
 | Model | Languages | Voices | Price |
 |-------|-----------|--------|-------|
-| `aura-2-en` | English | 40 (luna default) | $0.40 / 10K chars |
-| `aura-2-es` | Spanish | 10 (aquila default) | $0.40 / 10K chars |
-| `deepgram-aura-2` | en/es/de/fr/nl/it/ja | 90+ (thalia default) | $0.30 / 10K chars |
-| `deepgram-aura-1` | English | 12 (asteria default) | $0.15 / 10K chars |
-| `melotts` | English + French | 1 per language | $0.05 / 10K chars |
-| `gpt-4o-mini-tts` | Multilingual steerable | 6 OpenAI voices | $0.20 / 10K chars |
+| `aura-2-en` | English | 40 (luna default) | $0.4167 / 10K chars |
+| `aura-2-es` | Spanish | 10 (aquila default) | $0.4167 / 10K chars |
+| `deepgram-aura-2` | en/es/de/fr/nl/it/ja | 90+ (thalia default) | $0.3125 / 10K chars |
+| `deepgram-aura-1` | English | 12 (asteria default) | $0.1563 / 10K chars |
+| `melotts` | English + French | 1 per language | $0.05208 / 10K chars |
+| `gpt-4o-mini-tts` | Multilingual steerable | 6 OpenAI voices | $0.2083 / 10K chars |
 
 Aura 2 returns linear16 PCM streamed at 24 kHz for low-latency playback. MeloTTS returns base64 MP3. Output formats may vary as models are updated.
 
@@ -291,7 +292,7 @@ Deepgram Flux TTS is a voice-agent-first model and is **not** available on this 
 
 ### Audio Intelligence (Deepgram)
 
-Deepgram Audio Intelligence runs analysis over an uploaded audio file via `POST /v1/audio/intelligence` (English only, 150K input-token limit). Token-billed at $0.0003/1K input + $0.0006/1K output.
+Deepgram Audio Intelligence runs analysis over an uploaded audio file via `POST /v1/audio/intelligence` (English only, 150K input-token limit). Token-billed at $0.0003125/1K input + $0.000625/1K output.
 
 | Feature | Model ID | Returns |
 |---------|----------|---------|
@@ -304,7 +305,7 @@ Request multiple features in one call with a comma-separated `features` form fie
 
 ### Text Intelligence (Deepgram)
 
-Deepgram Text Intelligence runs the same four analyses over **text** input (a string or a hosted text URL) via `POST /v1/text/intelligence` (English only, 150K input-token limit). Token-billed at $0.0003/1K input + $0.0006/1K output. Requires the `llm` key permission.
+Deepgram Text Intelligence runs the same four analyses over **text** input (a string or a hosted text URL) via `POST /v1/text/intelligence` (English only, 150K input-token limit). Token-billed at $0.0003125/1K input + $0.000625/1K output. Requires the `llm` key permission.
 
 | Feature | Model ID | Returns |
 |---------|----------|---------|
@@ -340,7 +341,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 ## Models on Demand
 
-`GET /api/v1/models` lists everything that is live today: **128** model IDs
+`GET /api/v1/models` lists everything that is live today: **129** model IDs
 callable right now with a `cm_` key.
 
 Beyond that we deploy **300+ further models on demand** on CallMissed
@@ -368,6 +369,7 @@ Credit-covered first-party models. Use the bare model ID in API requests — e.g
 | `gpt-5.6-luna` | LLM | GPT-5.6 fast + affordable, 1.05M context |
 | `gpt-6-sol` | LLM | GPT-6 frontier reasoning, 1.05M context, vision + tools |
 | `gpt-6-luna` | LLM | GPT-6 efficient, high-volume, 1.05M context |
+| `gpt-6.1-sol` | LLM | GPT-6.1 near-frontier for complex coding and professional work, 1.05M context, vision + tools |
 | `grok-4.3` | LLM | xAI Grok, 200K context |
 | `DeepSeek-V4-Pro` | LLM | Flagship DeepSeek reasoning, 1M context, tools (text-only) |
 | `DeepSeek-V4-Flash` | LLM | Fast DeepSeek reasoning, 1M context, tools |
@@ -379,7 +381,7 @@ Credit-covered first-party models. Use the bare model ID in API requests — e.g
 | `gpt-realtime-1.5` | Realtime voice | Pinned 1.5 snapshot of gpt-realtime, live |
 | `gpt-realtime-2.1` | Realtime voice | Latest realtime — better recognition, silence/interrupt handling, configurable reasoning, live |
 | `gpt-realtime-2.1-mini` | Realtime voice | Distilled low-cost 2.1 realtime, live |
-| `gpt-live-1` | Realtime voice | GPT Live speech-to-speech — audio + text only, 14 voices, $0.05/min, live |
+| `gpt-live-1` | Realtime voice | GPT Live speech-to-speech — audio + text only, 14 voices, $0.05208/min, live |
 | `whisper` | STT | OpenAI Whisper — 99 langs |
 | `gpt-4o-transcribe` | STT | Streaming transcription |
 | `gpt-4o-mini-transcribe` | STT | Low-cost streaming STT |
@@ -390,109 +392,110 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **138** models (67 LLM · 45 STT · 9 TTS · 15 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **139** models (68 LLM · 45 STT · 9 TTS · 15 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
-### LLM (42 models)
+### LLM (43 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
-| `sarvam-105b` | 105B MoE. Complex reasoning, agentic tasks, long documents. | 131K | Yes | $0.35 in / $0.35 out per 1M |
-| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. Tool calling. | 32K | Yes | $0.35 in / $0.35 out per 1M |
-| `gpt-4o` | Multimodal text + vision. | 128K | No | $2.50 in / $10.00 out per 1M |
-| `gemini-3.8-flash` | Fast multimodal flagship. Thinking low/medium/high. | 1M | No | $1.50 in / $7.50 out per 1M |
-| `gemini-3.7-flash` | Fast multimodal. Thinking low/medium/high. | 1M | No | $1.50 in / $7.50 out per 1M |
-| `gemini-3.6-flash` | Fast multimodal. Thinking minimal→high. | 1M | No | $1.50 in / $7.50 out per 1M |
-| `gemini-3.5-flash` | Balanced multimodal workhorse. | 1M | No | $1.50 in / $9.00 out per 1M |
-| `gemini-3.5-flash-lite` | Cheapest 1M-context Gemini. | 1M | No | $0.30 in / $2.50 out per 1M |
-| `gemini-3.1-pro-preview` | Reasoning-heavy Gemini tier. | 1M | No | $2.00 in / $12.00 out per 1M |
-| `gemini-3.1-flash-lite` | Low-cost multimodal, tool use. | 1M | No | $0.25 in / $1.50 out per 1M |
-| `gpt-4.1` | Long-context multimodal. Strong instruction following. | 1M | No | $2.00 in / $8.00 out per 1M |
-| `gpt-5-mini` | Fast, affordable reasoning. | 400K | No | $0.25 in / $2.00 out per 1M |
-| `gpt-5.5` | Reasoning flagship. Vision, tools, prompt caching. | 1.05M | No | $5.00 in / $30.00 out per 1M |
-| `gpt-5.6-sol` | Frontier model for complex professional work. Vision, reasoning, tools. | 1.05M | No | $5.00 in / $30.00 out per 1M |
-| `gpt-5.6-terra` | Balances intelligence and cost. Vision, reasoning, tools. | 1.05M | No | $2.00 in / $12.00 out per 1M |
-| `gpt-5.6-luna` | Cost-sensitive, high-volume workloads. Vision, reasoning, tools. | 1.05M | No | $0.20 in / $1.20 out per 1M |
-| `gpt-6-sol` | Frontier reasoning for enterprise agents, coding and complex knowledge work. Vision, reasoning, tools. | 1.05M | No | $2.00 in / $10.00 out per 1M |
-| `gpt-6-luna` | Efficient GPT-6 for high-volume, cost-sensitive workloads. Vision, reasoning, tools. | 1.05M | No | $0.10 in / $0.50 out per 1M |
-| `grok-4.3` | xAI Grok 4.3. Reasoning + vision. | 200K | No | $3.50 in / $15.00 out per 1M |
-| `DeepSeek-V4-Pro` | Flagship DeepSeek reasoning. Tools. Text-only. | 1M | No | $1.32 in / $3.96 out per 1M |
-| `DeepSeek-V4-Flash` | Fast, affordable DeepSeek reasoning. Tools. | 1M | No | $0.44 in / $1.32 out per 1M |
-| `kimi-k2.5` | Strong on coding and math. Vision. | 256K | Yes | $0.81 in / $4.05 out per 1M |
-| `kimi-k2.5-fast` *(maintenance)* | Kimi K2.5 at ~414 tok/s for voice-agent latency. | 256K | No | $0.81 in / $4.05 out per 1M |
-| `kimi-k2.6` | Improved reasoning and coding over K2.5. Vision. | 262K | Yes | $1.28 in / $5.40 out per 1M |
-| `kimi-k2.7-code` | 1T-param agentic coding. Vision + tools. | 262K | Yes | $1.28 in / $5.40 out per 1M |
-| `glm-4.7-flash` | Fast, cost-efficient bilingual model. Strong tool use. | 131K | Yes | $0.50 in / $2.00 out per 1M |
-| `glm-5.2` | Flagship agentic coding. Tools + reasoning. | 262K | Yes | $1.89 in / $5.94 out per 1M |
-| `glm-5.3` | Z.ai GLM 5.3. Tools + reasoning (low / high / max). Text-only. | 1M | No | $2.04 in / $6.40 out per 1M |
-| `gpt-oss-120b` | Open-weight 120B MoE. Reasoning-grade at lower cost. | 128K | Yes | $1.00 in / $4.00 out per 1M |
-| `nemotron-3-super` | 120B MoE tuned for long-context reasoning. | 256K | Yes | $1.50 in / $6.00 out per 1M |
-| `gemma-4-26b-a4b-it` | 26B MoE (4B active). Efficient instruct model. Vision. | 256K | Yes | $0.40 in / $1.60 out per 1M |
-| `gemma-4-31b` | Gemma 4 31B instruct. Fast with thinking off, vision, tools. | 128K | No | $0.59 in / $1.48 out per 1M |
-| `mistral-small-3.1` | 24B instruct. Strong tool use, fast. Vision. | 128K | Yes | $0.47 in / $0.76 out per 1M |
-| `nova-sonic-2` | Amazon Nova 2 Sonic. Native speech-to-speech voice model — STT, reasoning, and TTS in one; 16 voices across 8 languages including Hindi + en-IN. | 32K | No | $4.00 in / $15.00 out per 1M • $0.064/min |
-| `nova-sonic` | Amazon Nova Sonic 1.0. Native speech-to-speech voice model with 11 voices across English, Spanish, French, Italian, and German. | 32K | No | $4.50 in / $17.00 out per 1M • $0.071/min |
-| `gpt-realtime` | OpenAI flagship realtime speech-to-speech model — STT + reasoning + function calling + TTS in one. 10 concurrent. | 32K | No | $4.00 in / $16.00 out per 1M • $0.375/min |
-| `gpt-realtime-mini` | Lowest-cost realtime — same single-model shape as gpt-realtime, ~3× cheaper. 20 concurrent. | 32K | No | $0.60 in / $2.40 out per 1M • $0.118/min |
-| `gpt-realtime-2` | Newest realtime with stronger tool calling. 128K text context. | 128K | No | $4.00 in / $24.00 out per 1M • $0.375/min |
-| `gpt-realtime-1.5` | Pinned 1.5 snapshot of gpt-realtime. Use when you want version stability. | 32K | No | $4.00 in / $16.00 out per 1M • $0.375/min |
-| `gpt-realtime-2.1` | Latest realtime speech-to-speech — better alphanumeric recognition, silence/noise + interruption handling, configurable reasoning effort. Voice-agent only. | 128K | No | $4.00 in / $24.00 out per 1M • $0.375/min |
-| `gpt-realtime-2.1-mini` | Distilled, lower-cost realtime for faster voice interactions. Voice-agent only. | 128K | No | $0.60 in / $2.40 out per 1M • $0.117/min |
-| `gpt-live-1` | GPT Live speech-to-speech — audio + text in and out, function calling, 14 voices (default `marin`). No image or video input. Voice-agent only. | — | No | $0.05/min (billed per second) |
+| `sarvam-105b` | 105B MoE. Complex reasoning, agentic tasks, long documents. | 131K | Yes | $0.3646 in / $0.3646 out per 1M |
+| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. Tool calling. | 32K | Yes | $0.3646 in / $0.3646 out per 1M |
+| `gpt-4o` | Multimodal text + vision. | 128K | No | $2.604 in / $10.42 out per 1M |
+| `gemini-3.8-flash` | Fast multimodal flagship. Thinking low/medium/high. | 1M | No | $1.563 in / $7.813 out per 1M |
+| `gemini-3.7-flash` | Fast multimodal. Thinking low/medium/high. | 1M | No | $1.563 in / $7.813 out per 1M |
+| `gemini-3.6-flash` | Fast multimodal. Thinking minimal→high. | 1M | No | $1.563 in / $7.813 out per 1M |
+| `gemini-3.5-flash` | Balanced multimodal workhorse. | 1M | No | $1.563 in / $9.375 out per 1M |
+| `gemini-3.5-flash-lite` | Cheapest 1M-context Gemini. | 1M | No | $0.3125 in / $2.604 out per 1M |
+| `gemini-3.1-pro-preview` | Reasoning-heavy Gemini tier. | 1M | No | $2.083 in / $12.5 out per 1M |
+| `gemini-3.1-flash-lite` | Low-cost multimodal, tool use. | 1M | No | $0.2604 in / $1.563 out per 1M |
+| `gpt-4.1` | Long-context multimodal. Strong instruction following. | 1M | No | $2.083 in / $8.333 out per 1M |
+| `gpt-5-mini` | Fast, affordable reasoning. | 400K | No | $0.2604 in / $2.083 out per 1M |
+| `gpt-5.5` | Reasoning flagship. Vision, tools, prompt caching. | 1.05M | No | $5.208 in / $31.25 out per 1M |
+| `gpt-5.6-sol` | Frontier model for complex professional work. Vision, reasoning, tools. | 1.05M | No | $5.208 in / $31.25 out per 1M |
+| `gpt-5.6-terra` | Balances intelligence and cost. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $12.5 out per 1M |
+| `gpt-5.6-luna` | Cost-sensitive, high-volume workloads. Vision, reasoning, tools. | 1.05M | No | $0.2083 in / $1.25 out per 1M |
+| `gpt-6-sol` | Frontier reasoning for enterprise agents, coding and complex knowledge work. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $10.42 out per 1M |
+| `gpt-6-luna` | Efficient GPT-6 for high-volume, cost-sensitive workloads. Vision, reasoning, tools. | 1.05M | No | $0.1042 in / $0.5208 out per 1M |
+| `gpt-6.1-sol` | Near-Astra performance for complex coding, computer use and professional work at a lower cost. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $10.42 out per 1M |
+| `grok-4.3` | xAI Grok 4.3. Reasoning + vision. | 200K | No | $3.646 in / $15.63 out per 1M |
+| `DeepSeek-V4-Pro` | Flagship DeepSeek reasoning. Tools. Text-only. | 1M | No | $1.375 in / $4.125 out per 1M |
+| `DeepSeek-V4-Flash` | Fast, affordable DeepSeek reasoning. Tools. | 1M | No | $0.4583 in / $1.375 out per 1M |
+| `kimi-k2.5` | Strong on coding and math. Vision. | 256K | Yes | $0.8438 in / $4.219 out per 1M |
+| `kimi-k2.5-fast` *(maintenance)* | Kimi K2.5 at ~414 tok/s for voice-agent latency. | 256K | No | $0.8438 in / $4.219 out per 1M |
+| `kimi-k2.6` | Improved reasoning and coding over K2.5. Vision. | 262K | Yes | $1.333 in / $5.625 out per 1M |
+| `kimi-k2.7-code` | 1T-param agentic coding. Vision + tools. | 262K | Yes | $1.333 in / $5.625 out per 1M |
+| `glm-4.7-flash` | Fast, cost-efficient bilingual model. Strong tool use. | 131K | Yes | $0.5208 in / $2.083 out per 1M |
+| `glm-5.2` | Flagship agentic coding. Tools + reasoning. | 262K | Yes | $1.969 in / $6.188 out per 1M |
+| `glm-5.3` | Z.ai GLM 5.3. Tools + reasoning (low / high / max). Text-only. | 1M | No | $2.125 in / $6.667 out per 1M |
+| `gpt-oss-120b` | Open-weight 120B MoE. Reasoning-grade at lower cost. | 128K | Yes | $1.042 in / $4.167 out per 1M |
+| `nemotron-3-super` | 120B MoE tuned for long-context reasoning. | 256K | Yes | $1.563 in / $6.25 out per 1M |
+| `gemma-4-26b-a4b-it` | 26B MoE (4B active). Efficient instruct model. Vision. | 256K | Yes | $0.4167 in / $1.667 out per 1M |
+| `gemma-4-31b` | Gemma 4 31B instruct. Fast with thinking off, vision, tools. | 128K | No | $0.6146 in / $1.542 out per 1M |
+| `mistral-small-3.1` | 24B instruct. Strong tool use, fast. Vision. | 128K | Yes | $0.4896 in / $0.7917 out per 1M |
+| `nova-sonic-2` | Amazon Nova 2 Sonic. Native speech-to-speech voice model — STT, reasoning, and TTS in one; 16 voices across 8 languages including Hindi + en-IN. | 32K | No | $4.167 in / $15.63 out per 1M • $0.06667/min |
+| `nova-sonic` | Amazon Nova Sonic 1.0. Native speech-to-speech voice model with 11 voices across English, Spanish, French, Italian, and German. | 32K | No | $4.688 in / $17.71 out per 1M • $0.07396/min |
+| `gpt-realtime` | OpenAI flagship realtime speech-to-speech model — STT + reasoning + function calling + TTS in one. 10 concurrent. | 32K | No | $4.167 in / $16.67 out per 1M • $0.3906/min |
+| `gpt-realtime-mini` | Lowest-cost realtime — same single-model shape as gpt-realtime, ~3× cheaper. 20 concurrent. | 32K | No | $0.625 in / $2.5 out per 1M • $0.1229/min |
+| `gpt-realtime-2` | Newest realtime with stronger tool calling. 128K text context. | 128K | No | $4.167 in / $25 out per 1M • $0.3906/min |
+| `gpt-realtime-1.5` | Pinned 1.5 snapshot of gpt-realtime. Use when you want version stability. | 32K | No | $4.167 in / $16.67 out per 1M • $0.3906/min |
+| `gpt-realtime-2.1` | Latest realtime speech-to-speech — better alphanumeric recognition, silence/noise + interruption handling, configurable reasoning effort. Voice-agent only. | 128K | No | $4.167 in / $25 out per 1M • $0.3906/min |
+| `gpt-realtime-2.1-mini` | Distilled, lower-cost realtime for faster voice interactions. Voice-agent only. | 128K | No | $0.625 in / $2.5 out per 1M • $0.1219/min |
+| `gpt-live-1` | GPT Live speech-to-speech — audio + text in and out, function calling, 14 voices (default `marin`). No image or video input. Voice-agent only. | — | No | $0.05208/min (billed per second) |
 
 ### Speech to Text (11 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
-| `saaras:v3` | 23 languages (22 Indic + English). Best on code-mixed speech. | — | Yes | $0.30 / hr |
-| `saaras:v4` | 24 languages. Five output modes: transcribe, translate, verbatim, transliterate, code-mix. | — | Yes | $0.30 / hr |
-| `gnani-prisma-v2.5` | India-first telephony STT. 10 Indian languages, code-switching. | — | No | $0.27 / hr |
-| `ink-whisper` | Cartesia Ink Whisper — 100 languages including Hindi, Urdu and Tamil. Dynamic chunking reduces hallucination across pauses and silence. File transcription + streaming. | — | No | $0.18 / hr |
-| `ink-2` | Cartesia Ink 2 — top-ranked for voice agents (8% WER on AppTek's 14-accent call-centre benchmark, vs 10% Deepgram Flux and 12% ElevenLabs). Self-detects turns. **English only. Voice sessions only — not available for file transcription.** | — | No | $0.54 / hr |
-| `whisper-large-v3-turbo` | 99 languages with auto-detect. Transcribe + translate. | — | Yes | $0.06 / hr |
-| `nova-3` | Diarization, punctuation, smart-format. Streaming-capable. | — | Yes | $0.50 / hr |
-| `whisper` | 99 languages. Transcription + translation to English. | — | No | $0.40 / hr |
-| `gpt-4o-transcribe` | Higher accuracy than Whisper. Streaming. | — | No | $0.40 / hr |
-| `gpt-4o-mini-transcribe` | Cheaper, faster streaming transcription. | — | No | $0.24 / hr |
-| `gpt-4o-transcribe-diarize` | Streaming transcription with speaker labels. | — | No | $0.40 / hr |
+| `saaras:v3` | 23 languages (22 Indic + English). Best on code-mixed speech. | — | Yes | $0.3125 / hr |
+| `saaras:v4` | 24 languages. Five output modes: transcribe, translate, verbatim, transliterate, code-mix. | — | Yes | $0.3125 / hr |
+| `gnani-prisma-v2.5` | India-first telephony STT. 10 Indian languages, code-switching. | — | No | $0.2813 / hr |
+| `ink-whisper` | Cartesia Ink Whisper — 100 languages including Hindi, Urdu and Tamil. Dynamic chunking reduces hallucination across pauses and silence. File transcription + streaming. | — | No | $0.1875 / hr |
+| `ink-2` | Cartesia Ink 2 — top-ranked for voice agents (8% WER on AppTek's 14-accent call-centre benchmark, vs 10% Deepgram Flux and 12% ElevenLabs). Self-detects turns. **English only. Voice sessions only — not available for file transcription.** | — | No | $0.5625 / hr |
+| `whisper-large-v3-turbo` | 99 languages with auto-detect. Transcribe + translate. | — | Yes | $0.0625 / hr |
+| `nova-3` | Diarization, punctuation, smart-format. Streaming-capable. | — | Yes | $0.5208 / hr |
+| `whisper` | 99 languages. Transcription + translation to English. | — | No | $0.4167 / hr |
+| `gpt-4o-transcribe` | Higher accuracy than Whisper. Streaming. | — | No | $0.4167 / hr |
+| `gpt-4o-mini-transcribe` | Cheaper, faster streaming transcription. | — | No | $0.25 / hr |
+| `gpt-4o-transcribe-diarize` | Streaming transcription with speaker labels. | — | No | $0.4167 / hr |
 
 ### Text to Speech (7 models)
 
 | Model ID | Description | Voices | Free | Pricing |
 |----------|-------------|--------|------|---------|
-| `bulbul:v3` | Indic TTS across 11 Indian languages. | 37 | Yes | $0.30 / 10K chars |
-| `gnani-timbre-v2.0` | India-first neural TTS, English + Hindi + Indic. Context-aware tone. | 73 | No | $0.27 / 10K chars |
-| `sonic-3.6` | Cartesia Sonic 3.6 — most natural conversational TTS. 44 languages, native-quality Hindi + Hinglish, sub-90ms first audio. | Searchable library | No | $0.50 / 10K chars |
-| `aura-2-en` | Conversational English TTS, low-latency streaming. | 40 | Yes | $0.40 / 10K chars |
-| `aura-2-es` | Spanish TTS, low-latency streaming. | 10 | Yes | $0.40 / 10K chars |
-| `melotts` | Lightweight English + French TTS. Cheapest available. | 1 per language | Yes | $0.05 / 10K chars |
-| `gpt-4o-mini-tts` | Steerable — takes an `instructions` field to direct tone. | 6 | No | $0.20 / 10K chars |
+| `bulbul:v3` | Indic TTS across 11 Indian languages. | 37 | Yes | $0.3125 / 10K chars |
+| `gnani-timbre-v2.0` | India-first neural TTS, English + Hindi + Indic. Context-aware tone. | 73 | No | $0.2813 / 10K chars |
+| `sonic-3.6` | Cartesia Sonic 3.6 — most natural conversational TTS. 44 languages, native-quality Hindi + Hinglish, sub-90ms first audio. | Searchable library | No | $0.5208 / 10K chars |
+| `aura-2-en` | Conversational English TTS, low-latency streaming. | 40 | Yes | $0.4167 / 10K chars |
+| `aura-2-es` | Spanish TTS, low-latency streaming. | 10 | Yes | $0.4167 / 10K chars |
+| `melotts` | Lightweight English + French TTS. Cheapest available. | 1 per language | Yes | $0.05208 / 10K chars |
+| `gpt-4o-mini-tts` | Steerable — takes an `instructions` field to direct tone. | 6 | No | $0.2083 / 10K chars |
 
 ### Image Generation (15 models)
 
 | Model ID | Description | Free | Pricing |
 |----------|-------------|------|---------|
-| `flux-2-klein-9b` | Flux 2 Klein. 1024×1024 default. | Yes | $0.10 / image |
-| `flux-2-dev` | Flux 2 Dev. Higher fidelity, 50-step inference. | Yes | $0.12 / image |
-| `flux-2-pro` | Flux 2 Pro. Flagship BFL fidelity. | No | $0.10 / image |
-| `flux-1.1-pro` | Flux 1.1 Pro. Fast, production-grade. | No | $0.05 / image |
-| `gpt-image-2.5-sunburst` | Most capable generation + editing. Inpainting, quality tiers to `max`. | No | $0.25 / image |
-| `gemini-3.1-flash-lite-image` | Low-cost text-to-image with reference edits. 1K resolution. | No | $0.0336 / image |
-| `gpt-image-2.5-flare` | Fast, high-quality everyday generation. On-image text + edits. | No | $0.25 / image |
-| `gpt-image-2` | Accurate on-image text rendering. | No | $0.25 / image |
-| `gpt-image-1.5` | Precise image editing. Strong logo/face preservation. | No | $0.25 / image |
-| `lucid-origin` | Vibrant, cinematic compositions. | Yes | $0.08 / image |
-| `phoenix-1.0` | Strong prompt adherence, photorealistic portraits. | Yes | $0.10 / image |
-| `sdxl-lightning` | 4-step inference. Fastest for iterative prompting. | Yes | $0.04 / image |
-| `dreamshaper-8-lcm` | Stylised illustrations, fast generation. | Yes | $0.04 / image |
-| `nano-banana-2` | Fast multimodal image generation. | No | $0.067 / image |
-| `nano-banana-pro` | Flagship typography and fidelity. | No | $0.134 / image |
+| `flux-2-klein-9b` | Flux 2 Klein. 1024×1024 default. | Yes | $0.1042 / image |
+| `flux-2-dev` | Flux 2 Dev. Higher fidelity, 50-step inference. | Yes | $0.125 / image |
+| `flux-2-pro` | Flux 2 Pro. Flagship BFL fidelity. | No | $0.1042 / image |
+| `flux-1.1-pro` | Flux 1.1 Pro. Fast, production-grade. | No | $0.05208 / image |
+| `gpt-image-2.5-sunburst` | Most capable generation + editing. Inpainting, quality tiers to `max`. | No | $0.2604 / image |
+| `gemini-3.1-flash-lite-image` | Low-cost text-to-image with reference edits. 1K resolution. | No | $0.035 / image |
+| `gpt-image-2.5-flare` | Fast, high-quality everyday generation. On-image text + edits. | No | $0.2604 / image |
+| `gpt-image-2` | Accurate on-image text rendering. | No | $0.2604 / image |
+| `gpt-image-1.5` | Precise image editing. Strong logo/face preservation. | No | $0.2604 / image |
+| `lucid-origin` | Vibrant, cinematic compositions. | Yes | $0.08333 / image |
+| `phoenix-1.0` | Strong prompt adherence, photorealistic portraits. | Yes | $0.1042 / image |
+| `sdxl-lightning` | 4-step inference. Fastest for iterative prompting. | Yes | $0.04167 / image |
+| `dreamshaper-8-lcm` | Stylised illustrations, fast generation. | Yes | $0.04167 / image |
+| `nano-banana-2` | Fast multimodal image generation. | No | $0.06979 / image |
+| `nano-banana-pro` | Flagship typography and fidelity. | No | $0.1396 / image |
 
 ### Embeddings (2 models)
 
 | Model ID | Description | Dimensions | Free | Pricing |
 |----------|-------------|------------|------|---------|
-| `text-embedding-3-small` | Fast, low-cost embeddings. Best price/performance for large corpora. | 1536 | Yes | $0.02 / 1M input tokens |
-| `text-embedding-3-large` | Highest-accuracy embeddings. | 3072 | Yes | $0.13 / 1M input tokens |
+| `text-embedding-3-small` | Fast, low-cost embeddings. Best price/performance for large corpora. | 1536 | Yes | $0.02083 / 1M input tokens |
+| `text-embedding-3-large` | Highest-accuracy embeddings. | 3072 | Yes | $0.1354 / 1M input tokens |
 
 Both accept 8,192-token inputs and support shortening the vector with `dimensions`. See [Embeddings](/docs/embeddings).
 

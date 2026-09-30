@@ -78,7 +78,7 @@ curl "https://api.callmissed.com/v1/usage/summary?days=7" \
 | Field | Type | Notes |
 | --- | --- | --- |
 | `totals.success_rate` | `number` | Fraction in `0..1`, not a percentage |
-| `totals.total_cost_usd` | `number` | What **you** were charged, in USD |
+| `totals.total_cost_usd` | `number` | What **you** were charged, in billing units where `0.01` = 1 credit = ₹1 (multiply by 100 for credits; US$ = credits ÷ 96) |
 | `by_model` | `array` | Top 10 models by request volume |
 | `series[].date` | `string` | `YYYY-MM-DD`, one row per day in the window |
 
@@ -125,6 +125,8 @@ curl "https://api.callmissed.com/v1/usage/logs?days=1&service=llm&status=error&l
       "latency_ms": 41,
       "input_tokens": 0,
       "output_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_creation_tokens": 0,
       "audio_seconds": 0.0,
       "cost_usd": 0.0,
       "request_id": "req_01J…",
@@ -136,6 +138,11 @@ curl "https://api.callmissed.com/v1/usage/logs?days=1&service=llm&status=error&l
   ]
 }
 ```
+
+For LLM rows, `input_tokens` is the part of the prompt that was not cached;
+`cache_read_tokens` (served from the prompt cache) and `cache_creation_tokens`
+(written to it) are counted separately, so the whole prompt is the sum of the
+three. Rows recorded before cache tracking was added show `0` for both cache fields.
 
 `cost_usd` is your price. Failed requests are recorded with `cost_usd: 0.0` — an error is never billed.
 
@@ -156,7 +163,7 @@ curl "https://api.callmissed.com/v1/usage/logs.csv?days=30&service=llm" \
 Returns `text/csv` with `Content-Disposition: attachment; filename="usage-YYYYMMDD.csv"`. Header row:
 
 ```
-id,created_at,service,endpoint,method,model,status_code,latency_ms,input_tokens,output_tokens,audio_seconds,cost_usd,request_id,api_key_id,error_message[,trace_id][,session_id][,metadata_json]
+id,created_at,service,endpoint,method,model,status_code,latency_ms,input_tokens,output_tokens,cache_read_tokens,cache_creation_tokens,audio_seconds,cost_usd,request_id,api_key_id,error_message[,trace_id][,session_id][,metadata_json]
 ```
 
 `error_message` is truncated to 500 characters. Text cells are escaped so a spreadsheet cannot interpret a value as a formula.

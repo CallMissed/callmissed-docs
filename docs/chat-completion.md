@@ -141,6 +141,9 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 | `response_format` | object | `{"type": "json_object"}` or `{"type": "json_schema", "json_schema": {...}}` |
 | `structured_outputs` | boolean | Enforce strict JSON schema |
 | `stream_options` | object | `{"include_usage": true}` to get token counts in stream |
+| `user` | string | Your end user's id. Enforces that user's [monthly budget](/docs/gateway-controls) when one is set (caps apply to ids of at most 256 characters) |
+| `provider` | object | `{"zdr": true}` serves the request only on a [zero-data-retention route](/docs/gateway-controls), or fails with `zdr_unavailable` |
+| `prompt_cache_key` | string | Up to 1,024 characters. Reuse the same key for requests that share a long prompt prefix to raise the cache hit rate — see [Prompt caching](#prompt-caching) |
 | `reasoning_effort` | string | `"none"` / `"minimal"` / `"low"` / `"medium"` / `"high"` / `"xhigh"` — see the per-model matrix below. `"xhigh"` (maximum reasoning) is accepted by the GPT-5.5 / GPT-5.6 family; other models map it down to their highest supported value. |
 
 > **OpenAI Python SDK note** — The OpenAI client validates kwargs against its
@@ -191,7 +194,7 @@ resp = client.chat.completions.create(
 )
 ```
 
-Vision-capable models: `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
+Vision-capable models: `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
 `gpt-5.5`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `kimi-k2.5`,
 `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code`, `gemma-4-26b-a4b-it`,
 `mistral-small-3.1`.
@@ -222,7 +225,7 @@ Snapshot — `GET /v1/models` is authoritative:
 
 | Model | context_window |
 |-------|----------------|
-| `gpt-5.5`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna` | 1,050,000 |
+| `gpt-5.5`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna`, `gpt-6.1-sol` | 1,050,000 |
 | `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash`, `glm-5.3` | 1,048,576 |
 | `gpt-4.1` | 1,047,576 |
 | `gpt-5-mini` | 400,000 |
@@ -232,6 +235,52 @@ Snapshot — `GET /v1/models` is authoritative:
 | `sarvam-105b`, `glm-4.7-flash`, `gemma-4-31b` | 131,072 |
 | `gpt-4o`, `gpt-oss-120b`, `mistral-small-3.1` | 128,000 |
 | `sarvam-105b-conversations` | 32,768 |
+
+## Prompt caching
+
+Models that support prompt caching reuse repeated prompt prefixes
+automatically — there is nothing to turn on. Cached prompt tokens are billed at
+the model's cached-input rate where one is published (see [Models](/docs/models));
+a model with no cached rate bills them at its normal input rate. Tokens written
+to the cache are billed at the input rate, except on models that publish a
+separate cache-write rate (such as `gpt-6.1-sol`).
+
+Every response reports the cached share of the prompt:
+
+```json
+"usage": {
+  "prompt_tokens": 3120,
+  "completion_tokens": 42,
+  "total_tokens": 3162,
+  "prompt_tokens_details": { "cached_tokens": 2944 }
+}
+```
+
+- `prompt_tokens` is the whole prompt, cached part included.
+- `prompt_tokens_details.cached_tokens` is always present (`0` on a miss or the first request).
+- `prompt_tokens_details.cache_write_tokens` appears when the model reported tokens written to the cache (GPT-5.6 and later bill these at their own rate).
+- Streaming: the same block is in the final usage chunk when you send `stream_options: {"include_usage": true}`.
+- `/v1/responses` reports the same numbers as `usage.input_tokens_details.cached_tokens` and `usage.input_tokens_details.cache_write_tokens`.
+
+To improve hit rates:
+
+- Put stable content first (system prompt, tool definitions, reference documents) and the changing part last.
+- Send a `prompt_cache_key` (up to 1,024 characters, on `/v1/chat/completions` and `/v1/responses`) and reuse it for requests that share a prefix. It is passed on as a cache-routing hint for `kimi-k2.5`, `kimi-k2.6`, `kimi-k2.7-code`, `glm-4.7-flash`, `glm-5.2`, `gpt-oss-120b`, `nemotron-3-super`, `gemma-4-26b-a4b-it`, `mistral-small-3.1`, `deepseek-v4-pro` and `deepseek-v4-flash`; other models ignore it.
+- Explicit per-block cache breakpoints (`cache_control` / `prompt_cache_breakpoint` on a content part) are not applied today — caching works from the prompt prefix automatically.
+
+```json
+{
+  "model": "kimi-k2.6",
+  "prompt_cache_key": "support-bot:policy-v3",
+  "messages": [
+    {"role": "system", "content": "<long, stable instructions>"},
+    {"role": "user", "content": "Where is my order?"}
+  ]
+}
+```
+
+A prefix usually needs to be at least ~1,024 tokens before it is cached, and an
+idle cache expires after a few minutes. Hits are not guaranteed.
 
 ## Responses API
 
