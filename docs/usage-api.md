@@ -78,7 +78,7 @@ curl "https://api.callmissed.com/v1/usage/summary?days=7" \
 | Field | Type | Notes |
 | --- | --- | --- |
 | `totals.success_rate` | `number` | Fraction in `0..1`, not a percentage |
-| `totals.total_cost_usd` | `number` | What **you** were charged, in USD |
+| `totals.total_cost_usd` | `number` | What **you** were charged, in billing units where `0.01` = 1 credit = ₹1 (multiply by 100 for credits; US$ = credits ÷ 96) |
 | `by_model` | `array` | Top 10 models by request volume |
 | `series[].date` | `string` | `YYYY-MM-DD`, one row per day in the window |
 

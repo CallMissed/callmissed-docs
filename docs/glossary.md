@@ -27,10 +27,10 @@ Definitions for the core CallMissed concepts and terminology used throughout the
 
 | Term | Definition |
 | --- | --- |
-| **Credit** | The universal billing unit. **1 credit = ₹1.** Every API call deducts credits based on usage. |
+| **Credit** | The universal billing unit. **1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96).** Every API call deducts credits based on usage. |
 | **Plan** | Your subscription tier — free, starter, pro, or enterprise — which sets limits and model access. |
 | **Budget cap** | An optional monthly credit limit; requests over the cap are rejected with `budget_exceeded`. |
-| **Credit pack** | A purchasable bundle of credits for top-ups. |
+| **Credit top-up** | A one-off credit purchase of any amount from 10 to 50,000 credits, at ₹1 per credit. |
 
 ## AI Services
 
