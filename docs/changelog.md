@@ -11,10 +11,17 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## September 2026
 
+### New model — GPT-6.1 Sol
+
+- **`gpt-6.1-sol`** — OpenAI's GPT-6.1 Sol: near-Astra performance for complex coding, computer use and professional work at a lower cost. 1.05M context, 128K output, text + image input, reasoning and tool calling. $2.083 in / $10.42 out per 1M tokens ($0.1042 cached input).
+- **Long prompts** — requests with more than 272K input tokens are billed at 2× input and cached-input rates and 1.5× output for the whole request ($4.167 in / $0.2083 cached / $15.63 out per 1M).
+- **`reasoning_effort`** — accepts `low`, `medium` (default), `high` and `xhigh`. The model always reasons, so `none` and `minimal` are sent as `low`, and `max` is sent as `xhigh`. Only the default temperature is supported, and `max_tokens` must be at least 3. See [API speed](/docs/api-speed).
+- Paid plans only. See [Models](/docs/models).
+
 ### New models — GPT-6 Sol and GPT-6 Luna
 
-- **`gpt-6-sol`** — OpenAI's GPT-6 frontier reasoning model for enterprise agents, coding and complex knowledge work; succeeds `gpt-5.6-sol`. 1.05M context, 128K output, text + image input, reasoning and tool calling. $2.00 in / $10.00 out per 1M tokens ($0.20 cached input).
-- **`gpt-6-luna`** — the efficient GPT-6 model for high-volume, cost-sensitive workloads; succeeds `gpt-5.6-luna`. Same 1.05M context, vision, reasoning and tools. $0.10 in / $0.50 out per 1M tokens ($0.01 cached input).
+- **`gpt-6-sol`** — OpenAI's GPT-6 frontier reasoning model for enterprise agents, coding and complex knowledge work; succeeds `gpt-5.6-sol`. 1.05M context, 128K output, text + image input, reasoning and tool calling. $2.083 in / $10.42 out per 1M tokens ($0.2083 cached input).
+- **`gpt-6-luna`** — the efficient GPT-6 model for high-volume, cost-sensitive workloads; succeeds `gpt-5.6-luna`. Same 1.05M context, vision, reasoning and tools. $0.1042 in / $0.5208 out per 1M tokens ($0.01042 cached input).
 - **Long prompts** — requests with more than 272K input tokens are billed at 2× input and cached-input rates and 1.5× output for the whole request.
 - **`reasoning_effort`** — both accept `none`, `low`, `medium`, `high` and `xhigh` (`minimal` is sent as `low`). When a request includes `tools`, reasoning is set to `none` automatically. `max_tokens` must be at least 3. See [API speed](/docs/api-speed).
 - Paid plans only. See [Models](/docs/models).
@@ -28,7 +35,7 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ### Embeddings, usage API, CRM, support desk and voice-agent operations
 
-- **Embeddings** — `POST /v1/embeddings`, OpenAI-compatible. `text-embedding-3-small` (1536 dims, $0.02 / 1M input tokens) and `text-embedding-3-large` (3072 dims, $0.13 / 1M). Batches of up to 128 inputs, optional `dimensions` shortening and `base64` output. Both are free-plan callable, taking the **free tier to 27 models across five categories**. Gated by the key's `llm` permission. See [Embeddings](/docs/embeddings).
+- **Embeddings** — `POST /v1/embeddings`, OpenAI-compatible. `text-embedding-3-small` (1536 dims, $0.02083 / 1M input tokens) and `text-embedding-3-large` (3072 dims, $0.1354 / 1M). Batches of up to 128 inputs, optional `dimensions` shortening and `base64` output. Both are free-plan callable, taking the **free tier to 27 models across five categories**. Gated by the key's `llm` permission. See [Embeddings](/docs/embeddings).
 - **Usage API** — `GET /v1/usage/summary`, `/logs` and `/logs.csv` return your own metering rows for the last 90 days, filterable by service, model, key, `session_id` and `trace_id`. Scope `usage:read`. See [Usage API](/docs/usage-api).
 - **Gateway tooling** — server-side [prompt management](/docs/gateway-prompts) with versions, labels, presets and free rendering; [response cache](/docs/gateway-cache) stats and purge; and [bring your own provider key](/docs/provider-keys) with liveness verification and a write-only secret.
 - **CRM** — [companies](/docs/crm-companies), [notes and tasks](/docs/crm-notes-tasks), [deals and pipelines](/docs/crm-deals), [custom fields and saved views](/docs/crm-custom-fields), [search, bulk and CSV](/docs/crm-import-export), and [lead scoring with a unified timeline](/docs/crm-lead-scores).
@@ -38,13 +45,13 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ### New models — Cartesia Ink STT
 
-- **`ink-whisper`** — Cartesia's fastest and most affordable STT at $0.18 / hour, across **100 languages** including Hindi, Urdu and Tamil. Better accuracy than baseline Whisper, and dynamic chunking that cuts hallucination during pauses and silence. Works for both file transcription and voice sessions. See [Speech to Text](/docs/speech-to-text#cartesia-ink-models).
-- **`ink-2`** — Cartesia's top-ranked STT for voice agents at $0.54 / hour: 8% WER on AppTek's 14-accent call-centre benchmark, against 10% for Deepgram Flux and 12% for ElevenLabs. Self-detects turns, so no separate turn detector is needed. Two limits: it is **English only**, and it is **voice-session only** — the file transcription endpoint returns `400` and points you to `ink-whisper`. See [Speech to Text](/docs/speech-to-text#cartesia-ink-models).
+- **`ink-whisper`** — Cartesia's fastest and most affordable STT at $0.1875 / hour, across **100 languages** including Hindi, Urdu and Tamil. Better accuracy than baseline Whisper, and dynamic chunking that cuts hallucination during pauses and silence. Works for both file transcription and voice sessions. See [Speech to Text](/docs/speech-to-text#cartesia-ink-models).
+- **`ink-2`** — Cartesia's top-ranked STT for voice agents at $0.5625 / hour: 8% WER on AppTek's 14-accent call-centre benchmark, against 10% for Deepgram Flux and 12% for ElevenLabs. Self-detects turns, so no separate turn detector is needed. Two limits: it is **English only**, and it is **voice-session only** — the file transcription endpoint returns `400` and points you to `ink-whisper`. See [Speech to Text](/docs/speech-to-text#cartesia-ink-models).
 
 ### New models — conversational Indic LLM, Saaras V4 STT, Flux TTS
 
-- **`sarvam-105b-conversations`** — 105B MoE tuned for conversation and voice. 128K context, tool calling, streaming, hybrid thinking. Free-tier, same $0.35 in / $0.35 out per 1M as `sarvam-105b`. See [Indic Models](/docs/models-indic).
-- **`saaras:v4`** — Sarvam STT with five output modes (transcribe, translate, verbatim, transliterate, code-mix) across 24 languages. Free-tier at $0.30 / hour. See [Speech to Text](/docs/speech-to-text).
+- **`sarvam-105b-conversations`** — 105B MoE tuned for conversation and voice. 128K context, tool calling, streaming, hybrid thinking. Free-tier, same $0.3646 in / $0.3646 out per 1M as `sarvam-105b`. See [Indic Models](/docs/models-indic).
+- **`saaras:v4`** — Sarvam STT with five output modes (transcribe, translate, verbatim, transliterate, code-mix) across 24 languages. Free-tier at $0.3125 / hour. See [Speech to Text](/docs/speech-to-text).
 - **Deepgram Flux TTS** — streaming-first TTS built for voice agents: turn-based synthesis with prosody carried across turns. 36 English voices including `priya` (Indian-accented English, the default). English only, no expressive controls. Available only through the managed Voice Agent (`tts_engine: "flux"`), billed inside the per-minute voice rate. See [Voices](/docs/tts-voices).
 - **Free tier** — now 27 models (11 LLM, 4 STT, 4 TTS, 6 image, 2 embedding).
 
