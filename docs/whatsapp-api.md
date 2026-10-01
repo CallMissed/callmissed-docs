@@ -17,6 +17,7 @@ The WhatsApp API is the programmatic surface for a connected **WhatsApp Business
 | Area | Page |
 |---|---|
 | Connect a WABA and register a number | [Business Setup](/docs/whatsapp-setup) |
+| Number health, registration, two-step PIN, business profile, blocked users, QR codes | [Number Management](/docs/whatsapp-numbers) |
 | Send text, template, media, interactive, location, reaction, contacts | [Sending Messages](/docs/whatsapp-messages) |
 | Create, list, delete and sync templates | [Message Templates](/docs/whatsapp-templates) |
 | Bulk template sends | [Campaigns](/docs/whatsapp-campaigns) |
@@ -42,7 +43,7 @@ A key without the scope gets `403`:
 
 ```json
 {
-  "detail": "API key missing required scope: whatsapp:send. Add it under the key's 'Permissions' section in your dashboard."
+  "detail": "API key missing required scope: whatsapp:send. Add it under the key's Permissions in your dashboard."
 }
 ```
 
@@ -99,7 +100,7 @@ These come from CallMissed before any WhatsApp call is made.
 | `400` | Neither `phone_id` nor `phone_number_id` supplied, or a variant-specific field is missing | Add the missing field |
 | `401` | Missing, malformed or expired credentials | Check the `Authorization` header |
 | `402` | Not enough credits to pay for the send or campaign, or a workspace budget cap would be exceeded. Nothing was sent and nothing was charged | Top up, or raise the cap |
-| `403` | API key is missing the required WhatsApp scope, or the action needs an owner or admin login | Add the scope, or sign in as an owner or admin |
+| `403` | API key is missing the required WhatsApp scope, or the workspace is inactive | Add the scope to the key |
 | `404` | The number, template, campaign or call does not exist on your workspace | Verify the id |
 | `409` | The number is disconnected, or has no stored access token | Reconnect the number |
 | `422` | Request body failed validation | Read the `loc` path in `detail` |
@@ -446,25 +447,9 @@ curl "https://api.callmissed.com/api/v1/whatsapp/webhook_events?limit=20" \
 
 Full raw payloads are deliberately not exposed here, because they carry customer message bodies and phone numbers. `event_type` mirrors Meta's webhook field name, for example `messages`, `message_template_status_update`, `account_update`, `phone_number_quality_update` or `calls`.
 
-## The Meta-facing webhook
+## You never configure a webhook in Meta
 
-Meta delivers every event for your WABA to one CallMissed endpoint:
-
-```
-https://api.callmissed.com/api/v1/webhooks/whatsapp
-```
-
-**You do not configure this.** Connecting a number subscribes the CallMissed app to your WABA's webhooks, and this URL is already registered on Meta's side for every live WABA. It is documented here so you recognise it in Meta's dashboard, not because you need to set it.
-
-`GET` is Meta's one-time verification handshake. It echoes `hub.challenge` as a plain-text body when the verify token matches, and returns `403` otherwise.
-
-`POST` is the event receiver. Every request is authenticated by `X-Hub-Signature-256`, an HMAC-SHA256 of the raw body keyed on the app secret. Verification is unconditional: an unsigned or mis-signed request is archived for audit and then rejected with `403`, because a forged `delivered` status would otherwise drive billing. A valid request is archived, acknowledged immediately, and processed in the background, so a slow model never causes Meta to retry.
-
-```json
-{ "status": "ok" }
-```
-
-The bodies Meta posts here are its own webhook payloads (`messages`, `statuses`, `message_template_status_update`, `account_update`, `phone_number_quality_update`, `calls` and so on). You read what arrived through [`GET /webhook_events`](#raw-webhook-events), and you consume the messages themselves through your own subscription below.
+Meta delivers your WABA's events to CallMissed, not to you. Connecting a number subscribes the CallMissed app to the WABA's webhooks automatically, so there is nothing to set up in Meta's dashboard. Each delivery is signature-verified before it is processed. You see what arrived through [`GET /webhook_events`](#raw-webhook-events), and you consume the messages themselves through your own subscription below.
 
 ## Inbound events you receive
 
@@ -551,7 +536,7 @@ Return `2xx` quickly. Do your own work after acknowledging.
 
 ## Analytics
 
-Three read-only aggregations over the last N days. All require `whatsapp:read`, and `days` is bounded to 1 to 90.
+Three read-only aggregations over the last N days from CallMissed's own delivery and billing records, plus [Meta insights](#meta-insights), a read-through to WhatsApp's own figures. All require `whatsapp:read`. On the first three, `days` is bounded to 1 to 90.
 
 ### Delivery funnel
 
@@ -666,3 +651,67 @@ curl "https://api.callmissed.com/api/v1/whatsapp/analytics/costs?days=30" \
 | `ledger_source` | string | How the figures were sourced, so you can tell a per-event ledger match from an aggregate |
 
 Every credit figure here traces to a per-event billing record, so it reconciles with what was actually deducted. For the wallet balance and the platform-wide usage feed, see [Credits & Rate Limits](/docs/credits-rate-limits).
+
+### Meta insights
+
+The three routes above count what CallMissed recorded. The seven routes below read **WhatsApp's own insights** live for one WhatsApp Business Account. They will not match the figures above exactly: WhatsApp describes its analytics as approximate, and they lag delivery. Nothing here is stored.
+
+Cost figures are **not included** on any of these routes (`cost_included` is always `false`). For what you were charged, use [Cost breakdown](#cost-breakdown).
+
+All seven need `whatsapp:read` and pick the account the same way as the template endpoints: pass exactly one of `account_id` (UUID, from `GET /accounts`) or `waba_id` (Meta's id, max 64 chars). Omitting both returns `400`, and a disconnected account returns `409`.
+
+| Route | What it returns | `days` | `granularity` | Extra params |
+|---|---|---|---|---|
+| `GET /api/v1/whatsapp/analytics/meta/messaging` | Messages `sent` and `delivered` per bucket | 1 to 365, default 30 | `HALF_HOUR`, `DAY` (default), `MONTH` | |
+| `GET /api/v1/whatsapp/analytics/meta/conversations` | `conversation` count per bucket | 1 to 365, default 30 | `HALF_HOUR`, `DAILY` (default), `MONTHLY` | `dimensions`: any of `CONVERSATION_CATEGORY`, `CONVERSATION_DIRECTION`, `CONVERSATION_TYPE`, `COUNTRY`, `PHONE` |
+| `GET /api/v1/whatsapp/analytics/meta/pricing` | Billable message `volume` per bucket | 1 to 365, default 30 | `HALF_HOUR`, `DAILY` (default), `MONTHLY` | `dimensions`: any of `COUNTRY`, `PHONE`, `PRICING_CATEGORY`, `PRICING_TYPE`, `TIER`. Default `PRICING_CATEGORY` + `COUNTRY` |
+| `GET /api/v1/whatsapp/analytics/meta/calls` | Call `count` and `average_duration` per bucket | 1 to 365, default 30 | `HALF_HOUR`, `DAILY` (default), `MONTHLY` | `directions`: `USER_INITIATED`, `BUSINESS_INITIATED` |
+| `GET /api/v1/whatsapp/analytics/meta/templates` | Per template: `sent`, `delivered`, `read`, `clicked` | 1 to 90, default 30 | Fixed `DAILY` | `template_ids` (required, up to 10), `after` (cursor, max 512) |
+| `GET /api/v1/whatsapp/analytics/meta/template-groups` | Per template group: `sent`, `delivered`, `read` | 1 to 90, default 30 | Fixed `DAILY` | `template_group_ids` (required, up to 10), `after` |
+| `GET /api/v1/whatsapp/analytics/meta/groups` | Per WhatsApp group: `sent`, `delivered`, `read`, `joined`, `left` | 1 to 90, default 30 | Fixed `DAILY` | `group_ids` (required, exactly 1 today), `after` |
+
+Note the granularity spellings: `messaging` takes `DAY` / `MONTH`, while every other surface takes `DAILY` / `MONTHLY`. A value the surface does not accept returns `400` naming the accepted set. `HALF_HOUR` windows are capped at 7 days. Repeat a list parameter to pass several values, for example `?dimensions=COUNTRY&dimensions=PHONE`.
+
+```bash
+curl "https://api.callmissed.com/api/v1/whatsapp/analytics/meta/pricing?account_id=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d&days=7&granularity=DAILY&dimensions=PRICING_CATEGORY&dimensions=COUNTRY" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+**Response (200 OK)**
+
+```json
+{
+  "source": "meta",
+  "surface": "pricing_analytics",
+  "granularity": "DAILY",
+  "days": 7,
+  "start": 1790553600,
+  "end": 1791158400,
+  "cost_included": false,
+  "points": [
+    {
+      "start": 1790553600,
+      "end": 1790640000,
+      "volume": 184,
+      "country": "IN",
+      "tier": null,
+      "pricing_type": "REGULAR",
+      "pricing_category": "MARKETING"
+    }
+  ],
+  "paging": null
+}
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `source` | string | Always `meta` |
+| `surface` | string | `analytics`, `conversation_analytics`, `pricing_analytics`, `call_analytics`, `template_analytics`, `template_group_analytics` or `group_analytics` |
+| `granularity` | string | The bucket size used |
+| `days` | integer | The window actually queried, ending at the next UTC midnight. Smaller than requested when a `HALF_HOUR` window was capped |
+| `start`, `end` | integer | Window bounds as UNIX timestamps (UTC) |
+| `cost_included` | boolean | Always `false` |
+| `points` | object[] | One entry per bucket, with `start` / `end` plus the metrics and dimensions listed above. Metrics WhatsApp omits come back as `null` |
+| `paging` | object, nullable | WhatsApp's cursors, on the `templates`, `template-groups` and `groups` surfaces. Pass `paging.cursors.after` back as `after` |
+
+Template analytics needs a one-time insights opt-in on the account and is not available for accounts in the European Union or Japan; without them these surfaces return `422` saying so. Template `read` and `clicked` counts only exist for 7 days after a send, and clicks only for marketing and utility templates, so older days in a 30-day window can show sends with no reads. A WhatsApp analytics rate limit returns `429`; back off and retry.
