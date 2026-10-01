@@ -22,13 +22,13 @@ Indic STT, TTS, and LLM models — optimized for Indian languages.
 ### sarvam-105b-conversations
 
 - **Architecture:** 105B MoE, tuned for conversation and voice
-- **Context:** 128K tokens
+- **Context:** 32K tokens
 - **Tool calling:** yes
 - **Streaming:** yes
 - **Best for:** Multi-turn dialogue, voice agents, assistants that talk
 - **Thinking mode:** `reasoning_effort: "low" | "medium" | "high"`
 
-Same family, same price and same 128K window as `sarvam-105b` — tuned for spoken dialogue rather than long-form work. It does not accept image input.
+Same family and same price as `sarvam-105b`, with a shorter 32K window — tuned for spoken dialogue rather than long-form work. It does not accept image input.
 
 ### Thinking Mode
 
@@ -50,9 +50,10 @@ response = client.chat.completions.create(
 
 The `sarvam-*` models reject `"none"` and `"minimal"`; the API maps both
 of those values down to `"low"` so an OpenAI-style client that sends
-`reasoning_effort: "none"` for thinking-off still works. Full
-thinking-disable is available on the direct-routed `kimi-k2.5` / `kimi-k2.6` /
-`kimi-k2.7-code` / `gemma-4-26b-a4b-it` models — see the [reasoning_effort matrix](/docs/api-speed#3-reasoning-effort-by-model).
+`reasoning_effort: "none"` for thinking-off still works. `"xhigh"` maps to
+the models' top level, `"max"`. Full thinking-disable is available on
+`kimi-k2.5`, `kimi-k2.6`, `glm-4.7-flash`, `glm-5.2`, `gemma-4-26b-a4b-it` and
+`gemma-4-31b` — see the [reasoning_effort matrix](/docs/api-speed#3-reasoning-effort-by-model).
 
 ## Speech to Text
 

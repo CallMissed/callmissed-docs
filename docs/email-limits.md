@@ -164,6 +164,7 @@ if (r.status !== 202) {
 | 403 | `domain_paused` | Sending from the domain is paused (reputation) |
 | 403 | `all_recipients_suppressed` | Every recipient is on your suppression list, nothing to send |
 | 404 | `template_not_found` | The `templateId` doesn't exist or isn't yours |
+| 409 | `idempotency_conflict` | The `Idempotency-Key` was already used by a different kind of send (a single send's key reused on a `messageVersions` batch, or the reverse). Use a fresh key |
 | 422 | `no_sender` | Neither `from`/`sender` nor a template `default_sender` supplied one |
 | 422 | `invalid_from` | The resolved sender is not a usable email address |
 | 422 | `no_recipients` | The resolved recipient list came out empty |

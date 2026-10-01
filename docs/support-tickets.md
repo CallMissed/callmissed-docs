@@ -69,7 +69,7 @@ Authorization: Bearer cm_your_api_key
 
 ## GET `/api/v1/support/tickets`
 
-Newest first.
+Returns an array of ticket objects, newest first.
 
 | Parameter | Type | Required | Constraints |
 | --- | --- | --- | --- |
@@ -124,9 +124,23 @@ Returns `201`. Creating a ticket directly as `resolved` or `closed` stamps the m
 
 One ticket. `404 Ticket not found`.
 
+```bash
+curl https://api.callmissed.com/api/v1/support/tickets/{ticket_id} \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
 ## PATCH `/api/v1/support/tickets/{ticket_id}`
 
 Accepts the same editable fields as create. The lifecycle timestamps and `reopened_count` are **not** accepted — a status change here runs the same transition rules as the dedicated status endpoint.
+
+Every field is optional; only the fields you send are changed. Linked ids (`conversation_id`, `contact_id`, `assignee_user_id`) are checked against your tenant exactly as on create. Returns the updated ticket.
+
+```bash
+curl -X PATCH https://api.callmissed.com/api/v1/support/tickets/{ticket_id} \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "priority": "urgent", "tags": ["billing", "escalated"] }'
+```
 
 `subject` sent as blank or `null` returns `422 subject must not be blank`. An explicit `null` for `status` or `priority` is ignored rather than written.
 
@@ -134,7 +148,16 @@ Accepts the same editable fields as create. The lifecycle timestamps and `reopen
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `assignee_user_id` | `UUID \| null` | No | `null` unassigns and returns the ticket to the queue |
+| `assignee_user_id` | `UUID \| null` | No | `null` (or omitted) unassigns and returns the ticket to the queue |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/support/tickets/{ticket_id}/assign \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "assignee_user_id": "b1f2c3d4-1111-2222-3333-444455556666" }'
+```
+
+Returns the updated ticket. `404 Assignee not found` when the user is not in your tenant.
 
 ## POST `/api/v1/support/tickets/{ticket_id}/status`
 
@@ -142,7 +165,14 @@ Accepts the same editable fields as create. The lifecycle timestamps and `reopen
 | --- | --- | --- | --- |
 | `status` | `string` | Yes | One of the five statuses |
 
-**Idempotent.** Sending the status the ticket already has returns it untouched — no re-stamp, no `reopened_count` increment. Safe to retry.
+```bash
+curl -X POST https://api.callmissed.com/api/v1/support/tickets/{ticket_id}/status \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "status": "resolved" }'
+```
+
+Returns the updated ticket. **Idempotent.** Sending the status the ticket already has returns it untouched — no re-stamp, no `reopened_count` increment. Safe to retry.
 
 ### Transition rules
 
@@ -158,12 +188,17 @@ Accepts the same editable fields as create. The lifecycle timestamps and `reopen
 
 Returns `204`. `404 Ticket not found`.
 
+```bash
+curl -X DELETE https://api.callmissed.com/api/v1/support/tickets/{ticket_id} \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
 ## Errors
 
 | Status | When |
 | --- | --- |
 | `403` | Key is missing `support_tickets:read` / `support_tickets:write` |
 | `404` | Ticket, conversation, contact or assignee is not in your tenant |
-| `422` | Unknown status/priority, blank subject, or `unassigned` combined with `assignee_user_id` |
+| `422` | Unknown status/priority, blank subject, more than 20 tags or a tag over 64 characters, or `unassigned` combined with `assignee_user_id` |
 
 Nothing on this page consumes credits.
