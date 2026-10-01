@@ -48,10 +48,10 @@ Exactly one pipeline may be the default. Setting `is_default: true` clears the f
 | Method | Path | Notes |
 | --- | --- | --- |
 | `GET` | `/api/v1/crm/pipelines` | Default first, then oldest first. `limit` `1..200` (default `50`), `offset` `0..100000` |
-| `POST` | `/api/v1/crm/pipelines` | `name` 1–255 characters, unique per tenant; `is_default` default `false` |
+| `POST` | `/api/v1/crm/pipelines` | `201`. `name` 1–255 characters, unique per tenant (`409 A pipeline with this name already exists`); `is_default` default `false` |
 | `GET` | `/api/v1/crm/pipelines/{pipeline_id}` | |
 | `PATCH` | `/api/v1/crm/pipelines/{pipeline_id}` | `name`, `is_default` |
-| `DELETE` | `/api/v1/crm/pipelines/{pipeline_id}` | `204`. `409 Move or delete the deals here first` if it still holds deals |
+| `DELETE` | `/api/v1/crm/pipelines/{pipeline_id}` | `204`, and its stages are deleted with it. `409 Move or delete the deals here first` if it still holds deals |
 
 ## Stages
 
@@ -84,9 +84,18 @@ Ordered by `position`. **No pagination** — a pipeline's stage list is always r
 | `is_won` | `boolean` | No | Default `false` |
 | `is_lost` | `boolean` | No | Default `false` |
 
-A stage cannot be both — `422 A stage cannot be both won and lost`.
+A stage cannot be both — `422 A stage cannot be both won and lost`. Returns `201`.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/crm/pipelines/11aa…/stages \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Won", "probability": 100, "is_won": true }'
+```
 
 ### PATCH `/api/v1/crm/pipelines/stages/{stage_id}` · DELETE `/api/v1/crm/pipelines/stages/{stage_id}`
+
+`PATCH` accepts `name`, `position`, `probability`, `is_won` and `is_lost`, all optional, with the same bounds. The won/lost rule is checked against the merged result. Changing a stage's flags does not re-close or re-open deals already on it.
 
 `DELETE` returns `204`, or `409 Move or delete the deals here first` when deals still sit on it.
 
@@ -96,7 +105,9 @@ A stage cannot be both — `422 A stage cannot be both won and lost`.
 | --- | --- | --- | --- |
 | `stage_ids` | `UUID[]` | Yes | 1–100 entries. Must be **every** stage of this pipeline, exactly once |
 
-New `position` is the array index. A partial or duplicated list returns `422` and changes nothing, so two concurrent reorders cannot interleave.
+New `position` is the array index. Returns the stages in their new order.
+
+A list with repeats returns `422 stage_ids contains duplicates`; a list that misses a stage or includes one from another pipeline returns `422 stage_ids must list every stage in this pipeline, exactly once`. Either way nothing changes.
 
 ---
 
@@ -129,8 +140,8 @@ New `position` is the array index. A partial or duplicated list returns `422` an
 | --- | --- | --- |
 | `status` | `string` | `open`, `won` or `lost`. Driven by the stage — see below |
 | `currency` | `string` | ISO 4217, three letters, upper-cased. Default `INR` |
-| `closed_at` | `datetime \| null` | Stamped when the deal first lands on a won or lost stage, and **never re-stamped** |
-| `last_activity_at` | `datetime \| null` | Bumped on every write to the deal |
+| `closed_at` | `datetime \| null` | Stamped when the deal lands on a won or lost stage. Moving between won and lost keeps the original time; re-opening clears it |
+| `last_activity_at` | `datetime \| null` | Set on create and bumped on every update or move |
 
 ## GET `/api/v1/crm/deals`
 
@@ -140,7 +151,7 @@ Newest first.
 | --- | --- | --- |
 | `pipeline_id` | `UUID` | |
 | `stage_id` | `UUID` | |
-| `status` | `string` | `open`, `won` or `lost` |
+| `status` | `string` | `open`, `won` or `lost`. Anything else is `422` |
 | `owner_user_id` | `UUID` | |
 | `contact_id` | `UUID` | |
 | `company_id` | `UUID` | |
@@ -174,6 +185,8 @@ curl -X POST https://api.callmissed.com/api/v1/crm/deals \
   }'
 ```
 
+Returns `201`. Creating straight onto a won or lost stage closes the deal immediately.
+
 Creating in a pipeline that has no stages yet returns `422 This pipeline has no stages yet` — add stages first.
 
 ## POST `/api/v1/crm/deals/{deal_id}/move`
@@ -183,6 +196,15 @@ Creating in a pipeline that has no stages yet returns `422 This pipeline has no 
 | `stage_id` | `UUID` | Yes |
 
 The one call you want for a kanban drag. The stage must belong to the deal's pipeline — `422 Stage does not belong to this pipeline` otherwise.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/crm/deals/33cc…/move \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "stage_id": "22bb…" }'
+```
+
+Returns the updated deal.
 
 ### What a move does to `status`
 
@@ -196,7 +218,12 @@ So re-opening a deal is just moving it back to a working stage.
 
 ## GET / PATCH / DELETE `/api/v1/crm/deals/{deal_id}`
 
-`PATCH` accepts the editable fields, all optional, and applies the same stage rules. `DELETE` returns `204`.
+`PATCH` accepts `title`, `value`, `currency`, `contact_id`, `company_id`, `owner_user_id`, `expected_close_date`, `stage_id` and `status`, all optional, with the same bounds as create. `pipeline_id` cannot be changed.
+
+- `stage_id` follows the same rules as a move: it must belong to the deal's pipeline, and it sets `status` and `closed_at` as in the table above.
+- `status` (`open`, `won` or `lost`) marks the deal closed or open **without moving it**. Sent together with `stage_id`, the explicit `status` wins. `won`/`lost` stamps `closed_at` if unset; `open` clears it.
+
+`DELETE` returns `204`.
 
 ---
 

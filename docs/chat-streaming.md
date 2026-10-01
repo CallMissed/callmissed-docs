@@ -31,13 +31,28 @@ data: [DONE]
 - **Content chunks** carry `{"delta": {"content": "token"}}`
 - **Final chunk** has `{"delta": {}, "finish_reason": "stop"}`
 - **End marker** is `data: [DONE]`
+- **Reasoning models** stream their thinking as `delta.reasoning_content`, separate from `delta.content`. Ignore it if you only want the answer.
+
+The response carries `X-Request-ID` and `Cache-Control: no-cache` headers.
+
+## Errors mid-stream
+
+Errors found before the first byte (bad key, no credits, unknown model) return a normal JSON error with an HTTP status — see [Chat Completion → Errors](/docs/chat-completion#errors). If the model fails after streaming has started, the stream sends one error event and then closes **without** `data: [DONE]`:
+
+```
+data: {"error":{"message":"...","type":"server_error","code":"upstream_error","request_id":"chatcmpl-..."}}
+```
+
+`code` is `upstream_timeout`, `upstream_unavailable` or `provider_error`.
+
+Treat a stream that ends without `[DONE]` as failed, even if some content arrived.
 
 ## Usage in Stream
 
 To get token usage in the stream, set `stream_options: {"include_usage": true}`. A final chunk with a `usage` field is sent before `[DONE]`:
 
 ```json
-data: {"id":"...","choices":[],"usage":{"prompt_tokens":12,"completion_tokens":34,"total_tokens":46,"tool_call_count":0}}
+data: {"id":"...","choices":[],"usage":{"prompt_tokens":12,"completion_tokens":34,"total_tokens":46,"tool_call_count":0,"prompt_tokens_details":{"cached_tokens":0}}}
 
 data: [DONE]
 ```

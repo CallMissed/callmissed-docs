@@ -193,7 +193,7 @@ curl -X POST https://api.callmissed.com/api/v1/voice/squads/sq10…/simulate-han
 | `ping_pong` | The target is the previous member and returns are disallowed |
 | `already_current` | The best match is already handling the call |
 | `no_match` | Nothing reached `min_score` |
-| `unknown_role` | The configured fallback role matches no member |
+| `unknown_role` | A routing model named a role that is not on the roster. Only produced by model-based routing on a live call; this keyword dry run never returns it |
 
 ---
 
@@ -228,7 +228,7 @@ curl -X POST https://api.callmissed.com/api/v1/voice/squads/author/draft \
     "response_guidelines": "Keep replies under two sentences…",
     "conversation_script": "",
     "first_message": "Namaste, thanks for calling. How can I help?",
-    "tools": ["book_appointment", "cancel_appointment", "handoff_to_human"],
+    "tools": ["calcom_list_slots", "calcom_book", "escalate_to_human"],
     "voice_model": "…",
     "tts_model": "…",
     "stt_model": "…",
@@ -247,6 +247,7 @@ At most 12 tools are proposed, de-duplicated and validated against the registry.
 | Status | Detail | Note |
 | --- | --- | --- |
 | `402` | `Not enough credits to draft an agent. Top up to continue.` | Checked **before** any model runs — costs nothing |
+| `402` | `Monthly budget cap reached` | Your account's monthly budget cap is spent. Also checked before any model runs |
 | `422` | `Could not draft an agent: …` | The model returned an unusable draft. **This attempt is still billed** — the work was done |
 | `502` | `The agent drafting service is unavailable.` | Retry |
 
@@ -256,8 +257,8 @@ Cost appears in [usage logs](/docs/usage-api) as `service: "llm"`.
 
 | Status | When |
 | --- | --- |
-| `402` | Credit balance exhausted before drafting |
+| `402` | Credit balance exhausted, or the monthly budget cap reached, before drafting |
 | `403` | Key is missing `squads:read` / `squads:write` |
 | `404` | Squad, member or agent not in your tenant |
-| `409` | Duplicate squad or role name, agent already a member, or removing the entry agent |
+| `409` | Duplicate squad name, agent already a member, or removing the entry agent |
 | `422` | Over 12 members, a blank name/role, an unknown key in `handoff_policy`, or an `entry_bot_id` that is not a member |

@@ -17,7 +17,7 @@ Send no `Authorization` header. A dashboard JWT or a `cm_` API key is accepted b
 
 Base URL for every example: `https://api.callmissed.com`. Errors are `{"detail": "..."}`; out-of-range query parameters are `422`.
 
-All three endpoints share the same status vocabulary:
+The JSON endpoints share the same status vocabulary:
 
 | `status` value | Meaning |
 | --- | --- |
@@ -71,7 +71,7 @@ curl https://api.callmissed.com/api/v1/status
       "name": "Voice & SMS",
       "group": "channels",
       "status": "operational",
-      "description": "PSTN voice and SMS (Twilio)"
+      "description": "PSTN voice and SMS"
     },
     {
       "name": "Transactional email",
@@ -88,16 +88,34 @@ curl https://api.callmissed.com/api/v1/status
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `overall` | `string` | Derived from the `infrastructure` group only: `down` if any infra row is down, else `degraded` if any is degraded, else `operational` |
+| `overall` | `string` | `down` if any monitored row is down, else `degraded` if any is degraded, else `operational`. Rows with `not_configured` are ignored |
 | `checked_at` | `string` | ISO-8601 UTC timestamp of this check |
 | `services[].name` | `string` | Human label |
 | `services[].group` | `string` | One of `infrastructure`, `ai`, `payments`, `channels`, `notifications` |
 | `services[].status` | `string` | See the vocabulary above |
 | `services[].description` | `string` | What the row covers |
 | `services[].latency_ms` | `integer` | **Optional.** Present only where a live latency was measured |
+| `services[].reason` | `string \| null` | Short diagnostic when the row is not `operational` (e.g. `HTTP 503`); `null` otherwise |
+| `services[].checked_at` | `string` | **Optional.** When this row was last checked |
+| `interval_seconds` | `integer` | How often the snapshot is refreshed |
 | `user_api_surface[]` | `array` | Route-prefix catalogue, each entry with `group`, `title`, and `prefixes` |
 
-To gate a job on platform health, poll this and require `overall == "operational"`.
+To gate a job on platform health, poll this and require `overall == "operational"`. Other fields may appear in the response; treat only the ones above as stable.
+
+## GET /api/v1/status/stream
+
+The same payload as `GET /api/v1/status`, pushed as Server-Sent Events: one `status` event on connect and another on every change, with a `: ping` comment every 25 seconds to keep the connection open.
+
+```bash
+curl -N https://api.callmissed.com/api/v1/status/stream
+```
+
+```
+event: status
+data: {"overall":"operational","checked_at":"…","services":[…]}
+```
+
+Connections are capped: too many from one client returns `429`, and `503` means the stream is at capacity — fall back to polling `GET /api/v1/status`.
 
 ## GET /api/v1/status/uptime
 

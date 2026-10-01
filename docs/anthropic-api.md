@@ -15,7 +15,7 @@ CallMissed provides an **Anthropic Messages API-compatible endpoint** alongside 
 
 **Endpoints:**
 - `POST /v1/messages` — chat completions (streaming + non-streaming)
-- `POST /v1/messages/count_tokens` — token count estimation (real BPE, not char-based)
+- `POST /v1/messages/count_tokens` — token count estimation (real BPE, not char-based); also at `/anthropic/v1/messages/count_tokens`
 - `GET  /anthropic/v1/models` — list models in Anthropic shape with capability metadata
 - `GET  /anthropic/v1/models/{model_id}` — single model detail
 - `POST /anthropic/v1/messages` — alternate path for the chat endpoint
@@ -95,7 +95,9 @@ curl -X POST https://api.callmissed.com/v1/messages \
   "stop_sequence": null,
   "usage": {
     "input_tokens": 25,
-    "output_tokens": 12
+    "output_tokens": 12,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0
   }
 }
 ```
@@ -172,15 +174,18 @@ event: message_stop          → stream complete
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `model` | string | Yes | Model ID (e.g. `gpt-5.6-sol`, `sarvam-105b`, `kimi-k2.6`) |
-| `max_tokens` | integer | Yes | Maximum tokens to generate |
-| `messages` | array | Yes | List of `{role, content}` objects |
-| `system` | string | No | System prompt (top-level, not in messages) |
+| `max_tokens` | integer | Yes | Maximum tokens to generate, `1`–`1,048,576` |
+| `messages` | array | Yes | 1–2,000 `{role, content}` objects. `content` is a string or an array of `text`, `image`, `tool_use` and `tool_result` blocks |
+| `system` | string or array | No | System prompt (top-level, not in messages); a string or a list of text blocks |
 | `stream` | boolean | No | Enable streaming (default: false) |
-| `temperature` | number | No | Sampling temperature (0–1) |
-| `top_p` | float | No | Nucleus sampling (0–1) |
-| `top_k` | integer | No | Top-K sampling |
-| `stop_sequences` | array | No | Stop sequences |
-| `metadata` | object | No | Request metadata (e.g. `{"user_id": "u123"}`) |
+| `temperature` | number | No | Sampling temperature, `0`–`1` |
+| `top_p` | number | No | Nucleus sampling, `0`–`1` |
+| `top_k` | integer | No | Top-K sampling, `1`–`500` |
+| `stop_sequences` | array | No | Up to 16 stop sequences |
+| `tools` | array | No | Up to 128 `{name, description, input_schema}` tools |
+| `tool_choice` | object | No | `{"type": "auto"}`, `{"type": "any"}`, `{"type": "none"}` or `{"type": "tool", "name": "..."}` |
+| `metadata` | object | No | Up to 16 string, number or boolean values. `user_id` is your end user's id and enforces that user's [monthly budget](/docs/gateway-controls). `trace_id` and `session_id` are recorded on the usage row so you can filter [usage logs](/docs/usage-api) by them |
+| `provider` | object | No | CallMissed extension: `{"zdr": true}` requires a [zero-data-retention route](/docs/gateway-controls) |
 
 > **Note:** Unlike the OpenAI API, `max_tokens` is **required** and `system` is a **top-level parameter** (not a message with `role: "system"`).
 
@@ -243,7 +248,7 @@ curl https://api.callmissed.com/anthropic/v1/models \
       "category": "llm",
       "context_window": 1050000,
       "context_length": 1050000,
-      "pricing": {"input": 5.00, "output": 30.00, "unit": "per_million_tokens", "currency": "USD"},
+      "pricing": {"input": 5.208, "output": 31.25, "unit": "per_million_tokens", "currency": "USD"},
       "supports_streaming": true,
       "supports_tools": true,
       "supports_reasoning": true,
@@ -299,12 +304,16 @@ Errors return the Anthropic format (different from the OpenAI endpoints):
 
 | Error type | HTTP Status | When |
 |------------|-------------|------|
-| `authentication_error` | 401 | Bad or missing API key |
-| `permission_error` | 403 | Account inactive, domain blocked, or free tier model restriction |
-| `invalid_request_error` | 400/402 | Bad request or insufficient credits |
-| `rate_limit_error` | 429 | Plan limit or API key rate limit exceeded |
+| `invalid_request_error` | 400 / 422 | Bad request, image sent to a text-only model, or a voice-only model id |
+| `authentication_error` | 401 | Bad, missing, revoked or expired API key |
+| `billing_error` | 402 | Insufficient credits, key budget or end-user budget exhausted |
+| `permission_error` | 403 | Account inactive, key lacks the `llm` permission, or a free-plan key calling a paid model |
 | `not_found_error` | 404 | Model not found |
-| `api_error` | 502 | Provider failure |
+| `request_too_large` | 413 | Request body too large |
+| `rate_limit_error` | 429 | Plan limit or API key rate limit exceeded |
+| `api_error` | 500 / 502 / 503 | Upstream model failure, or the model is under maintenance (the message names an alternative) |
+| `overloaded_error` | 503 / 529 | Model temporarily unavailable. Retry with backoff |
+| `timeout_error` | 504 | Upstream model timed out |
 
 **Rate limit headers** are returned in Anthropic format:
 
@@ -313,6 +322,22 @@ anthropic-ratelimit-requests-limit: 60
 anthropic-ratelimit-requests-remaining: 45
 anthropic-ratelimit-requests-reset: 2026-05-01T00:00:00+00:00
 ```
+
+## Prompt caching
+
+Models that support prompt caching reuse repeated prompt prefixes automatically. Usage uses
+Anthropic's field names, with the same meaning:
+
+- `input_tokens` — prompt tokens that were not read from or written to the cache
+- `cache_read_input_tokens` — prompt tokens served from the cache (billed at the model's cached-input rate)
+- `cache_creation_input_tokens` — prompt tokens written to the cache
+
+Total prompt = `input_tokens + cache_read_input_tokens + cache_creation_input_tokens`.
+When streaming, the final counts arrive in the `message_delta` event.
+
+`cache_control` blocks (on `system`, message content or `tools`) are accepted
+so Anthropic SDK code runs unchanged, but explicit breakpoints and `ttl` are not
+applied today — caching works from the prompt prefix automatically.
 
 ## Differences from Anthropic
 

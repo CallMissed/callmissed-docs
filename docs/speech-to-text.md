@@ -47,7 +47,7 @@ spelling of the same model will bill you. Full per-model pricing:
 icon:app | Your app | Upload an audio file (WAV/MP3) to `POST /v1/audio/transcriptions`
 icon:gateway | CallMissed gateway | Validate the key, resolve `model`, detect language (or use `language`), apply `mode`
 icon:stt | Your chosen model | Run speech recognition — defaults to `saaras:v3` if `model` is omitted
-icon:done | Your app | Receive `text` (plus word timestamps in `verbose_json`)
+icon:done | Your app | Receive `text` (plus `duration` in `verbose_json`)
 :::
 
 > **Tip:** Leave `model` unset to get `saaras:v3`, and leave `language` unset to let it auto-detect. Set `mode=translate` to get English text out of any supported language in a single call.
@@ -55,7 +55,7 @@ icon:done | Your app | Receive `text` (plus word timestamps in `verbose_json`)
 :::warning
 **Streaming-only models cannot transcribe files.** `ink-2` and the Deepgram Flux
 models do turn detection as part of the model, which only makes sense on a live
-stream. Sending one here returns a 400 naming the file-transcription
+stream. Sending one here returns an error naming the file-transcription
 alternative rather than silently substituting a different model — see
 [Cartesia Ink models](#cartesia-ink-models).
 :::
@@ -105,14 +105,57 @@ curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
 
 ## Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `model` | string | `saaras:v3`, `saaras:v4`, `ink-whisper`, or any other file-transcription STT model ID. `ink-2` is **not** valid here — see [Cartesia Ink models](#cartesia-ink-models) |
-| `file` | file | Audio file (WAV, MP3, etc.) |
-| `language` | string | Language code (auto-detected if omitted) |
-| `mode` | string | Output mode — see below |
-| `response_format` | string | `json`, `text`, or `verbose_json` |
-| `timestamp_granularities[]` | array | `["word"]` for word-level timestamps (OpenAI-compatible) |
+Send as `multipart/form-data`.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `file` | file | Yes | Audio file (WAV, MP3, etc.). An empty file returns `400` |
+| `model` | string | No | Default `saaras:v3`. Any file-transcription STT model ID from [Models](/docs/models). `ink-2` and the Flux models are **not** valid here — see [Cartesia Ink models](#cartesia-ink-models) |
+| `language` | string | No | Language code; auto-detected if omitted. For `saaras:v3` / `saaras:v4` use a locale such as `hi-IN` or `ta-IN` — a code the model does not support falls back to auto-detection |
+| `mode` | string | No | Output mode — see below. Default `transcribe`; any other value returns `422` |
+| `response_format` | string | No | `json` (default), `text`, or `verbose_json`. Any other value is answered as `json` |
+| `temperature` | number | No | 0–2. Accepted for OpenAI SDK compatibility; currently not forwarded to the model |
+| `prompt` | string | No | Accepted for OpenAI SDK compatibility; currently not forwarded to the model |
+
+## Response
+
+`json` (default):
+
+```json
+{"text": "Namaste, aap kaise hain?"}
+```
+
+`text` returns the transcript as `text/plain`. `verbose_json` adds the billed
+audio duration in seconds. `segments` and `words` are always empty arrays —
+word-level timestamps are not returned.
+
+```json
+{
+  "task": "transcribe",
+  "language": "hi-IN",
+  "duration": 4.52,
+  "text": "Namaste, aap kaise hain?",
+  "segments": [],
+  "words": []
+}
+```
+
+`language` echoes the `language` you sent, or `"unknown"` when you let the model
+auto-detect.
+
+## Errors
+
+Errors use the OpenAI envelope: `{"error": {"message", "type", "code"}}`.
+
+| Status | `code` | When |
+|--------|--------|------|
+| `400` | `invalid_request` | `file` is empty |
+| `402` | `insufficient_credits` | Credit balance is exhausted |
+| `403` | `permission_denied` | The API key does not have the `stt` permission, or the model is not available on your plan |
+| `404` | `model_not_found` | `model` is not a known STT model ID |
+| `422` | — | A form field fails validation (for example an unknown `mode`, or `temperature` outside 0–2) |
+| `429` | `quota_exceeded` | Plan usage limit reached |
+| `502` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to transcribe the file. The response includes a `request_id` |
 
 ## Output Modes
 
@@ -123,6 +166,10 @@ curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
 | `verbatim` | Exact transcription including filler words |
 | `translit` | Transliteration to Latin script |
 | `codemix` | Code-mixed output (Indic + English) |
+
+`mode` is applied by `saaras:v3` and `saaras:v4`. `whisper-large-v3-turbo` also
+honours `translate`. Every other model ignores `mode` and returns a plain
+transcript.
 
 `saaras:v4` serves all five modes on one model across 24 languages, and is free-tier like `saaras:v3`:
 
@@ -141,8 +188,8 @@ files, the other only runs on a live voice session.
 
 | Model | Price | Languages | File transcription | Voice sessions |
 |-------|-------|-----------|--------------------|----------------|
-| `ink-whisper` | $0.18 / hr | 100 (incl. Hindi, Urdu, Tamil) | Yes | Yes |
-| `ink-2` | $0.54 / hr | English only (`en`) | **No** | Yes |
+| `ink-whisper` | $0.1875 / hr | 100 (incl. Hindi, Urdu, Tamil) | Yes | Yes |
+| `ink-2` | $0.5625 / hr | English only (`en`) | **No** | Yes |
 
 ### `ink-whisper` — the cheapest 100-language option
 
@@ -167,14 +214,22 @@ also self-detects turns, so a voice agent needs no separate turn detector on top
 Two limits decide whether you can use it at all:
 
 **1. It cannot transcribe files.** `ink-2` is streaming-only. POSTing it to
-`/v1/audio/transcriptions` returns `400` rather than quietly substituting a
-different model:
+`/v1/audio/transcriptions` fails rather than quietly substituting a
+different model. The request is not transcribed, and the error message names
+the alternative:
 
 ```json
 {
-  "detail": "ink-2 is a streaming-only model and is not available for file transcription. Use ink-whisper here, or ink-2 on a voice session."
+  "error": {
+    "message": "400: ink-2 is a streaming-only model and cannot transcribe an uploaded file. Use ink-whisper for file transcription, or select ink-2 on a voice session.",
+    "type": "server_error",
+    "code": "provider_error",
+    "request_id": "stt-…"
+  }
 }
 ```
+
+The HTTP status of this response is currently `502`; match on the message, not the status. `deepgram-flux-general-en` and `deepgram-flux-general-multi` fail the same way and point you to `deepgram-nova-3`.
 
 Select it on a [voice session](/docs/voice-agent) or the
 [Managed Voice Agent](/docs/managed-voice-agent) instead.
@@ -187,13 +242,13 @@ non-English speech use `ink-whisper` (100 languages) or an Indic model such as
 
 ## Deepgram feature parameters
 
-When you select a Deepgram model (`deepgram-nova-3`, `deepgram-nova-2`, `deepgram-flux-general-en`, etc.), these extra form fields are accepted. They are ignored for non-Deepgram models. Model-restricted features are dropped automatically when the chosen model doesn't support them.
+When you select a Deepgram file-transcription model (`deepgram-nova-3`, `deepgram-nova-2`, `deepgram-enhanced`, etc.), these extra form fields are accepted. They are ignored for non-Deepgram models. Model-restricted features are dropped automatically when the chosen model doesn't support them.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `diarize` | boolean | Label each speaker (`[Speaker 0]`, `[Speaker 1]`, …) |
 | `utterances` | boolean | Segment the transcript into utterances |
-| `utt_split` | number | Silence gap (seconds) used to split utterances |
+| `utt_split` | number | Silence gap (seconds, 0–10) used to split utterances |
 | `paragraphs` | boolean | Split the transcript into paragraphs |
 | `numerals` | boolean | Write numbers as digits (e.g. "five" → "5") |
 | `measurements` | boolean | Abbreviate measurement units (English) |
@@ -204,7 +259,7 @@ When you select a Deepgram model (`deepgram-nova-3`, `deepgram-nova-2`, `deepgra
 | `detect_entities` | boolean | Tag entities like names and locations (English) |
 | `detect_language` | string | `true` to auto-detect, or repeat with codes to restrict |
 | `redact` | string | `pci`, `pii`, `phi`, `numbers`, or a specific entity type (repeatable) |
-| `keyterm` | string | Boost recognition of a term/phrase (Nova-3 + Flux; repeatable) |
+| `keyterm` | string | Boost recognition of a term/phrase (Nova-3; repeatable) |
 | `keywords` | string | `keyword:intensifier` boost/suppress (Nova-2 / legacy; repeatable) |
 | `search` | string | Phonetically search the audio for a term (repeatable) |
 | `replace` | string | `find:replacement` substitution (repeatable) |
@@ -217,4 +272,4 @@ Deepgram models accept locale-specific language codes so you can pin a dialect f
 - **Spanish:** `es`, `es-419` (Latin America)
 - **Portuguese:** `pt-BR`, `pt-PT`
 - **Chinese:** `zh-CN`, `zh-TW`, `zh-HK` (Cantonese)
-- **Multilingual code-switching:** `multi` (Nova-3, Nova-2, Flux multilingual)
+- **Multilingual code-switching:** `multi` (Nova-3, Nova-2)
