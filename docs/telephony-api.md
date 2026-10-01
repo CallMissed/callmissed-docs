@@ -331,6 +331,25 @@ curl -X DELETE "https://api.callmissed.com/api/v1/telephony/numbers/{number_id}?
 
 `confirm=true` is **required** — releasing a number is permanent, stops its monthly rental charge, and is **not refunded**. Returns `204 No Content` on success, `400` if `confirm` is omitted, and `404` if the number is not found or not owned by your tenant.
 
+### Declare a number for AI calls (India)
+
+TRAI requires a business making automated or AI calls to declare that use, and the caller IDs it uses, to its telecom provider first ([press release 119/2026](https://www.trai.gov.in/sites/default/files/2026-09/PR_No119of2026.pdf)). After you have made that declaration with your provider, record it on the number. Campaigns check it before they dial; see [TRAI readiness](/docs/voice-campaigns#trai-readiness-for-ai-calls-india).
+
+```bash
+curl -X PUT https://api.callmissed.com/api/v1/telephony/numbers/{number_id}/a2p-declaration \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"series": "1600", "tsp_reference": "DECL-2026-0042", "confirm_declared_to_tsp": true}'
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `series` | `140` \| `1600` \| `1601` \| `standard` | Yes | `140`, `1600` and `1601` are TRAI's commercial-call series; `standard` is an ordinary number |
+| `tsp_reference` | string (≤64) | No | Your telecom provider's reference for the declaration |
+| `confirm_declared_to_tsp` | boolean | Yes | Must be `true`. You confirm the declaration was made to your provider |
+
+Returns the number with `a2p_declared_at`, `a2p_series` and `a2p_tsp_reference` set. Declaring again updates them. `DELETE` on the same path withdraws the declaration. Both need `telephony:write`. A released number returns `409`.
+
 ## 6. Place a Call
 
 Originate an outbound PSTN call from one of your **active** numbers. Link a `bot_id` to have your AI voice agent handle the call; if you omit it, the number's persistently bound bot is used.

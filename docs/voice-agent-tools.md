@@ -61,7 +61,7 @@ appears in `config.tools`.
 | Scheduling | `calcom_list_slots`, `calcom_book`, `google_calendar_find_free_slots`, `google_calendar_create_event` |
 | Spreadsheets | `google_sheets_find_rows`, `google_sheets_append_row`, `google_sheets_update_row`, `google_sheets_list_spreadsheets` |
 | Commerce | `shopify_order_status`, `shopify_product_lookup`, `woocommerce_order_status` |
-| WhatsApp messaging | `send_text_message`, `send_template_message`, `send_quick_reply_buttons`, `send_list_menu`, `send_cta_url_button`, `send_location` |
+| WhatsApp messaging | `send_text_message`, `send_template_message`, `send_quick_reply_buttons`, `send_list_menu`, `send_cta_url_button`, `send_location`, `request_contact_info` |
 | Calling | `request_call` |
 | Email | `send_email`, `gmail_send_email` |
 | HTTP | `http_request` |

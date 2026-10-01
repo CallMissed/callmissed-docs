@@ -43,6 +43,7 @@ Pass these in the `events` array. An unrecognised value returns `422` listing th
 | Billing | `budget.alert`, `budget.exceeded`, `credits.low` |
 | Keys | `api_key.expired` |
 | Invoices & payments | `invoice.created`, `payment.succeeded`, `payment.failed` |
+| Customer payment links | `payment_request.partially_paid`, `payment_request.paid`, `payment_request.expired`, `payment_request.cancelled` — a payment link an agent sent to your customer changed status in your own connected Razorpay account |
 
 ## Signing and verification
 
