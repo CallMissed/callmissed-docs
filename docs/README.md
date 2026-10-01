@@ -24,6 +24,7 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Prompt Management](gateway-prompts.md)
 - [Response Cache](gateway-cache.md)
 - [Bring Your Own Key](provider-keys.md)
+- [Data Retention & End-User Budgets](gateway-controls.md)
 - [Companies](crm-companies.md)
 - [Notes & Tasks](crm-notes-tasks.md)
 - [Deals & Pipelines](crm-deals.md)
@@ -74,6 +75,7 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 - [Chat Completion](chat-completion.md)
 - [Streaming](chat-streaming.md)
 - [Function Calling](chat-function-calling.md)
+- [Batch API](batch.md)
 - [Anthropic-Compatible API](anthropic-api.md)
 - [Embeddings](embeddings.md)
 

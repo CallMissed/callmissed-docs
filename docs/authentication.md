@@ -86,6 +86,7 @@ Scopes gate the resource endpoints under `/api/v1/` — bots, conversations, kno
 | `prompts:read` / `prompts:write` | [Stored prompts, versions, labels and presets](/docs/gateway-prompts). Rendering counts as a read |
 | `cache:read` / `cache:write` | [Cache statistics vs. purging](/docs/gateway-cache) |
 | `provider_keys:read` / `provider_keys:write` | [Your own provider credentials](/docs/provider-keys) |
+| `end_user_budgets:read` / `end_user_budgets:write` | [Per-end-user monthly budgets](/docs/gateway-controls) |
 
 #### CRM scopes
 

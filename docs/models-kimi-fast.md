@@ -58,7 +58,7 @@ for chunk in response:
 
 | Direction | Cost per 1M tokens |
 |-----------|-------------------|
-| Input | $0.81 |
-| Output | $4.05 |
+| Input | $0.8438 |
+| Output | $4.219 |
 
-**1 credit = ₹1 = $0.01.** A typical voice-agent turn — 500 input + 200 output tokens — costs $0.001215, or **0.1215 credits**. These rates apply once `kimi-k2.5-fast` leaves maintenance. See [Credits & Rate Limits](/docs/credits-rate-limits).
+**1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96).** A typical voice-agent turn — 500 input + 200 output tokens — costs $0.001266, or **0.1215 credits**. These rates apply once `kimi-k2.5-fast` leaves maintenance. See [Credits & Rate Limits](/docs/credits-rate-limits).
