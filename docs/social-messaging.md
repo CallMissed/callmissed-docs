@@ -157,3 +157,56 @@ Text only — there is no attachment, template or quick-reply parameter on these
 endpoints. A send fails with `409` when no thread exists for the recipient (the
 window was never opened), `400` when the window has closed, `404` when the account
 is not one of yours, and `502` when the upstream send fails.
+
+## Messaging analytics
+
+Facebook — `GET /api/v1/facebook/analytics/funnel` · `GET /api/v1/facebook/analytics/timeseries`
+Instagram — `GET /api/v1/instagram/analytics/funnel` · `GET /api/v1/instagram/analytics/timeseries`
+
+Message volume and delivery for one channel across your whole workspace. Needs
+`whatsapp:read`.
+
+| Query | Type | Description |
+|---|---|---|
+| `days` | integer | Look-back window, 1–90. Default `7` for the funnel, `14` for the time series. |
+
+**Funnel** — counts are cumulative: a `read` message also counts as `delivered`
+and `sent`.
+
+```json
+{
+  "channel": "instagram",
+  "days": 7,
+  "inbound": 412,
+  "outbound": 398,
+  "sent": 391,
+  "delivered": 380,
+  "read": 301,
+  "failed": 7,
+  "delivery_rate": 0.955,
+  "read_rate": 0.792
+}
+```
+
+| Field | Description |
+|---|---|
+| `inbound` | Messages customers sent you |
+| `outbound` | Messages you sent (agent replies and API sends) |
+| `sent` / `delivered` / `read` | Outbound messages that reached at least that stage |
+| `failed` | Outbound messages Meta rejected |
+| `delivery_rate` | `delivered / outbound`, 0–1 |
+| `read_rate` | `read / delivered`, 0–1 (both rates rounded to 3 decimals) |
+
+**Time series** — one point per UTC day and direction; days with no messages are
+omitted.
+
+```json
+{
+  "channel": "facebook",
+  "days": 14,
+  "points": [
+    { "date": "2026-08-23", "direction": "inbound", "count": 58 },
+    { "date": "2026-08-23", "direction": "outbound", "count": 61 }
+  ]
+}
+```
