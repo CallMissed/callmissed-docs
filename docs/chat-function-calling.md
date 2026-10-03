@@ -48,6 +48,8 @@ Function calling lets the model invoke your functions. Pass a `tools` array and 
 
 Set `parallel_tool_calls: true` to allow the model to call multiple tools in one response.
 
+Up to 128 tools per request. Every model with `supports_tools: true` in [`GET /v1/models`](/docs/models#models-api) accepts them. On the GPT-5.6 and GPT-6 models, a request that sends `tools` runs with reasoning switched off (`reasoning_effort` is sent as `"none"`), because those models cannot combine function tools with reasoning on this endpoint. A request with `tools` never uses the `models` fallback list.
+
 ## Handling Response
 
 When the model calls a tool, `finish_reason` is `"tool_calls"` and `message.content` is `null`:
@@ -64,7 +66,7 @@ When the model calls a tool, `finish_reason` is `"tool_calls"` and `message.cont
         "type": "function",
         "function": {
           "name": "get_weather",
-          "arguments": "{"city": "Mumbai"}"
+          "arguments": "{\"city\": \"Mumbai\"}"
         }
       }]
     }
@@ -78,7 +80,7 @@ Send the tool result back as a `tool` role message:
 {
   "role": "tool",
   "tool_call_id": "call_abc123",
-  "content": "{"temperature": 32, "condition": "sunny"}"
+  "content": "{\"temperature\": 32, \"condition\": \"sunny\"}"
 }
 ```
 
@@ -98,6 +100,11 @@ When streaming, each chunk that carries a `delta.tool_calls` fragment also inclu
 ## Full Example
 
 ```python
+import json
+from openai import OpenAI
+
+client = OpenAI(api_key="cm_your_key", base_url="https://api.callmissed.com/v1")
+
 # Step 1: Send initial request with tools
 response = client.chat.completions.create(
     model="sarvam-105b",

@@ -1,13 +1,13 @@
 ---
 title: "Account MCP Server"
-description: "Give an AI agent 327 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
+description: "Give an AI agent 331 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
 slug: "agent-tools-mcp"
 breadcrumb: "Getting Started"
 ---
 
 # Account MCP Server
 
-Give an AI agent 327 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
+Give an AI agent 331 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
 
 :::cards
 /docs/mcp-server | Docs MCP Server | book | Searchable CallMissed docs inside your coding agent
@@ -16,7 +16,7 @@ Give an AI agent 327 tools that act on your CallMissed account: draft, build and
 
 ## Overview
 
-The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 327 tools: draft, build and configure voice agents end to end, set up how inbound calls are answered with flows, menus and queues, place and inspect phone calls, read transcripts, build and run outbound calling campaigns, work the shared inbox and the support desk, search and update the CRM and set up its pipelines, custom fields and lead scoring, summarise and score calls, send WhatsApp messages, catalog products and Flow forms, send email, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, wire up webhooks and managed prompts, version and roll back an agent, run evaluation suites and A/B experiments, and check what it all cost.
+The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 331 tools: draft, build and configure voice agents end to end, set up how inbound calls are answered with flows, menus and queues, place and inspect phone calls, read transcripts, build and run outbound calling campaigns, work the shared inbox and the support desk, search and update the CRM and set up its pipelines, custom fields and lead scoring, summarise and score calls, send WhatsApp messages, catalog products and Flow forms, send email, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, wire up webhooks and managed prompts, version and roll back an agent, run evaluation suites and A/B experiments, and check what it all cost.
 
 It is hosted, so there is nothing to install and nothing to run locally.
 
@@ -135,7 +135,7 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 
 ## Tools
 
-327 tools in sixteen groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
+331 tools in sixteen groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
 
 ### Voice and calls
 
@@ -196,8 +196,9 @@ Deleting a flow, menu, queue or voicemail message is not an MCP tool: an assista
 | --- | --- | --- | --- | --- |
 | `get_voice_session` | Get one voice agent session's status, timing and post-call analysis (summary, outcome, sentiment) once it exists | Read | `stt` + `tts` + `llm` permissions | No |
 | `update_number_call_settings` | Set a number's call settings | Write | `telephony:write` | No |
+| `declare_number_for_ai_calls` | Record that a number has been declared to your telecom provider for automated/AI calls (India TRAI). Records a declaration already made; does not file one | Write | `telephony:write` | No |
 | `list_telephony_compliance` | List this account's phone-number KYC applications and whether each is approved, pending or rejected (with the reason) | Read | `telephony:read` | No |
-| `unpublish_call_flow` | Stop answering live calls with this flow; numbers on it answer normally again | Write | `telephony:write` | No |
+| `unpublish_call_flow` | Stop answering live calls with this flow; numbers on it answer normally again | Write, destructive | `telephony:write` | No |
 | `update_queue_member` | Change a queue member's priority, concurrent-call limit, or enabled flag | Write | `telephony:write` | No |
 
 ### Calling campaigns
@@ -209,10 +210,11 @@ An outbound campaign is a list of people, a voice agent and the rules for when a
 | `list_campaigns` | List campaigns, newest first, with status and contact counts | Read | `campaigns:read` | No |
 | `get_campaign` | Fetch one campaign: status, schedule, calling hours, dial mode | Read | `campaigns:read` | No |
 | `create_campaign` | Create a campaign. It starts as a draft and calls nobody | Write | `campaigns:write` | No |
-| `update_campaign` | Change name, schedule, calling number, calling hours or dial mode | Write | `campaigns:write` | No |
+| `update_campaign` | Change name, schedule, calling number, calling hours, dial mode or DLT registration fields | Write | `campaigns:write` | No |
 | `add_campaign_contacts` | Add up to 1000 people to the calling list. Adding calls nobody | Write | `campaigns:write` | No |
 | `list_campaign_contacts` | The per-person result: waiting, calling, done or failed, with attempts and last error | Read | `campaigns:read` | No |
 | `get_campaign_live_state` | What the campaign is doing right now, and in preview mode who is awaiting a go-ahead | Read | `campaigns:read` | No |
+| `get_campaign_trai_readiness` | What stops the campaign meeting India's TRAI rules for AI calls, and whether the account enforces them | Read | `campaigns:read` | No |
 | `start_campaign` | **Starts calling.** Real calls to every person on the list | Write, destructive | `campaigns:write` | Yes |
 | `pause_campaign` | Stop placing new calls. Can be started again later | Write | `campaigns:write` | No |
 | `stop_campaign` | Cancel the campaign for good. Cannot be started again | Write, destructive | `campaigns:write` | No |
@@ -324,7 +326,7 @@ A new or changed rule does not move any score until `recompute_lead_scores` runs
 | `list_crm_notes` | List the notes on one contact, company or deal, newest first | Read | `crm_notes:read` | No |
 | `update_crm_note` | Replace the text of a note | Write | `crm_notes:write` | No |
 | `list_crm_duplicates` | Find groups of contacts or companies that look like the same record | Read | `crm_search:read` | No |
-| `merge_crm_duplicates` | Irreversibly fold duplicates into a primary record: their linked records move to it and the duplicates are deleted | Write | `crm_search:write` | No |
+| `merge_crm_duplicates` | Irreversibly fold duplicates into a primary record: their linked records move to it and the duplicates are deleted | Write, destructive | `crm_search:write` | No |
 | `update_saved_view` | Rename a saved view or change its filters, sort, columns, layout or sharing; the list it belongs to cannot change | Write | `crm_views:write` | No |
 | `get_company` | Get one company's record by id | Read | `companies:read` | No |
 
@@ -405,7 +407,7 @@ Macros and rules are retired with `is_active: false` rather than deleted, so not
 | `review_whatsapp_template` | WhatsApp's template rules, the practices that keep your account from being restricted (opt-in, opt-outs, the 24-hour window, quality rating), and a scored review of a draft: errors, warnings and tips. Call it before creating or editing a template | Read | `whatsapp:read` | No |
 | `create_whatsapp_template` | Create a template (or copy a library template by name) and submit it for review. A draft that breaks WhatsApp's template rules is refused with the list of problems; remaining warnings come back as `policy_warnings` | Write | `whatsapp:write` | No |
 | `edit_whatsapp_template` | Replace an approved, rejected or paused template's content and resubmit it, with the same rules check as create | Write | `whatsapp:write` | No |
-| `delete_whatsapp_template` | **Permanently** delete a template in every language | Write | `whatsapp:write` | No |
+| `delete_whatsapp_template` | **Permanently** delete a template in every language | Write, destructive | `whatsapp:write` | No |
 | `get_whatsapp_business_verification` | Whether the business behind your WhatsApp account is verified | Read | `whatsapp:read` | No |
 | `list_whatsapp_campaigns` | List broadcast campaigns with status and recipient counts | Read | `whatsapp:read` | No |
 | `send_email` | Send an email from a domain this account has verified | Write | `email` permission | Yes |
@@ -414,11 +416,11 @@ Macros and rules are retired with `is_active: false` rather than deleted, so not
 | `send_whatsapp_catalog` | Send the whole catalog attached to a business number, fronted by one product as the cover | Write | `wa_commerce:write` | Yes |
 | `list_whatsapp_orders` | List the carts customers sent from your catalog, with status, currency and subtotal | Read | `wa_commerce:read` | No |
 | `get_whatsapp_order` | One cart order with every line item: SKU, quantity and unit price | Read | `wa_commerce:read` | No |
-| `update_whatsapp_order_status` | Advance a stored order and tell the customer in the same step. `completed` and `canceled` are final | Write | `wa_commerce:write` | Yes |
+| `update_whatsapp_order_status` | Advance a stored order and tell the customer in the same step. `completed` and `canceled` are final | Write, destructive | `wa_commerce:write` | Yes |
 | `list_whatsapp_flows` | List your WhatsApp Flows with status and categories. The design document is left out | Read | `wa_flows:read` | No |
 | `send_whatsapp_flow` | Send a Flow — a form filled in without leaving the chat — and get the token that identifies the reply | Write | `wa_flows:write` | Yes |
 | `list_whatsapp_flow_responses` | The Flow forms customers submitted, with the answers they gave | Read | `wa_flows:read` | No |
-| `publish_whatsapp_flow` | Publish a draft Flow. One-way: the design is then frozen and changing it means a new Flow | Write | `wa_flows:write` | No |
+| `publish_whatsapp_flow` | Publish a draft Flow. One-way: the design is then frozen and changing it means a new Flow | Write, destructive | `wa_flows:write` | No |
 
 #### More messaging tools
 
@@ -437,7 +439,7 @@ Macros and rules are retired with `is_active: false` rather than deleted, so not
 | `get_whatsapp_campaign` | Read one campaign with its status and delivery counts | Read | `whatsapp:read` | No |
 | `add_whatsapp_campaign_recipients` | Add recipients, each with optional template variables, to a campaign that has not launched | Write | `whatsapp:write` | No |
 | `launch_whatsapp_campaign` | Start sending a campaign to all its recipients | Write | `whatsapp:write` | Yes |
-| `cancel_whatsapp_campaign` | Stop a campaign; messages already sent are not recalled | Write | `whatsapp:write` | No |
+| `cancel_whatsapp_campaign` | Stop a campaign; messages already sent are not recalled | Write, destructive | `whatsapp:write` | No |
 | `get_whatsapp_analytics` | Read WhatsApp messaging analytics: the delivery funnel, a daily time series, or credits spent | Read | `whatsapp:read` | No |
 | `list_whatsapp_webhook_events` | List the most recent events WhatsApp delivered to your numbers, for debugging | Read | `whatsapp:read` | No |
 | `list_whatsapp_calls` | List WhatsApp voice calls, newest first | Read | `whatsapp:read` | No |
@@ -445,7 +447,7 @@ Macros and rules are retired with `is_active: false` rather than deleted, so not
 | `update_whatsapp_call_settings` | Turn calling on or off for a number and set its call hours, call icon and callback permission | Write | `whatsapp:write` | No |
 | `request_whatsapp_call_permission` | Send a customer WhatsApp's call-permission prompt; you can only call them after they accept | Write | `whatsapp:send` | No |
 | `place_whatsapp_call` | Call a customer on WhatsApp; the number's linked agent does the talking | Write | `whatsapp:send` | Yes |
-| `end_whatsapp_call` | Hang up a live WhatsApp call | Write | `whatsapp:send` | No |
+| `end_whatsapp_call` | Hang up a live WhatsApp call | Write, destructive | `whatsapp:send` | No |
 
 ### Images
 
@@ -479,7 +481,7 @@ Macros and rules are retired with `is_active: false` rather than deleted, so not
 | `create_agent_custom_tool` | Define an HTTP endpoint an agent may call mid-conversation | Write | `bots:write` | No |
 | `update_agent_custom_tool` | Change a custom HTTP tool. Omitted fields, including secrets, are kept | Write | `bots:write` | No |
 | `test_agent_custom_tool` | Run a saved custom tool once. This **really calls** the endpoint with its stored credentials | Write | `bots:write` | No |
-| `delete_agent_custom_tool` | **Permanently** delete a custom tool and its stored credentials, for every agent that uses it | Write | `bots:write` | No |
+| `delete_agent_custom_tool` | **Permanently** delete a custom tool and its stored credentials, for every agent that uses it | Write, destructive | `bots:write` | No |
 | `set_agent_voicemail_drop` | Make a calling agent leave a saved voicemail message when a machine answers | Write | `bots:write` | No |
 | `draft_agent_from_description` | Describe the agent you want and get a complete, reviewable draft back. Creates nothing | Write | `squads:write` | Yes |
 
@@ -509,7 +511,7 @@ The same flow over plain HTTP, with curl for every step and the five ways a conf
 | `update_agent_squad` | Change a squad's name, description, entry agent (must already be a member), handoff policy, or active flag | Write | `squads:write` | No |
 | `add_squad_member` | Put an agent on a squad's roster under a role; its description is what routing matches callers against | Write | `squads:write` | No |
 | `update_squad_member` | Change a squad member's role, description or position | Write | `squads:write` | No |
-| `remove_squad_member` | Take a member off a squad's roster; the entry agent cannot be removed | Write | `squads:write` | No |
+| `remove_squad_member` | Take a member off a squad's roster; the entry agent cannot be removed | Write, destructive | `squads:write` | No |
 | `simulate_squad_handoff` | Dry-run a squad's routing: given what a caller said, which member would take the call and why | Read | `squads:read` | No |
 
 ### Usage and credits
@@ -534,7 +536,7 @@ grant.
 | `test_webhook` | Send a real signed POST to the configured endpoint and report its status code and latency | Write | `webhooks:write` | No |
 | `list_webhook_deliveries` | Delivery attempts for one webhook, with status code, attempts and error | Read | `webhooks:write` | No |
 | `get_webhook_delivery` | One attempt in full, including the JSON payload that was sent | Read | `webhooks:write` | No |
-| `replay_webhook_delivery` | Re-send a past payload to the current endpoint. Your server really receives it again | Write | `webhooks:write` | No |
+| `replay_webhook_delivery` | Re-send a past payload to the current endpoint. Your server really receives it again | Write, destructive | `webhooks:write` | No |
 | `list_integrations` | The external services connected to the account. Stored credentials are never returned | Read | `integrations:read` | No |
 | `list_integration_catalog` | What can be connected, annotated with what already is | Read | `integrations:read` | No |
 | `start_integration_oauth` | Return a console link that connects a sign-in (OAuth) service to the workspace of the person who opens it | Write | `integrations:write` | No |
@@ -543,7 +545,7 @@ grant.
 | `list_prompt_versions` | The revision log: version, label, pinned model, declared variables. Template text omitted | Read | `prompts:read` | No |
 | `get_prompt_version` | One version in full, with its template, variables and pinned model and parameters | Read | `prompts:read` | No |
 | `create_prompt_version` | Append a revision. Nothing live changes until a label points at it | Write | `prompts:write` | No |
-| `set_prompt_label` | Point a label such as `production` at a version. This is how a prompt is published | Write | `prompts:write` | No |
+| `set_prompt_label` | Point a label such as `production` at a version. This is how a prompt is published | Write, destructive | `prompts:write` | No |
 | `render_prompt` | Substitute variables and get the text back, plus any you did not supply. No model call | Read | `prompts:read` | No |
 | `list_prompt_presets` | Saved presets: a named model plus pinned parameters | Read | `prompts:read` | No |
 | `create_prompt_preset` | Save a model and parameters under a name, optionally bound to a prompt version | Write | `prompts:write` | No |
@@ -551,8 +553,8 @@ grant.
 | `get_agent_version` | One version in full. Stored channel credentials are redacted | Read | `bots:read` | No |
 | `create_agent_version` | Stage a draft from what is live now. Callers are unaffected until it is published | Write | `bots:write` | No |
 | `update_agent_version` | Edit the staged draft. Published versions are immutable | Write | `bots:write` | No |
-| `publish_agent_version` | Publish the draft onto the live agent. The next caller hears the new behaviour | Write | `bots:write` | No |
-| `rollback_agent_version` | Put an older version back on the live agent. Appends rather than rewriting history | Write | `bots:write` | No |
+| `publish_agent_version` | Publish the draft onto the live agent. The next caller hears the new behaviour | Write, destructive | `bots:write` | No |
+| `rollback_agent_version` | Put an older version back on the live agent. Appends rather than rewriting history | Write, destructive | `bots:write` | No |
 
 `test_webhook` and `replay_webhook_delivery` both make a real outbound HTTP
 request to **your own** endpoint, so whatever your server does on that event
@@ -587,15 +589,16 @@ connected to their own workspace; nothing is connected until they do. Confirm it
 | `create_eval_suite` | Create a suite of synthetic conversations for one agent | Write | `evals:write` | No |
 | `list_eval_cases` | The cases in a suite: persona, opening line, turn budget, success criteria | Read | `evals:read` | No |
 | `create_eval_case` | Add one synthetic conversation to a suite | Write | `evals:write` | No |
+| `create_eval_case_from_session` | Turn a real voice session into a test case: its opening, the caller's goal, and suggested outcome checks. The key also needs the stt, tts and llm permissions | Write | `evals:write` | No |
 | `run_eval_suite` | Run every case against the agent and report what passed. Takes minutes on a big suite | Write | `evals:write` | Yes |
 | `list_eval_runs` | Run history with pass counts, model and credits spent | Read | `evals:read` | No |
 | `get_eval_run` | One run in full, including every synthetic transcript | Read | `evals:read` | No |
 | `list_experiments` | A/B experiments with status, deciding metric and traffic split | Read | `experiments:read` | No |
 | `create_experiment` | Create an experiment on one agent. Starts as a draft taking no traffic | Write | `experiments:write` | No |
 | `create_experiment_arm` | Add a configuration to compare: an agent version plus optional overrides | Write | `experiments:write` | No |
-| `start_experiment` | Put it live. Real callers are split across the arms from this moment | Write | `experiments:write` | No |
+| `start_experiment` | Put it live. Real callers are split across the arms from this moment | Write, destructive | `experiments:write` | No |
 | `stop_experiment` | Stop splitting traffic. Everything already collected is kept | Write | `experiments:write` | No |
-| `conclude_experiment` | Record the winner and close it. Final — it cannot be restarted or changed | Write | `experiments:write` | No |
+| `conclude_experiment` | Record the winner and close it. Final — it cannot be restarted or changed | Write, destructive | `experiments:write` | No |
 | `get_experiment_results` | Per-arm sample sizes and the deciding metric, with a plain-language verdict | Read | `experiments:read` | No |
 | `list_voice_alerts` | Metric alerts with their thresholds, windows and whether each is firing | Read | `webhooks:write` | No |
 | `create_voice_alert` | Be notified when a call metric crosses a threshold over a rolling window | Write | `webhooks:write` | No |
@@ -631,13 +634,14 @@ Check, connect and disconnect the channels and services the account runs on, wit
 | Tool | What it does | Access | Scope or permission | Credits |
 | --- | --- | --- | --- | --- |
 | `get_integration_status` | Whether an integration is connected, and to which account. Call it after the person approves the `start_integration_oauth` link | Read | `integrations:read` | No |
-| `disconnect_integration` | Disconnect an integration and discard its stored credentials. Reconnect with `start_integration_oauth` | Write | `integrations:write` | No |
+| `disconnect_integration` | Disconnect an integration and discard its stored credentials. Reconnect with `start_integration_oauth` | Write, destructive | `integrations:write` | No |
 | `start_channel_connection` | The link that connects a WhatsApp Business number, Facebook Page, Instagram account or personal WhatsApp number, with the steps to follow | Read | `whatsapp:write` | No |
 | `list_whatsapp_accounts` | Connected WhatsApp Business accounts | Read | `whatsapp:read` | No |
 | `get_whatsapp_number` | One WhatsApp number's live status | Read | `whatsapp:read` | No |
-| `disconnect_whatsapp_number` | Deregister a WhatsApp number from this workspace. History is kept | Write | `whatsapp:write` | No |
+| `disconnect_whatsapp_number` | Deregister a WhatsApp number from this workspace. History is kept | Write, destructive | `whatsapp:write` | No |
 | `get_knowledge_source` | One knowledge source's status, including the error if indexing failed | Read | `knowledge:read` | No |
-| `remove_knowledge_source` | Remove a source from an agent's knowledge | Write | `knowledge:write` | No |
+| `remove_knowledge_source` | Remove a source from an agent's knowledge | Write, destructive | `knowledge:write` | No |
+| `list_payment_requests` | Payment links your agents sent to customers during calls and chats, with amount, amount paid and status. The money goes to your own connected Razorpay account | Read | `integrations:read` | No |
 
 Two steps cannot happen inside a chat: Meta's own sign-in window for WhatsApp Business, Facebook and Instagram, and the QR scan that links a personal WhatsApp number. `start_channel_connection` returns the one page that runs that step, and `list_whatsapp_numbers`, `list_facebook_pages` or `list_instagram_accounts` confirms it worked. No tool accepts an access token or provider key.
 
@@ -688,7 +692,7 @@ Domains, templates, suppressions, inbound addresses and send history for the Ema
 | `create_email_template` | Save a reusable email template | Write | `email` permission | No |
 | `update_email_template` | Change an email template; only the fields given change | Write | `email` permission | No |
 | `get_scheduled_email` | Look up scheduled sends by the send id or batchId a send returned | Read | `email` permission | No |
-| `cancel_scheduled_email` | Cancel every still-pending send for a send id or batchId | Write | `email` permission | No |
+| `cancel_scheduled_email` | Cancel every still-pending send for a send id or batchId | Write, destructive | `email` permission | No |
 
 ### Guides and playbooks
 
@@ -700,15 +704,15 @@ Step-by-step playbooks an assistant follows before it builds anything: it interv
 
 ### Calling tools are deployment-gated
 
-31 of the 327 tools are gated on whether calling is switched on for your account, in two independent groups.
+33 of the 331 tools are gated on whether calling is switched on for your account, in two independent groups.
 
-**19 telephony tools:** `place_call`, `list_calls`, `get_call`, `end_call`, `get_call_recording`, `click_to_call`, `list_phone_numbers`, `search_available_numbers`, `provision_phone_number`, `attach_number_to_agent`, the four voicemail-message tools, `set_agent_voicemail_drop`, `get_number_reputation`, `update_number_call_settings`, `list_telephony_compliance` and `callback_handoff`. With telephony off, `tools/list` returns the other 308.
+**20 telephony tools:** `place_call`, `list_calls`, `get_call`, `end_call`, `get_call_recording`, `click_to_call`, `list_phone_numbers`, `search_available_numbers`, `provision_phone_number`, `attach_number_to_agent`, the four voicemail-message tools, `set_agent_voicemail_drop`, `get_number_reputation`, `update_number_call_settings`, `declare_number_for_ai_calls`, `list_telephony_compliance` and `callback_handoff`. With telephony off, `tools/list` returns the other 311.
 
-**12 campaign tools:** the whole **Calling campaigns** table above. With campaigns off, `tools/list` returns the other 315.
+**13 campaign tools:** the whole **Calling campaigns** table above. With campaigns off, `tools/list` returns the other 318.
 
 The flow, menu and queue tools are **not** in either group. Call routing is authored before calling is switched on, so those routes are always mounted and those tools are always served.
 
-Each group appears only where that feature is switched on. Where neither is, `tools/list` returns the other 296 and those 31 are simply absent, because the REST routes behind them are not mounted there. Calling one by name anyway returns the same `Unknown tool` error as a typo.
+Each group appears only where that feature is switched on. Where neither is, `tools/list` returns the other 298 and those 33 are simply absent, because the REST routes behind them are not mounted there. Calling one by name anyway returns the same `Unknown tool` error as a typo.
 
 If you do not see them and you expect to, talk to us and we will get calling turned on for you.
 
@@ -728,7 +732,7 @@ curl https://api.callmissed.com/api/v1/mcp/catalog
 {
   "serverUrl": "https://api.callmissed.com/api/v1/mcp",
   "protocolVersion": "2025-06-18",
-  "count": 327,
+  "count": 331,
   "categories": { "voice": "Voice and calls", "crm": "CRM" },
   "tools": [
     {
