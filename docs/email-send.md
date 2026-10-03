@@ -219,7 +219,7 @@ Read the results from [engagement metrics](/docs/email-logs#engagement-metrics).
 | Header | Notes |
 |--------|-------|
 | `Authorization` | `Bearer cm_...`, the key needs the **email** permission (required) |
-| `Idempotency-Key` | Optional. A repeat with the same key returns the first send's result without sending or charging again |
+| `Idempotency-Key` | Optional, 1–128 characters. A repeat with the same key returns the first send's result without sending or charging again. Reusing a single send's key on a batch (or the reverse) is `409 idempotency_conflict` |
 
 ## Semantics
 
@@ -256,6 +256,8 @@ A successful call returns `202 Accepted`:
 | `messageIds` | string[] | Brevo-compatible; `[message_id]` |
 | `status` | string | `sent` when accepted for delivery |
 | `suppressed` | string[] | Recipients dropped by your suppression list |
+| `batchId` | string \| null | `null` on an immediate single send; set on a [scheduled](/docs/email-scheduled) or [batch](/docs/email-scheduled#batch-messageversions) send |
+| `scheduledAt` | string \| null | `null` unless the send was scheduled |
 
 View delivery history and spend: see [Delivery Log & Usage](/docs/email-logs).
 
@@ -269,6 +271,7 @@ View delivery history and spend: see [Delivery Log & Usage](/docs/email-logs).
 | 403 | `email_not_enabled` | The API key lacks the email permission |
 | 403 | `domain_not_verified` | The From domain is registered but hasn't passed verification |
 | 403 | `all_recipients_suppressed` | Every recipient is on your suppression list |
+| 409 | `idempotency_conflict` | The `Idempotency-Key` was already used by a different kind of send |
 | 422 | `empty_body` | Neither `text` nor `html` (nor a template body) was present |
 | 422 | `too_many_recipients` | Over 50 recipients on a single send |
 | 422 | `message_too_large` | The assembled message exceeds 25 MB |
