@@ -127,7 +127,7 @@ The 24-hour-window error (`131047`) comes back as a real code and as HTTP `400`,
 
 ## What is unchanged on your side
 
-- **Your seven existing `/messages/*` calls, if any, still work** and still return CallMissed's `{"detail": "..."}` shape. This compat surface is additive — it does not replace them.
+- **Your existing native `/messages/*` calls, if any, still work** and still return CallMissed's `{"detail": "..."}` shape. This compat surface is additive — it does not replace them.
 - **Inbound messages and delivery statuses** still arrive through your [webhook subscriptions](/docs/whatsapp-api). This page covers sending; receiving is unchanged.
 - **Templates, media, interactive, location, contacts and reactions** all take Meta's payloads for those types.
 

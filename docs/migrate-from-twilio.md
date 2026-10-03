@@ -132,23 +132,24 @@ Fidelity details that match Twilio exactly:
 curl https://api.callmissed.com/2010-04-01/Accounts/ACxxxxxxxx/Calls/CA0f1e2d....json \
   -u "any:cm_your_api_key"
 
-# List (filters: To, From, Status; paging: Page, PageSize)
+# List (filters: To, From, Status; paging: Page, PageSize — default 50, max 200)
 curl "https://api.callmissed.com/2010-04-01/Accounts/ACxxxxxxxx/Calls.json?Status=completed&PageSize=50" \
   -u "any:cm_your_api_key"
 ```
 
-The list envelope is Twilio's, and the array key is the lower-cased resource name — **`calls`** — with `page`, `page_size`, `uri`, `first_page_uri`, `next_page_uri` and `previous_page_uri`.
+The list envelope is Twilio's, and the array key is the lower-cased resource name — **`calls`** — with `page`, `page_size`, `uri`, `first_page_uri`, `next_page_uri` and `previous_page_uri`. A `PageSize` above 200 is clamped to 200 rather than rejected, as Twilio clamps to its own maximum.
 
 ## Parameters that are rejected, not ignored
 
-Silently ignoring a parameter would connect the call and then behave differently from what you asked — worse than refusing it. These return `400` with a Twilio-shaped error that names the parameter:
+Silently ignoring a parameter would connect the call and then behave differently from what you asked — worse than refusing it. These return `400` with a Twilio-shaped error (code `61001`) that names the parameter:
 
-- **`Url` / `Twiml` / `Method` / `Fallback*`** — there is no TwiML interpreter. CallMissed calls are agent-driven; the behaviour comes from `ApplicationSid` (the agent), not a markup document.
-- **`Record` / `RecordingStatusCallback*`** — per-call recording is not controllable through this API.
+- **`Url` / `Twiml` / `Laml` / `Method` / `Fallback*`** — there is no TwiML interpreter. CallMissed calls are agent-driven; the behaviour comes from `ApplicationSid` (the agent), not a markup document.
+- **`Record` / `Recording*` / `Trim`** — per-call recording is not controllable through this API.
 - **`MachineDetection*` / `AsyncAmd*`** — no answering-machine detection.
 - **`SendDigits`** — no post-answer DTMF injection.
 - **`Timeout` / `TimeLimit`** — no per-call ring/duration override (the agent's configured max duration applies).
-- **`StatusCallback` / `StatusCallbackEvent` / `StatusCallbackMethod`** — per-call status callbacks are not delivered. Subscribe instead to the `call.started` / `call.completed` / `call.failed` [webhook events](/docs/webhooks) at `/api/v1/webhooks`.
+- **`StatusCallback` / `StatusCallbackEvent` / `StatusCallbackMethod`** — per-call status callbacks are not delivered on this surface. Subscribe instead to the `call.started` / `call.completed` / `call.failed` [webhook events](/docs/webhooks) at `/api/v1/webhooks`, or place the call with the native [Telephony API](/docs/telephony-api), whose `status_callback_url` does take a per-call URL.
+- **`CallerId` / `CallReason` / `CallToken` / `SipAuthUsername` / `SipAuthPassword` / `Byoc`** — not supported. (For spoken context use `CallMissedReason`.)
 
 ## Error envelope
 
