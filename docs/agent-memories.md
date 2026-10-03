@@ -1,15 +1,15 @@
 ---
 title: "Agent Memories"
-description: "Read, teach and erase the standing facts an agent remembers, including the newest ones it carries into every turn without searching."
+description: "Read, teach, correct and erase the standing facts an agent remembers and the rules it follows on every reply, including the newest facts it carries into every turn without searching."
 slug: "agent-memories"
 breadcrumb: "API Reference"
 ---
 
 # Agent Memories
 
-Read, teach and erase the standing facts an agent remembers, including the newest ones it carries into every turn without searching.
+Read, teach, correct and erase the standing facts an agent remembers and the rules it follows on every reply, including the newest facts it carries into every turn without searching.
 
-> A memory is one short fact an agent was told to keep. These endpoints are the operator's view of that store: see exactly what is remembered, teach a fact directly, and delete anything that should not be there.
+> A memory is one short fact an agent was told to keep, or a rule it was told to follow. These endpoints are the operator's view of that store: see exactly what is remembered, teach a fact or a rule directly, correct one, turn one into the other, and delete anything that should not be there.
 
 :::cards
 /docs/bots | Bots | bot | The agent a memory belongs to, and its built-in tool list
@@ -18,21 +18,33 @@ Read, teach and erase the standing facts an agent remembers, including the newes
 
 ## The injection window: what the agent reads without asking
 
-Every memory stays searchable forever. Only the newest **12** are handed to the agent at the start of a turn, so it acts on them without deciding to look anything up. That set is the injection window, and `injected: true` marks it on every listed memory.
+Every memory stays searchable forever. The newest of each kind are handed to the agent at the start of a turn, so it acts on them without deciding to look anything up: up to **100 rules**, **500 facts** you or the agent saved, and **150 facts picked up from chats**, each kind in its own window. That set is the injection window, and `injected: true` marks it on every listed memory.
 
 The window is applied today on the linked personal WhatsApp channel. On every other channel a memory is still remembered and still found by `recall_memory`; it is simply not placed in the prompt ahead of time, so `injected` there tells you where a fact sits in the order rather than that it was already read.
 
 | | Inside the window | Outside it |
 | --- | --- | --- |
-| Newest ... | 12 facts | Everything older |
+| Newest ... | 100 rules, 500 saved facts, 150 chat-picked facts | Everything older |
 | How the agent gets it | Already in front of it, every turn | It calls `recall_memory` and the fact is found by meaning, not by keyword |
 | Reliability | Always applied | Applied when the conversation gives the agent a reason to search |
 
 So a fact does not stop existing when it falls out of the window. It stops being free. If a preference must hold on every single reply, keep it near the top by restating it: memories are ordered newest first, and a fresh statement of the same preference moves it back into the window.
 
 <Callout type="info">
-  Two more bounds shape the window, and they explain why a very long fact behaves differently from a short one. Each injected fact is trimmed to **200 characters** in the prompt, and the whole block is capped at **1200 characters**, so a run of long facts fills the budget before the twelfth one is reached. `injected` is positional (the newest 12 rows) and does not model the character budget. Write facts as one line each and neither bound will ever bite.
+  One more bound shapes each window. A memory is injected whole, never cut mid-sentence, and each block has a character budget: **20,000** for rules, **120,000** for saved facts and **30,000** for chat-picked facts. An unusually long run of long memories can fill a budget before its count is reached. `injected` is positional (the newest rows of each kind) and does not model the character budget. Write memories as one line each and the budget will not bite.
 </Callout>
+
+## Facts and rules
+
+Every memory has a `memory_type`.
+
+| | `fact` | `rule` |
+| --- | --- | --- |
+| What it is | Something the agent knows: "Ravi prefers calls after 6pm" | A standing instruction: "Always reply in English", "Never share my address" |
+| How the agent uses it | Injected while inside the window, otherwise found by `recall_memory` | Followed on every reply, including automatic replies to contacts on the linked personal WhatsApp channel |
+| Default | Yes, when `memory_type` is omitted | Only when asked for |
+
+Write a rule as one instruction, the way you would say it out loud. A fact can be made a rule and a rule moved back to a fact with `PATCH` (below), without deleting and re-teaching it.
 
 ## What is listed here
 
@@ -40,9 +52,9 @@ A memory is stored in one of two forms, and this surface serves only the first.
 
 | | Explicit facts | Captured transcripts |
 | --- | --- | --- |
-| Where it comes from | The agent's `remember` tool, or a `POST` here | A finished call or chat, captured whole |
+| Where it comes from | The agent's `remember` tool, a chat command, facts picked up from chats, or a `POST` here | A finished call or chat, captured whole |
 | Listed by these endpoints | Yes | No |
-| Deletable by these endpoints | Yes | No |
+| Editable and deletable by these endpoints | Yes | No |
 | Reachable by the agent | Injected, then searched | Searched, through `recall_memory` |
 
 Transcripts are deliberately absent: a transcript is not something an operator can meaningfully review or correct one line at a time, so it stays retrieval-only rather than becoming a browsable message archive.
@@ -55,8 +67,8 @@ Authorization: Bearer cm_your_api_key
 
 | Caller | Requirement |
 | --- | --- |
-| `cm_` API key | `bots:read` to list. `bots:write` to create and delete |
-| Dashboard JWT | Listing for any member. Creating and deleting require **owner or admin** (`403 owner or admin role required` otherwise) |
+| `cm_` API key | `bots:read` to list. `bots:write` to create, change and delete |
+| Dashboard JWT | Listing for any member. Creating, changing and deleting require **owner or admin** (`403 owner or admin role required` otherwise) |
 
 A memory is an attribute of a bot rather than a resource class of its own, so it reuses the `bots:*` scopes and adds none.
 
@@ -70,17 +82,19 @@ Base URL for every example: `https://api.callmissed.com`. Errors are `{"detail":
   "fact": "Wholesale orders ship Tuesdays only. Never promise a Friday dispatch.",
   "created_at": "2026-09-08T12:00:00Z",
   "injected": true,
-  "captured_by": "remember_tool"
+  "captured_by": "remember_tool",
+  "memory_type": "fact"
 }
 ```
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `id` | `uuid` | Pass it to `DELETE` to forget this one fact |
-| `fact` | `string` | The memory **in full**. Read from the memory's stored text, not from the 120-character title kept for display, so a long fact comes back whole here even though the agent reads only its first 200 characters in the prompt |
+| `fact` | `string` | The memory **in full**. Read from the memory's stored text, not from the 120-character title kept for display, so a long fact comes back whole here |
 | `created_at` | `string` | When it was remembered. The list is ordered by this, newest first |
-| `injected` | `boolean` | `true` for the newest 12. See [the injection window](#the-injection-window-what-the-agent-reads-without-asking) |
-| `captured_by` | `string` | How the fact was captured: `remember_tool` when the agent saved it mid-conversation, `remember_command` when the owner saved it with a chat command, `console` when it was taught through `POST`. `null` when the memory records no capture source |
+| `injected` | `boolean` | `true` when it is inside its kind's window. See [the injection window](#the-injection-window-what-the-agent-reads-without-asking) |
+| `captured_by` | `string` | How the fact was captured: `remember_tool` when the agent saved it mid-conversation, `remember_command` when the owner saved it with a chat command, `console` when it was taught through `POST`, `chat_capture` when it was picked up from chats. `null` when the memory records no capture source |
+| `memory_type` | `string` | `fact` or `rule`. See [facts and rules](#facts-and-rules) |
 
 ## Memories belong to one agent
 
@@ -94,6 +108,7 @@ Everything one agent has been told to remember, newest first. Requires `bots:rea
 | --- | --- | --- |
 | `bot_id` | `uuid` | **Required.** The agent whose memories to list |
 | `limit` | `integer` | 1 to 200, default 100 |
+| `memory_type` | `string` | Optional. `fact` or `rule` to list only that type. Omit it to list both |
 
 ```bash
 curl "https://api.callmissed.com/api/v1/agent-memories?bot_id=b1f2c3d4-5678-90ab-cdef-1234567890ab&limit=50" \
@@ -109,23 +124,25 @@ curl "https://api.callmissed.com/api/v1/agent-memories?bot_id=b1f2c3d4-5678-90ab
       "fact": "Wholesale orders ship Tuesdays only. Never promise a Friday dispatch.",
       "created_at": "2026-09-08T12:00:00Z",
       "injected": true,
-      "captured_by": "remember_tool"
+      "captured_by": "remember_tool",
+      "memory_type": "fact"
     }
   ],
-  "max_injected": 12
+  "max_injected": 500
 }
 ```
 
-`max_injected` is the size of the injection window. Read it instead of hardcoding 12, so a change to the window does not silently make your own display wrong.
+`max_injected` is the size of the injection window. Read it instead of hardcoding 500, so a change to the window does not silently make your own display wrong.
 
 ## POST /api/v1/agent-memories
 
-Teach the agent a fact directly, without waiting for it to come up in a conversation. Returns `201` and the memory object. Requires `bots:write`, or an owner or admin JWT.
+Teach the agent a fact or a rule directly, without waiting for it to come up in a conversation. Returns `201` and the memory object. Requires `bots:write`, or an owner or admin JWT.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `bot_id` | `uuid` | Required. The agent that should remember this |
-| `fact` | `string` | Required. 1 to 2000 characters. Surrounding whitespace is stripped |
+| `fact` | `string` | Required. 1 to 160,000 characters are accepted; surrounding whitespace is stripped and the first 16,000 characters are stored. For a rule, this is the instruction text |
+| `memory_type` | `string` | Optional. `fact` (default) or `rule` |
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/agent-memories \
@@ -148,11 +165,62 @@ The new memory always comes back with `injected: true`, because it is the newest
 | `201` | Remembered |
 | `403` | The key lacks `bots:write`, or the JWT is neither owner nor admin |
 | `404` | `bot_id` is not an agent in this workspace. Nothing is written |
-| `422` | `fact` is empty after stripping, or longer than 2000 characters |
+| `422` | `fact` is empty after stripping, or longer than 160,000 characters, or `memory_type` is not `fact` or `rule` |
+
+To teach a rule, send the same request with `"memory_type": "rule"`:
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/agent-memories \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "bot_id": "b1f2c3d4-5678-90ab-cdef-1234567890ab",
+    "fact": "Never share my home address.",
+    "memory_type": "rule"
+  }'
+```
+
+## PATCH `/api/v1/agent-memories/{memory_id}`
+
+Correct a memory's text, make a fact a rule or move a rule back to a fact, or both at once. Returns `200` and the updated memory object. Requires `bots:write`, or an owner or admin JWT.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `fact` | `string` | Optional. The corrected text. Surrounding whitespace is stripped; the first 16,000 characters are kept |
+| `memory_type` | `string` | Optional. `fact` or `rule` |
+
+Send at least one of the two.
+
+```bash
+curl -X PATCH https://api.callmissed.com/api/v1/agent-memories/7c9e6679-7425-40de-944b-e07fc1f90ae7 \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"memory_type": "rule"}'
+```
+
+To correct the wording instead:
+
+```bash
+curl -X PATCH https://api.callmissed.com/api/v1/agent-memories/7c9e6679-7425-40de-944b-e07fc1f90ae7 \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"fact": "Wholesale orders ship Tuesdays and Thursdays."}'
+```
+
+| Status | Meaning |
+| --- | --- |
+| `200` | Changed |
+| `402` | Not enough credits to re-index the corrected text. The memory is unchanged |
+| `403` | The key lacks `bots:write`, or the JWT is neither owner nor admin |
+| `404` | No memory with this id in this workspace |
+| `422` | Neither field was sent, `fact` is empty or longer than 160,000 characters, or `memory_type` is not `fact` or `rule` |
+| `502` | The corrected text could not be re-indexed. The memory is unchanged |
+
+Either change keeps the memory's `created_at`, so it stays where it was in the order: correcting a typo never moves a memory into or out of its window. Corrected text is re-indexed in the same step; if that fails, nothing changes.
 
 ## DELETE `/api/v1/agent-memories/{memory_id}`
 
-Forget one fact. Returns `204` and no body. Requires `bots:write`, or an owner or admin JWT.
+Forget one fact or rule. Returns `204` and no body. Requires `bots:write`, or an owner or admin JWT.
 
 ```bash
 curl -X DELETE https://api.callmissed.com/api/v1/agent-memories/7c9e6679-7425-40de-944b-e07fc1f90ae7 \
@@ -162,7 +230,7 @@ curl -X DELETE https://api.callmissed.com/api/v1/agent-memories/7c9e6679-7425-40
 Deletion is **idempotent**: `204` whether the memory was there or not, so a retry after a dropped connection is safe. It is also scoped to memories, so this route cannot be used to remove an ordinary knowledge document by guessing at its id. The fact and its search index go together; there is no way to read a deleted memory back.
 
 <Callout type="warn">
-  These facts are asserted about real people and are put in front of the agent, so treat this endpoint as the erasure path it is. A memory a customer asks you to remove is removed here, in full, not edited into something softer. There is no update: delete the old fact and `POST` the corrected one, which also moves it back into the injection window.
+  These facts are asserted about real people and are put in front of the agent, so treat this endpoint as the erasure path it is. A memory a customer asks you to remove is removed here, in full, not edited into something softer. To fix a wrong detail instead, use `PATCH`.
 </Callout>
 
 ## Errors
@@ -171,8 +239,8 @@ Deletion is **idempotent**: `204` whether the memory was there or not, so a retr
 | --- | --- |
 | `401` | No credential, or one that is not valid |
 | `403` | The key is missing `bots:read` (listing) or `bots:write` (writing), or the dashboard JWT is not an owner or admin |
-| `404` | `bot_id` does not name an agent in this workspace |
-| `422` | `bot_id` is missing or not a UUID, `limit` is outside 1 to 200, or `fact` is empty or too long |
+| `404` | `bot_id` does not name an agent in this workspace, or `memory_id` (on `PATCH`) does not name a memory in it |
+| `422` | `bot_id` is missing or not a UUID, `limit` is outside 1 to 200, `fact` is empty or too long, or `memory_type` is not `fact` or `rule` |
 
 <Callout type="warn">
   A `bot_id` belonging to another workspace returns `404`, never `403`. The ownership check runs before anything else, so a caller cannot tell "not yours" apart from "does not exist" and cannot use this endpoint to confirm that an id exists somewhere else.
@@ -180,6 +248,6 @@ Deletion is **idempotent**: `204` whether the memory was there or not, so a retr
 
 ## Billing
 
-A memory is embedded when it is written, so that the agent can find it later by meaning rather than by keyword. That embedding is billed like any other embedding on your account, at the rate on the [pricing page](/docs/pricing). Listing and deleting are free.
+A memory is embedded when it is written, so that the agent can find it later by meaning rather than by keyword. That embedding is billed like any other embedding on your account, at the rate on the [pricing page](/docs/pricing). Corrected text is re-embedded and billed the same way. Listing and deleting are free.
 
 A memory whose embedding did not complete still appears in the list, with `fact` falling back to its first 120 characters, because an un-embedded memory is exactly the thing you need to see rather than one that quietly vanishes.

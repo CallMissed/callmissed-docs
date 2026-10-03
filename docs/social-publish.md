@@ -32,8 +32,8 @@ A text post, a link post, or a scheduled version of either. Supply `message`,
 
 | Field | Type | Description |
 |---|---|---|
-| `message` | string | Post body text. Optional if `link` is set. |
-| `link` | string | A URL to attach as a link post. Optional if `message` is set. |
+| `message` | string | Post body text, up to 63,206 characters. Optional if `link` is set. |
+| `link` | string | A URL to attach as a link post, up to 2,048 characters. Optional if `message` is set. |
 | `scheduled_publish_time` | integer | A UNIX timestamp. When present, the post is created **unpublished and scheduled** instead of going live now. Must be **10 minutes to 75 days** out, or `422`. |
 
 ```bash [cURL]
@@ -58,8 +58,11 @@ single-URL `urls` list falls through to the single-photo path.
 |---|---|---|
 | `url` | string | One publicly reachable photo URL. |
 | `urls` | string[] | 2–30 photo URLs for a single multi-photo post. |
-| `caption` | string | Caption for a single photo. |
-| `message` | string | Feed text for a multi-photo post. |
+| `caption` | string | Caption for a single photo. Used as the feed text of a multi-photo post when `message` is absent. |
+| `message` | string | Feed text for a multi-photo post. Used as the caption of a single photo when `caption` is absent. |
+| `published` | boolean | Single photo only. `false` uploads the photo without showing it in the feed. Default `true`. |
+
+Supply `url` or `urls` — a body with neither is a `422`.
 
 The 30-URL cap is CallMissed's own bound (each URL is an upload call), not Meta's.
 The response carries both the photo `id` and the resulting feed `post_id`.
@@ -76,9 +79,18 @@ Publish a video reel from a publicly reachable `video_url`.
 
 | Field | Type | Description |
 |---|---|---|
-| `video_url` | string | Publicly reachable video URL. Required. |
+| `video_url` | string | Publicly reachable video URL, up to 2,048 characters. Required. |
 | `description` | string | Reel caption. |
-| `scheduled_publish_time` | integer | A UNIX timestamp to schedule the reel. Reels have their **own** schedule window — up to **29 days** out. |
+| `title` | string | Reel title, up to 255 characters. |
+| `scheduled_publish_time` | integer | A UNIX timestamp to schedule the reel. Reels have their **own** schedule window — **10 minutes to 29 days** out, or `422`. |
+
+The response carries the reel's `video_id`. Meta caps a Page at **30 reels
+published through the API per rolling 24 hours**; past that the call returns
+`429`.
+
+```json
+{ "id": null, "post_id": null, "video_id": "1029384756102938" }
+```
 
 ## Instagram: publish a post
 
@@ -89,7 +101,7 @@ One endpoint for every Instagram post shape. The `type` field picks it:
 | `type` | What it makes | Media field(s) |
 |---|---|---|
 | `image` | A single feed image | `image_url` |
-| `video` | A single feed video | `video_url` |
+| `video` | A single video, published as a reel (Instagram no longer accepts standalone feed videos) | `video_url` |
 | `reel` | A reel | `video_url` (+ reel-only options) |
 | `story` | An image or video story | exactly one of `image_url` / `video_url` |
 | `carousel` | A 2–10 item carousel | `items[]` |
@@ -103,14 +115,15 @@ One endpoint for every Instagram post shape. The `type` field picks it:
 | `alt_text` | string | Accessibility alt text; images only. |
 | `location_id` | string | A location tag id for the post. |
 | `items` | array | Carousel children (2–10), each with one of `image_url`/`video_url` and optional `alt_text`. Required for `carousel`. |
-| `cover_url` | string | Reel-only cover image URL. |
-| `share_to_feed` | boolean | Reel-only: also show the reel in the main feed. |
-| `thumb_offset` | integer | Video thumbnail offset (≥ 0). |
+| `cover_url` | string | `video`/`reel` only: cover image URL. |
+| `share_to_feed` | boolean | `video`/`reel` only: also show the reel in the main feed. |
+| `thumb_offset` | integer | `video`/`reel` only: the frame offset to use as the thumbnail (≥ 0). If `cover_url` is also set, `cover_url` wins. |
+| `audio_name` | string | `video`/`reel` only: a name for the reel's audio. |
 
 Caption length (≤ 2,200) and carousel size (2–10) are validated **before** any
 upstream call, so a bad body fails fast without leaving orphaned containers. A
-reel cannot be a carousel child (use a `video` child instead). A story takes no
-caption.
+reel cannot be a carousel child (use a `video` child instead), and each child
+carries **exactly one** of `image_url` / `video_url`. A story takes no caption.
 
 ```bash [cURL]
 # A 3-image carousel
@@ -143,15 +156,20 @@ Finish it with the two routes below.
 
 **Check a container's status** — `GET /api/v1/instagram/posts/{container_id}`
 
-Poll this until the status is `FINISHED`, then publish. A container **expires 24
-hours** after creation.
+Poll this until `status_code` is `FINISHED`, then publish. Poll no more than once
+a minute. A container **expires 24 hours** after creation. `status_code` is one of
+`IN_PROGRESS`, `FINISHED`, `PUBLISHED`, `ERROR` or `EXPIRED`.
+
+```json
+{ "container_id": "17889455560051444", "status_code": "FINISHED" }
+```
 
 **Publish a finished container** — `POST /api/v1/instagram/posts/{container_id}/publish`
 
 Publishes a container whose media has finished processing, returning the live
 `media_id`.
 
-Both take the same optional `?account=` hint. Use the **same** account you created
+Both need `whatsapp:send` and take the same optional `?account=` hint. Use the **same** account you created
 the container with — a container belongs to the account that made it, so resolving
 to a different one fails upstream.
 
@@ -165,19 +183,25 @@ different limits on different pages). A carousel counts as **one** post against
 the quota. Needs `whatsapp:send`, like the publishing calls it protects.
 
 ```json
-{ "quota_usage": 12, "config": { "quota_total": 100 } }
+{ "quota_usage": 12, "quota_total": 100, "quota_duration": 86400 }
 ```
+
+`quota_total` and `quota_duration` (seconds) are forwarded from Meta as
+reported; any of the three can be `null` when Meta omits it.
 
 ## Scheduling windows at a glance
 
 | Surface | Schedule window |
 |---|---|
 | Facebook feed post (`/posts`) | 10 minutes – 75 days |
-| Facebook reel (`/reels`) | up to 29 days |
+| Facebook reel (`/reels`) | 10 minutes – 29 days |
 | Instagram | No native scheduling — publish at the time you want to post |
 
 A Facebook `504` on publish is **ambiguous** — the post may or may not have gone
-live. Check the Page before retrying; the API never auto-retries a publish.
+live. Check the Page before retrying; the API never auto-retries a publish. The
+Instagram equivalent is a `409` saying the post may or may not have been created —
+handle it the same way. A Facebook `409` on publish can also mean Meta rejected a
+**duplicate** of the post you just published; change the content before retrying.
 
 The legacy `POST /api/v1/facebook/{page_uuid}/posts` form of every endpoint on
 this page still works — see [legacy paths](/docs/social-api#legacy-the-account-id-in-the-path).
