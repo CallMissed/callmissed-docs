@@ -126,7 +126,8 @@ Suppressed recipients are dropped from `to`, `cc`, and `bcc` before sending and 
 | `status` | string | `queued`, `sent` (accepted for delivery), `delivered`, `bounced`, `complained`, `rejected` (we refused it), or `failed` (delivery error) |
 | `size_bytes` | integer | Assembled message size |
 | `sent_at` | string \| null | When it was accepted for delivery |
-| `delivered_at` | string \| null | Set from delivery feedback |
+| `smtp_response` | string \| null | The outbound mail server's reply when it accepted the message, up to 512 characters. It shows the message was handed over for delivery, not that it reached the inbox. `null` for sends made before this field existed and for messages that never reached a mail server |
+| `delivered_at` | string \| null | Set from delivery feedback. Not populated yet: see [`email.delivered`](/docs/email-webhooks#events) |
 | `bounced_at` | string \| null | Set from bounce feedback |
 | `complained_at` | string \| null | Set from a spam complaint |
 | `created_at` | string \| null | When the row was written |
