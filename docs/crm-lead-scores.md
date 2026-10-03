@@ -71,6 +71,8 @@ Signals are a **closed allowlist** per entity type — an unknown signal is `422
 | C | 25–49 |
 | D | below 25 |
 
+The score is the plain sum of the points of every **active** rule that matched. It is not clamped, so negative rules can take it below zero.
+
 ## The rule object
 
 ```json
@@ -126,11 +128,13 @@ curl -X POST https://api.callmissed.com/api/v1/crm/lead-scores/rules \
   }'
 ```
 
+Returns `201`. A name already used for that entity type returns `409 A contact scoring rule named '…' already exists`.
+
 Errors name the exact problem, for example `operator 'contains' is not valid for the boolean signal 'has_email'. Allowed: eq, neq, is_set, is_not_set`.
 
 ## PATCH / DELETE `/api/v1/crm/lead-scores/rules/{rule_id}`
 
-`PATCH` takes every field except `entity_type`, all optional. The signal / operator / value triple is re-validated against the **merged** result, so you cannot change the signal in one call and leave an illegal operator behind.
+`PATCH` takes every field except `entity_type`, all optional. `DELETE` returns `204`; both return `404 Scoring rule not found` for an id outside your tenant. The signal / operator / value triple is re-validated against the **merged** result, so you cannot change the signal in one call and leave an illegal operator behind.
 
 ---
 
@@ -179,7 +183,7 @@ Highest score first — the ranked list.
 { "entity_type": "contact", "requested": 3, "computed": 3 }
 ```
 
-Idempotent, and ids are de-duplicated before the 200 cap is checked. If any id is not yours you get `404 2 of 50 contact ids were not found in this tenant; nothing was scored` — nothing is partially computed.
+Idempotent: recomputing overwrites the record's previous score. Repeated ids are collapsed, and `requested` is the raw count you sent. If any id is not yours you get `404 2 of 50 contact ids were not found in this tenant; nothing was scored` — nothing is partially computed.
 
 Scores are **not** recomputed automatically after you change a rule. Re-run the affected records yourself.
 
@@ -189,13 +193,13 @@ Scores are **not** recomputed automatically after you change a rule. Re-run the 
 
 ## GET `/api/v1/crm/timeline`
 
-A merged, newest-first feed of everything attached to one record.
+A merged, newest-first feed of everything attached to one record. A company's feed also includes the activity of its contacts.
 
 | Parameter | Type | Required | Constraints |
 | --- | --- | --- | --- |
 | `entity_type` | `string` | Yes | `contact` or `company`. **Deals are not supported here** |
 | `entity_id` | `UUID` | Yes | |
-| `types` | `string` | No | Comma-separated subset of `conversation,message,call,note,task,deal`. Omit for all |
+| `types` | `string` | No | At most 128 characters. Comma-separated subset of `conversation,message,call,note,task,deal`. Omit for all |
 | `limit` | `integer` | No | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | No | `0 <= offset <= 100000`, default `0` |
 
@@ -210,9 +214,9 @@ curl "https://api.callmissed.com/api/v1/crm/timeline?entity_type=contact&entity_
     "id": "note:aa22…",
     "type": "note",
     "occurred_at": "2026-08-16T12:00:00Z",
-    "title": "Note added",
+    "title": "Note",
     "summary": "Renewal call went well — wants a Hindi voice agent.",
-    "actor": "Ravi K",
+    "actor": "b1f2…",
     "ref_id": "aa22…",
     "meta": {}
   }
@@ -224,7 +228,7 @@ curl "https://api.callmissed.com/api/v1/crm/timeline?entity_type=contact&entity_
 | `id` | `string` | Prefixed composite such as `note:<uuid>` — unique across types, good as a render key |
 | `ref_id` | `UUID` | The underlying record's own id, for a follow-up fetch |
 | `summary` | `string \| null` | Truncated to 280 characters |
-| `actor` | `string \| null` | Who caused it, when known |
+| `actor` | `string \| null` | Who caused it, when known: a user id for notes, tasks and deals, the sender's role for messages, the other party's number for calls. `null` when there is no attributable actor |
 | `meta` | `object` | Type-specific extras. Defaults to `{}` |
 
 > An unknown or another tenant's `entity_id` returns an **empty array, not a 404**. The timeline never confirms whether a record exists — do not use it as an existence check.

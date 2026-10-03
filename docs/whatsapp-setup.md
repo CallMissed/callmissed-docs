@@ -11,14 +11,14 @@ Connect a Meta WhatsApp Business Account to CallMissed, register the number, lin
 
 Connecting a number binds your **WhatsApp Business Account (WABA)** to CallMissed, subscribes CallMissed to the WABA's webhooks, and registers the number on the WhatsApp Cloud API. After that, inbound messages flow to your agent and you can send from the API.
 
-There are two ways to connect, and one thing you never have to do: **you do not configure a webhook in Meta**. Connecting subscribes the CallMissed app to your WABA automatically. See [the Meta-facing webhook](/docs/whatsapp-api#the-meta-facing-webhook) if you want to know what that endpoint is.
+There are two ways to connect, and one thing you never have to do: **you do not configure a webhook in Meta**. Connecting subscribes the CallMissed app to your WABA automatically. See [You never configure a webhook in Meta](/docs/whatsapp-api#you-never-configure-a-webhook-in-meta).
 
 ## Prerequisites
 
 - A **Meta Business account** with a verified business.
 - A **WhatsApp Business Account** and a phone number in [WhatsApp Manager](https://business.facebook.com/wa/manage/). The number must not be tied to a personal WhatsApp app.
 - A payment method on the WABA in WhatsApp Manager. Until Meta has one, sends fail.
-- A CallMissed workspace. The manual path additionally needs the **owner** or **admin** role.
+- A CallMissed workspace.
 
 ## Option 1: connect from the dashboard
 
@@ -26,36 +26,39 @@ Go to **Settings → Integrations → WhatsApp** in the [dashboard](https://cons
 
 This is the recommended path. It is also the only path that registers a brand-new number for you.
 
-## Option 2: connect an existing WABA over the API
+## Option 2: connect an existing WABA from the dashboard
 
-Use this when the number was set up outside Embedded Signup, for example registered directly in the Meta dashboard or migrated from another provider.
+Use this when the number was set up outside Embedded Signup, for example registered directly in the Meta dashboard or migrated from another provider. Connecting it needs a long-lived business token, so it is done by a workspace **owner** or **admin** in the [dashboard](https://console.callmissed.com) under **Settings → Integrations → WhatsApp**, not over the API. Once connected, the number is sendable from the API like any other.
 
-`POST /api/v1/whatsapp/onboarding/manual`
+## Completing Embedded Signup yourself
 
-**Owner or admin dashboard login only.** This endpoint accepts a long-lived business token in the body, so an API key cannot call it: even a key with `whatsapp:write` gets `403`. Authenticate with a dashboard session JWT.
+If you are building your own Embedded Signup flow rather than using the dashboard, post Meta's callback data to:
+
+`POST /api/v1/whatsapp/onboarding/exchange` · scope `whatsapp:write`
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `waba_id` | string, 1 to 64 chars | Yes | Meta's WABA id |
-| `phone_number_id` | string, 1 to 64 chars | Yes | Meta's phone number id, not the phone number itself |
-| `access_token` | string, 20 to 4096 chars | Yes | A long-lived business token. A System User token is strongly recommended, since 24-hour tokens break delivery when they expire |
-| `business_id` | string, max 64 | No | Meta business id |
-| `bot_id` | UUID | No | Link an agent to the number in the same call |
+| `code` | string, 1 to 2048 chars | Yes | The exchangeable code from Meta's login callback. It expires in about 30 seconds, so post it immediately |
+| `waba_id` | string, 1 to 64 chars | Yes | From the signup event data |
+| `phone_number_id` | string, 1 to 64 chars | Yes | From the signup event data |
+| `business_id` | string, max 64 | No | From the signup event data |
+| `bot_id` | UUID | No | Link an agent in the same call |
+| `data_localization_region` | string, exactly 2 chars | No | ISO 3166-1 alpha-2 for data-at-rest residency, from Meta's supported list |
 
 ```bash
-curl -X POST https://api.callmissed.com/api/v1/whatsapp/onboarding/manual \
-  -H "Authorization: Bearer eyJhbGciOi...your-dashboard-session-jwt" \
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/onboarding/exchange \
+  -H "Authorization: Bearer cm_your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
+    "code": "AQBx-hBsH...code-from-meta",
     "waba_id": "102290129340398",
     "phone_number_id": "1234567890",
     "business_id": "441329482726",
-    "access_token": "EAAG...long-lived-system-user-token",
-    "bot_id": "0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d"
+    "data_localization_region": "IN"
   }'
 ```
 
-The token is encrypted at rest. Meta's `register` step is skipped, because a number provisioned outside Embedded Signup is already registered and calling it again would fail and burn your registration quota. Webhook subscription is still attempted, so events flow.
+CallMissed exchanges the code for a business token, saves the account and number, subscribes to the WABA's webhooks, and registers the number with a two-step verification PIN it generates and stores.
 
 **Response (200 OK)**
 
@@ -108,40 +111,11 @@ The token is encrypted at rest. Meta's `register` step is skipped, because a num
 
 | Code | Meaning |
 |---|---|
-| `403` | Not an owner or admin, or called with an API key instead of a dashboard session |
+| `400` | Meta rejected the code (expired, already used, or for another app) |
+| `403` | The code does not grant access to that WABA, the number is not part of it, or onboarding is blocked for this account |
 | `404` | The `bot_id` does not belong to your workspace |
 | `409` | The WABA or number is already connected to a different workspace |
-| `422` | Meta rejected the token or the ids |
-
-## Completing Embedded Signup yourself
-
-If you are building your own Embedded Signup flow rather than using the dashboard, post Meta's callback data to:
-
-`POST /api/v1/whatsapp/onboarding/exchange` · scope `whatsapp:write`
-
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `code` | string, 1 to 2048 chars | Yes | The exchangeable code from Meta's login callback. It expires in about 30 seconds, so post it immediately |
-| `waba_id` | string, 1 to 64 chars | Yes | From the signup event data |
-| `phone_number_id` | string, 1 to 64 chars | Yes | From the signup event data |
-| `business_id` | string, max 64 | No | From the signup event data |
-| `bot_id` | UUID | No | Link an agent in the same call |
-| `data_localization_region` | string, exactly 2 chars | No | ISO 3166-1 alpha-2 for data-at-rest residency, from Meta's supported list |
-
-```bash
-curl -X POST https://api.callmissed.com/api/v1/whatsapp/onboarding/exchange \
-  -H "Authorization: Bearer cm_your_api_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "code": "AQBx-hBsH...code-from-meta",
-    "waba_id": "102290129340398",
-    "phone_number_id": "1234567890",
-    "business_id": "441329482726",
-    "data_localization_region": "IN"
-  }'
-```
-
-CallMissed exchanges the code for a business token, saves the account and number, subscribes to the WABA's webhooks, and registers the number with a two-step verification PIN it generates and stores. Returns the same object as the manual path.
+| `422` | The body failed validation |
 
 The rows are saved before registration is attempted, so a failure at the last step leaves a recoverable connection rather than losing the WABA association. Check `fully_provisioned` and retry if it is `false`.
 
@@ -260,7 +234,7 @@ A refusal is still a `200`: read `undone`, not the status code.
 
 ### Write or improve a system prompt
 
-`POST /api/v1/whatsapp/ai/build_system_prompt` · scope `whatsapp:read`
+`POST /api/v1/whatsapp/ai/build_system_prompt` · scope `whatsapp:write`
 
 Read-only. Returns markdown you review and save on the agent yourself.
 
