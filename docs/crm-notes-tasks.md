@@ -56,7 +56,7 @@ Newest first. Both entity parameters are **required** — notes are always read 
 | Parameter | Type | Required | Constraints |
 | --- | --- | --- | --- |
 | `entity_type` | `string` | Yes | `contact`, `company` or `deal` |
-| `entity_id` | `UUID` | Yes | Must exist in your tenant |
+| `entity_id` | `UUID` | Yes | An unknown id returns an empty list |
 | `limit` | `integer` | No | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | No | `0 <= offset <= 100000`, default `0` |
 
@@ -72,6 +72,13 @@ curl "https://api.callmissed.com/api/v1/crm/notes?entity_type=company&entity_id=
 | `entity_type` | `string` | Yes | `contact`, `company` or `deal` |
 | `entity_id` | `UUID` | Yes | Must exist in your tenant |
 | `body` | `string` | Yes | 1–10,000 characters, not blank |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/crm/notes \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "entity_type": "company", "entity_id": "5c6d…", "body": "Renewal call went well." }'
+```
 
 Returns `201`. `404 Company not found` (or Contact / Deal) when the target is not yours.
 
@@ -107,7 +114,8 @@ Returns `201`. `404 Company not found` (or Contact / Deal) when the target is no
 | Field | Type | Notes |
 | --- | --- | --- |
 | `status` | `string` | `open` or `done` |
-| `completed_at` | `datetime \| null` | **Server-managed** — not accepted on create or update |
+| `completed_at` | `datetime \| null` | **Server-managed** — not accepted on create or update. Set when `status` becomes `done`, cleared when it returns to `open` |
+| `created_by_user_id` | `UUID \| null` | The dashboard user who created it; `null` when created with an API key |
 | `is_overdue` | `boolean` | Computed: `due_at` is in the past **and** `status` is `open`. A done task is never overdue |
 
 ## GET `/api/v1/crm/tasks`
@@ -143,7 +151,21 @@ curl "https://api.callmissed.com/api/v1/crm/tasks?status=open&overdue=true" \
 | `entity_type` | `string` | No | `contact`, `company` or `deal` |
 | `entity_id` | `UUID` | No | Must exist in your tenant |
 
+```bash
+curl -X POST https://api.callmissed.com/api/v1/crm/tasks \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Send the renewal quote",
+    "due_at": "2026-08-19T10:00:00Z",
+    "entity_type": "company",
+    "entity_id": "5c6d…"
+  }'
+```
+
 `entity_type` and `entity_id` must be **sent together** — one without the other returns `422 entity_type and entity_id must be sent together`. A task with neither is a standalone to-do.
+
+A linked record outside your tenant returns `422 <entity_type> not found in this tenant`; an assignee outside your tenant returns `422 assignee_user_id is not a user of this tenant`. Returns `201`.
 
 ## PATCH `/api/v1/crm/tasks/{task_id}`
 
@@ -166,7 +188,7 @@ No body. Marks the task done and stamps `completed_at`.
 | Status | When |
 | --- | --- |
 | `403` | Key is missing the matching `crm_notes:*` / `crm_tasks:*` scope |
-| `404` | Note, task, or the linked record is not in your tenant |
-| `422` | Blank body/title, unknown `entity_type` or `status`, an entity pair sent half-filled, or an assignee outside your tenant |
+| `404` | Note or task not in your tenant, or (notes only) the record you attach a note to |
+| `422` | Blank body/title, unknown `entity_type` or `status`, an entity pair sent half-filled, a task's linked record or assignee outside your tenant |
 
 Nothing on this page consumes credits.
