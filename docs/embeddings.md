@@ -43,8 +43,8 @@ Both embedding models are **free-plan callable** — they are metered per input 
 
 | Model | Dimensions | Max input | Price (per 1M input tokens) |
 | --- | --- | --- | --- |
-| `text-embedding-3-small` | 1536 | 8,192 tokens | $0.02 |
-| `text-embedding-3-large` | 3072 | 8,192 tokens | $0.13 |
+| `text-embedding-3-small` | 1536 | 8,192 tokens | $0.02083 |
+| `text-embedding-3-large` | 3072 | 8,192 tokens | $0.1354 |
 
 Start with `text-embedding-3-small`: it is the better price/performance choice for large corpora. Move to `-large` only when you have measured that retrieval quality is the bottleneck.
 
@@ -103,7 +103,8 @@ vectors = [row.embedding for row in resp.data]
 | `input` | `string` or `string[]` | Yes | — | Up to **128 items** per request; each item non-empty, at most **100,000 characters** and within the model's 8,192-token limit. Pre-tokenised integer arrays are **not** accepted |
 | `encoding_format` | `string` | No | `float` | `float` or `base64` |
 | `dimensions` | `integer` | No | model native | `1 <= dimensions <= 3072` (large) or `1536` (small) |
-| `user` | `string` | No | — | At most 256 characters. An opaque end-user identifier for your own abuse tracing |
+| `user` | `string` | No | — | At most 256 characters. Your end user's id; enforces that user's [monthly budget](/docs/gateway-controls) when one is set |
+| `provider` | `object` | No | — | `{"zdr": true}` requires a [zero-data-retention route](/docs/gateway-controls); otherwise `400 zdr_unavailable` |
 
 ### Batching
 
@@ -159,7 +160,7 @@ vector = list(struct.unpack(f"<{len(raw) // 4}f", raw))
 
 ## Billing
 
-Embeddings are metered on **input tokens only**. Credits are deducted as `tokens / 1,000,000 x rate`, where 1 credit = $0.01.
+Embeddings are metered on **input tokens only**. Credits are deducted as `tokens / 1,000,000 x rate in credits`, where 1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96).
 
 - `text-embedding-3-small` — 2 credits per 1M input tokens
 - `text-embedding-3-large` — 13 credits per 1M input tokens
