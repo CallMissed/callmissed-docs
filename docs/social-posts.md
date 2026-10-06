@@ -100,6 +100,8 @@ curl -X POST https://api.callmissed.com/v1/social/posts/generate \
 | `quality` | string | — | For models that support it (GPT Image): `low`, `medium`, `high` or `auto`. Ignored by models without a quality tier. |
 | `reference_images` | string[] | — | Up to **16** base64 PNG/JPEG images used as visual references, so the picture is built **from your own** logo or product shot. Requires a `gpt-image-*` model (`gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`). |
 | `reference_pdf` | string | — | One base64 PDF. Its extracted **text** becomes brand context for the image prompt. Requires a `gpt-image-*` model (`gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`). |
+| `n` | integer | `1` | Must be `1` — a post has one image. Any other value returns `422`. |
+| `user` | string | — | Your end user's id, for your own records. |
 
 Caption length follows the platform: 2,200 characters for `instagram`, 5,000 for
 `facebook`. `generic` uses the smaller of the two, so one draft is publishable on
@@ -233,7 +235,7 @@ either. A failed post costs nothing.
 | 403 | `permission_denied` | Key lacks `llm` (or `image`, when generating one). |
 | 403 | `model_not_available` | `image_model` needs a paid plan. |
 | 404 | `model_not_found` | Unknown `image_model`. |
-| 422 | `invalid_request_error` | Bad `topic`, `platform` or `hashtag_count` (0–30); a malformed or oversized `reference_images` / `reference_pdf`; or references sent with an `image_model` that has no edit surface. |
+| 422 | `invalid_request_error` | Bad `topic`, `platform` or `hashtag_count` (0–30); `n` other than 1; a malformed or oversized `reference_images` / `reference_pdf`; or references sent with an `image_model` that has no edit surface. |
 | 429 | `quota_exceeded` | Monthly plan cap hit for the LLM or image service. |
 | 429 | `too_many_concurrent_requests` | Too many in-flight requests on this key. Retry shortly. |
 | 502 | `upstream_error` | The caption or the image failed. No credits charged — safe to retry. |
