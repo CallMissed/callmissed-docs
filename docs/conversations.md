@@ -27,7 +27,7 @@ Authorization: Bearer cm_your_api_key
 
 | Endpoints | Scope needed by a `cm_` key |
 | --- | --- |
-| List, get, messages | `conversations:read` |
+| List, search, get, messages | `conversations:read` |
 | Status update, AI draft, mark read, autoreply toggle | `conversations:write` |
 
 A dashboard JWT bypasses the scope check. No extra role rule applies here: any member of the tenant can use every endpoint on this page.
@@ -47,7 +47,9 @@ Base URL for every example: `https://api.callmissed.com`. Errors are `{"detail":
 
 ## GET /api/v1/conversations
 
-Lists conversations, newest first. Requires `conversations:read`.
+Lists conversations. Requires `conversations:read`.
+
+By default the newest **conversation** comes first (`sort=created`) and you page with `offset`. Pass `sort=last_activity` to get the inbox order instead: the conversation with the newest **message** first. That order changes every time a message arrives, so it pages with a cursor, not an offset: send each row's `cursor` value from the last row of a page as `cursor=` to get the next page.
 
 | Parameter | Type | Required | Constraints |
 | --- | --- | --- | --- |
@@ -55,7 +57,20 @@ Lists conversations, newest first. Requires `conversations:read`.
 | `status` | `string` | No | `active`, `completed`, `escalated`, or `failed`. Same behaviour on an unknown value |
 | `bot_id` | `UUID` | No | Restrict to one agent |
 | `limit` | `integer` | No | `1 <= limit <= 500`, default `200` |
-| `offset` | `integer` | No | `0 <= offset <= 100000`, default `0` |
+| `offset` | `integer` | No | `0 <= offset <= 100000`, default `0`. Only with `sort=created`: a non-zero offset with `sort=last_activity` returns `400` |
+| `sort` | `string` | No | `created` (default) or `last_activity` |
+| `cursor` | `string` | No | The `cursor` of the last row of the previous page. Only with `sort=last_activity`, otherwise `400`. A malformed cursor returns `400` |
+| `unread` | `boolean` | No | `true`: only threads with unread customer messages; `false`: only the rest |
+| `assigned` | `string` | No | `unassigned`, or a teammate's user id |
+| `label` | `string` | No | Threads carrying this label. Case-insensitive; surrounding spaces and invisible characters are ignored, as they are when labels are saved |
+
+```bash
+# Inbox order, first page, then the next one
+curl "https://api.callmissed.com/api/v1/conversations?sort=last_activity&limit=50" \
+  -H "Authorization: Bearer cm_your_api_key"
+curl "https://api.callmissed.com/api/v1/conversations?sort=last_activity&limit=50&cursor=WyIyMDI2LTA4LTA0VDEyOjAxOjAwKzAwOjAwIiwiYzBmZmVlMDAiXQ" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
 
 ```bash
 curl "https://api.callmissed.com/api/v1/conversations?channel=whatsapp&status=active&limit=200" \
@@ -78,8 +93,17 @@ curl "https://api.callmissed.com/api/v1/conversations?channel=whatsapp&status=ac
     "updated_at": "2026-08-04T12:01:00Z",
     "bot_name": "Support Bot",
     "last_message": "Where is my order?",
+    "last_message_at": "2026-08-04T12:01:00Z",
     "unread_count": 2,
-    "last_read_at": "2026-08-04T11:58:00Z"
+    "last_read_at": "2026-08-04T11:58:00Z",
+    "last_message_preview": "Where is my order?",
+    "last_message_type": "text",
+    "last_message_direction": "in",
+    "last_message_status": null,
+    "display_name": "Asha Rao",
+    "contact_name": "Asha Rao",
+    "profile_name": "Asha",
+    "cursor": null
   }
 ]
 ```
@@ -91,9 +115,65 @@ curl "https://api.callmissed.com/api/v1/conversations?channel=whatsapp&status=ac
 | `metadata` | `object \| null` | Free-form JSON attached by the platform |
 | `ai_autoreply_enabled` | `boolean` | Whether the bot still answers automatically on this thread |
 | `bot_name` | `string` | `""` when the bot has been deleted |
-| `last_message` | `string \| null` | Preview of the most recent message |
+| `last_message` | `string \| null` | The most recent message as stored |
+| `last_message_at` | `string \| null` | When the most recent message was sent. `null` when the thread has none |
 | `unread_count` | `integer` | `user` messages created after `last_read_at` |
 | `last_read_at` | `string \| null` | `null` means the thread was never opened |
+| `last_message_preview` | `string \| null` | What an inbox shows for the most recent message: its text, or for media and interactive messages the caption, file name or a label such as `Photo` or `Voice message (0:07)` |
+| `last_message_type` | `string \| null` | `text`, `image`, `audio`, `video`, `document`, `sticker`, `location`, `contacts`, `interactive`, `button`, `reaction`, `template` or `system` |
+| `last_message_direction` | `string \| null` | `in` from the customer, `out` from your business |
+| `last_message_status` | `string \| null` | Outbound only: `sent`, `delivered`, `read` or `failed` |
+| `display_name` | `string \| null` | The CRM contact's name, else the customer's WhatsApp profile name |
+| `contact_name` | `string \| null` | The linked CRM contact's name |
+| `profile_name` | `string \| null` | The name the customer set on WhatsApp |
+| `cursor` | `string \| null` | With `sort=last_activity`: pass the last row's value as `cursor=` for the next page. `null` otherwise |
+
+## GET `/api/v1/conversations/search`
+
+Full-text search over your conversations' messages, newest first. Requires `conversations:read`.
+
+It searches what an inbox shows: a text message's words, or a media or interactive message's caption, file name, contact names or button titles. Every word you send must appear; each matches as a prefix, so `ord` finds `order`. Words match as typed, with no stemming, so Hindi, Hinglish and order numbers work.
+
+| Parameter | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `q` | `string` | Yes | 1 to 200 characters |
+| `limit` | `integer` | No | `1 <= limit <= 50`, default `20` |
+| `cursor` | `string` | No | `next_cursor` from the previous page |
+| `conversation_id` | `UUID` | No | Search within one conversation |
+
+```bash
+curl "https://api.callmissed.com/api/v1/conversations/search?q=refund&limit=20" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+{
+  "results": [
+    {
+      "conversation_id": "c0ffee00-1111-2222-3333-444455556666",
+      "message_id": "m1a2b3c4-d5e6-4f70-8192-a3b4c5d6e7f8",
+      "created_at": "2026-08-04T11:55:00Z",
+      "direction": "in",
+      "message_type": "text",
+      "snippet": "Can I get a refund for order 5512?",
+      "highlights": [{ "start": 12, "end": 18 }],
+      "channel": "whatsapp",
+      "external_id": "+919876543210",
+      "display_name": "Asha Rao",
+      "cursor": "WyIyMDI2LTA4LTA0VDExOjU1OjAwKzAwOjAwIiwibTFhMmIzYzQiXQ"
+    }
+  ],
+  "next_cursor": null
+}
+```
+
+`highlights` are offsets into `snippet` in UTF-16 code units, the same as JavaScript string indices. `next_cursor` is `null` on the last page.
+
+| Status | Cause |
+| --- | --- |
+| `400` | `Invalid cursor`, or `Search is too broad. Add more letters or another word.` |
+| `403` | Key missing `conversations:read` |
+| `422` | `q` empty or over 200 characters, or `limit` out of range |
 
 ## GET `/api/v1/conversations/{conversation_id}`
 
@@ -157,7 +237,7 @@ curl -X PUT https://api.callmissed.com/api/v1/conversations/c0ffee00-1111-2222-3
   -d '{"status": "completed"}'
 ```
 
-Returns the updated conversation. In this response `bot_name` is `""` and the preview fields are not recomputed; re-read the conversation if you need them.
+Returns the updated conversation, same shape as a list row.
 
 `403` without `conversations:write`; `404` when not found; `422` on an invalid status value.
 
@@ -170,7 +250,7 @@ curl -X POST https://api.callmissed.com/api/v1/conversations/c0ffee00-1111-2222-
   -H "Authorization: Bearer cm_your_api_key"
 ```
 
-Returns the conversation with `unread_count` recomputed after the bump (normally `0`).
+Returns the conversation, same shape as a list row, with `unread_count` recomputed after the bump (normally `0`).
 
 `403` without `conversations:write`; `404` when not found.
 
@@ -189,7 +269,7 @@ curl -X POST https://api.callmissed.com/api/v1/conversations/c0ffee00-1111-2222-
   -d '{"enabled": false}'
 ```
 
-Returns the conversation with the new `ai_autoreply_enabled`. `403` without `conversations:write`; `404` when not found.
+Returns the conversation, same shape as a list row, with the new `ai_autoreply_enabled`. `403` without `conversations:write`; `404` when not found.
 
 ## POST `/api/v1/conversations/{conversation_id}/ai-draft`
 

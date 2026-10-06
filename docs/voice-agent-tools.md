@@ -61,8 +61,7 @@ appears in `config.tools`.
 | Scheduling | `calcom_list_slots`, `calcom_book`, `google_calendar_find_free_slots`, `google_calendar_create_event` |
 | Spreadsheets | `google_sheets_find_rows`, `google_sheets_append_row`, `google_sheets_update_row`, `google_sheets_list_spreadsheets` |
 | Commerce | `shopify_order_status`, `shopify_product_lookup`, `woocommerce_order_status` |
-| WhatsApp messaging | `send_text_message`, `send_template_message`, `send_quick_reply_buttons`, `send_list_menu`, `send_cta_url_button`, `send_location` |
-| Calling | `request_call` |
+| WhatsApp messaging | `send_text_message`, `send_template_message`, `send_quick_reply_buttons`, `send_list_menu`, `send_cta_url_button`, `send_location`, `request_contact_info` |
 | Email | `send_email`, `gmail_send_email` |
 | HTTP | `http_request` |
 
@@ -107,12 +106,13 @@ returns an error the model relays instead of sending anything.
 
 ### Not available on voice
 
-Two categories are excluded from voice calls:
+Three categories are excluded from voice calls:
 
 | Category | Why |
 | --- | --- |
 | `conversation` | Inbox-thread actions — notes, tags, status, escalation — belong to the chat channels |
 | `personal_whatsapp` | Needs a linked personal-WhatsApp session, which a call does not have |
+| `calling` | `request_call` and `request_phone_call` ask for a phone call from a chat; on a call, use `transfer_to_human` below for a callback |
 
 Every tool in those categories comes back from `GET /api/v1/bots/tool-catalog`
 with `"unavailable_on": ["voice"]`, and listing one in a calling agent's
