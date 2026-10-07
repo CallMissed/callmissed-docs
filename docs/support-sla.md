@@ -62,7 +62,7 @@ A policy with `business_hours` only burns its clock during those hours. Omit it 
 
 ## GET `/api/v1/support/sla/policies`
 
-Newest first.
+Returns an array of policy objects, newest first.
 
 | Parameter | Type | Constraints |
 | --- | --- | --- |
@@ -70,6 +70,11 @@ Newest first.
 | `is_active` | `boolean` | |
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
+
+```bash
+curl "https://api.callmissed.com/api/v1/support/sla/policies?is_active=true" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
 
 ## POST `/api/v1/support/sla/policies`
 
@@ -100,15 +105,37 @@ A duplicate name returns `409 An SLA policy named '…' already exists`.
 
 ## PATCH `/api/v1/support/sla/policies/{policy_id}`
 
-All fields optional. The "must promise something" rule is re-checked against the **merged** result, so you cannot clear both minute fields in two steps.
+All fields optional; only the fields you send are changed. Sending `business_hours: null` removes business hours (the clock then runs continuously); sending `priority: null` turns the policy into a catch-all. The "must promise something" rule is re-checked against the **merged** result, so you cannot clear both minute fields in two steps. Returns the updated policy.
+
+```bash
+curl -X PATCH https://api.callmissed.com/api/v1/support/sla/policies/{policy_id} \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_response_minutes": 30,
+    "business_hours": { "tz": "Asia/Kolkata", "days": [1,2,3,4,5], "start": "09:00", "end": "18:00" }
+  }'
+```
+
+`404 SLA policy not found`; `409` on a name another policy already uses.
 
 ## DELETE `/api/v1/support/sla/policies/{policy_id}`
 
 Returns `204`. `404 SLA policy not found`.
 
+```bash
+curl -X DELETE https://api.callmissed.com/api/v1/support/sla/policies/{policy_id} \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
 ## GET `/api/v1/support/sla/status/{ticket_id}`
 
 The live clock for one ticket.
+
+```bash
+curl https://api.callmissed.com/api/v1/support/sla/status/{ticket_id} \
+  -H "Authorization: Bearer cm_your_api_key"
+```
 
 ```json
 {
@@ -127,8 +154,9 @@ The live clock for one ticket.
 | --- | --- | --- |
 | `policy_id` | `UUID \| null` | `null` when no policy matched this ticket |
 | `minutes_remaining` | `integer \| null` | Wall-clock minutes to the nearest still-running deadline. **Negative when overdue.** `null` when both clocks have stopped or no policy matched |
+| `first_response_breached` / `resolution_breached` | `boolean` | A stopped clock is judged against its stamp: a ticket first answered after the deadline stays breached for good, and one answered in time never becomes breached later |
 
-Policy selection: a policy scoped to the ticket's priority wins; otherwise the catch-all applies; otherwise nothing does.
+Policy selection: only active policies (`is_active: true`) are considered. A policy whose `priority` matches the ticket's priority (case-insensitive) wins; otherwise the oldest catch-all policy applies; otherwise nothing does and every due date is `null`.
 
 `404 Ticket not found`.
 
@@ -138,10 +166,15 @@ Tickets currently past a deadline, oldest first.
 
 | Parameter | Type | Constraints |
 | --- | --- | --- |
-| `priority` | `string` | At most 16 characters |
-| `include_resolved` | `boolean` | Default `false` |
+| `priority` | `string` | At most 16 characters, matched lowercase |
+| `include_resolved` | `boolean` | Default `false`, which skips tickets that have a `resolved_at` stamp |
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
+
+```bash
+curl "https://api.callmissed.com/api/v1/support/sla/breaches?priority=urgent&limit=200" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
 
 ```json
 [
@@ -152,9 +185,12 @@ Tickets currently past a deadline, oldest first.
     "priority": "urgent",
     "created_at": "2026-08-17T06:10:00Z",
     "sla": {
+      "ticket_id": "e5d4…",
       "policy_id": "d1c2…",
       "policy_name": "Urgent — 15 min first response",
+      "first_response_due_at": "2026-08-17T06:25:00Z",
       "first_response_breached": true,
+      "resolution_due_at": "2026-08-17T10:10:00Z",
       "resolution_breached": false,
       "minutes_remaining": -32
     }
@@ -162,7 +198,9 @@ Tickets currently past a deadline, oldest first.
 ]
 ```
 
-> **Pagination behaves differently here.** Because breach is computed rather than stored, `limit` and `offset` page over the **tickets scanned**, not the breaches returned. A page can come back shorter than `limit`, or empty, and still have more behind it. Keep advancing `offset` until a page returns zero scanned rows rather than stopping at the first short page.
+`sla` has the same shape as the `/status/{ticket_id}` response.
+
+> **Pagination behaves differently here.** Because breach is computed rather than stored, `limit` and `offset` page over the **tickets scanned** (oldest first), not the breaches returned. A page can come back shorter than `limit`, or empty, and still have more behind it — the response does not tell you how many tickets were scanned. To sweep everything, advance `offset` by `limit` each call until `offset` passes your ticket count, rather than stopping at the first short or empty page.
 
 ## Errors
 
@@ -171,6 +209,6 @@ Tickets currently past a deadline, oldest first.
 | `403` | Key is missing `sla:read` / `sla:write` |
 | `404` | Policy or ticket not in your tenant |
 | `409` | Duplicate policy name |
-| `422` | Policy promises nothing, blank name, or `end` not later than `start` |
+| `422` | Policy promises nothing, blank name, minutes outside `1..100000`, a `priority` that is not a short identifier, or `end` not later than `start` |
 
 Nothing on this page consumes credits.

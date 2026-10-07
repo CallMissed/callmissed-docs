@@ -61,8 +61,7 @@ appears in `config.tools`.
 | Scheduling | `calcom_list_slots`, `calcom_book`, `google_calendar_find_free_slots`, `google_calendar_create_event` |
 | Spreadsheets | `google_sheets_find_rows`, `google_sheets_append_row`, `google_sheets_update_row`, `google_sheets_list_spreadsheets` |
 | Commerce | `shopify_order_status`, `shopify_product_lookup`, `woocommerce_order_status` |
-| WhatsApp messaging | `send_text_message`, `send_template_message`, `send_quick_reply_buttons`, `send_list_menu`, `send_cta_url_button`, `send_location` |
-| Calling | `request_call` |
+| WhatsApp messaging | `send_text_message`, `send_template_message`, `send_quick_reply_buttons`, `send_list_menu`, `send_cta_url_button`, `send_location`, `request_contact_info` |
 | Email | `send_email`, `gmail_send_email` |
 | HTTP | `http_request` |
 
@@ -107,12 +106,13 @@ returns an error the model relays instead of sending anything.
 
 ### Not available on voice
 
-Two categories are excluded from voice calls:
+Three categories are excluded from voice calls:
 
 | Category | Why |
 | --- | --- |
 | `conversation` | Inbox-thread actions — notes, tags, status, escalation — belong to the chat channels |
 | `personal_whatsapp` | Needs a linked personal-WhatsApp session, which a call does not have |
+| `calling` | `request_call` and `request_phone_call` ask for a phone call from a chat; on a call, use `transfer_to_human` below for a callback |
 
 Every tool in those categories comes back from `GET /api/v1/bots/tool-catalog`
 with `"unavailable_on": ["voice"]`, and listing one in a calling agent's
@@ -205,13 +205,6 @@ way past.
 
 ### `transfer_to_human`
 
-<Callout type="warn">
-`transfer_to_human` does **not** connect a person to the live call. It notifies
-your team, who call the caller back. The agent tells the caller someone will
-ring them back, then wraps up. Write your prompt around a callback, not a warm
-transfer.
-</Callout>
-
 It takes a short `reason` for the team and a 1–2 sentence `summary` written for
 the colleague picking it up: what the caller wants, what has been covered, key
 facts like an order number, and whether identity was checked. The result tells
@@ -220,6 +213,32 @@ reached.
 
 Use it when the caller explicitly asks for a person, is upset and wants
 escalation, or has a request the agent genuinely cannot handle.
+
+**Live transfer on phone calls.** List up to 10 people in the agent's config as
+`transfer_targets`, each `{name, phone, description}` with the phone number in
+international format (`+919812345678`). On a phone call the tool then takes a
+`target` — one of those names — and puts the caller through while the call is
+live. The model only ever sees the names and descriptions, and can only reach a
+number you listed.
+
+- The caller hears a dial tone while the person's phone rings, for up to 30
+  seconds.
+- `transfer_mode: "warm"` (the default) has the agent introduce the caller and
+  the reason for the call, both listening, then leave. `"cold"` connects them
+  straight away.
+- If nobody answers, the caller is returned to the agent and a callback request
+  is recorded for your team instead.
+- The transferred leg is billed like any outbound call minute from your
+  workspace's number. The agent's own session ends with `end_reason`
+  `transferred`.
+- On a call the agent placed, the transferred call still ends at the agent's
+  maximum call duration.
+
+<Callout type="warn">
+Without `transfer_targets`, and on WhatsApp and browser calls, `transfer_to_human`
+does **not** connect a person to the live call. It notifies your team, who call
+the caller back, and the agent tells the caller someone will ring them back.
+</Callout>
 
 ## Errors
 
