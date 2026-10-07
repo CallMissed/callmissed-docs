@@ -24,34 +24,77 @@ Authorization: Bearer cm_your_api_key
 | Caller | Requirement |
 | --- | --- |
 | `cm_` API key | Must carry the `webhooks:write` scope. Every endpoint on this page checks it, **including the read-only list and delivery endpoints** - there is no `webhooks:read` scope |
-| Dashboard JWT | Read endpoints work for any member. Create, update, delete, test, and replay require **owner or admin** (`403 Only owners/admins can manage webhooks` otherwise) |
+| Dashboard JWT | Every endpoint, **including the reads**, requires **owner or admin** (`403 Only owners/admins can manage webhooks` otherwise). Delivery payloads carry customer data, so the log is not open to every member |
 
 Base URL for every example: `https://api.callmissed.com`. Errors are `{"detail": "..."}`.
 
 ## Event types
 
-Pass these in the `events` array. An unrecognised value returns `422` listing the valid set.
+Pass these in the `events` array. An unrecognised value returns `422` listing the valid set. Duplicates are dropped, and the array may hold at most as many entries as the catalogue below (30).
 
 | Category | Events |
 | --- | --- |
-| Conversations & messages | `conversation.started`, `conversation.ended`, `message.received`, `message.sent` |
+| Conversations & messages | `conversation.started`, `conversation.ended`, `message.received`, `message.sent`, `message.status` (a WhatsApp message you sent reached `sent`, `delivered`, `read` or `failed`, see [delivery status](/docs/whatsapp-api#delivery-status-and-proof-of-service)) |
 | Voice sessions | `voice_session.started`, `voice_session.ended`, `voice_session.failed` |
-| Telephony call lifecycle | `call.started`, `call.completed`, `call.failed` |
+| Telephony call lifecycle | `call.started`, `call.completed`, `call.failed`, `call.amd_detected` (answering-machine detection resolved on an outbound call) |
 | Post-call analysis | `voice_analysis.completed` |
 | Outbound campaigns | `campaign.started`, `campaign.completed`, `campaign.failed` |
 | Metric alerts | `voice_alert.triggered` |
 | Billing | `budget.alert`, `budget.exceeded`, `credits.low` |
 | Keys | `api_key.expired` |
 | Invoices & payments | `invoice.created`, `payment.succeeded`, `payment.failed` |
+| Customer payment links | `payment_request.partially_paid`, `payment_request.paid`, `payment_request.expired`, `payment_request.cancelled` — a payment link an agent sent to your customer changed status in your own connected Razorpay account |
+| CRM quotes & invoices | `quote.accepted` (a customer accepted a [quote](/docs/crm-quotes) on its public page, or your team recorded the acceptance), `invoice.paid` (a [CRM invoice](/docs/crm-invoices) was fully paid, online through its payment link or by a recorded manual payment) |
 
-## Signing and verification
+### CRM quote and invoice events
 
-Every delivery, including the test delivery, carries:
+Both are sent once the change is saved. Money is in minor units of the document's `currency`; ids are your own records.
+
+| Event | `data` fields |
+| --- | --- |
+| `quote.accepted` | `quote_id`, `number`, `status` (`converted` when the quote was turned straight into an issued invoice, else `accepted`), `currency`, `total_minor`, `accepted_by_name`, `accepted_at`, `contact_id`, `deal_id`, `invoice_id` (the issued invoice, or `null`) |
+| `invoice.paid` | `invoice_id`, `number`, `status` (`paid`), `currency`, `total_minor`, `amount_paid_minor`, `contact_id`, `deal_id`, `paid_at` |
+
+### Voice session end reasons
+
+A voice session fires exactly one of `voice_session.ended` or `voice_session.failed`, once, whichever way it ends: the agent or caller hanging up, a `DELETE`, the managed voice agent socket closing, or the session timing out. The event is sent only after the end has been saved. If two end signals arrive at the same moment, the first one decides `end_reason` and `duration_seconds`, and the later one changes nothing.
+
+| `end_reason` | Session `status` | Event |
+| --- | --- | --- |
+| `agent_error`, `start_failed`, and the managed voice agent's start-up errors (`invalid_settings`, `concurrency_limit`, `model_unavailable`, `non_settings_message_before_settings`) | `failed` | `voice_session.failed` |
+| `timeout` (ran past its maximum duration and nothing reported the end), `token_expired` (never connected) | `timeout` | `voice_session.failed` |
+| Any other reason, for example `caller_hangup`, `participant_disconnect`, `client_disconnect`, `agent_closed`, `max_duration`, `no_input`, `handoff`, `transferred`, `budget_exhausted`, `api_delete` | `completed` | `voice_session.ended` |
+
+## Delivery format
+
+Every event is a `POST` with this JSON body:
+
+```json
+{
+  "event": "message.received",
+  "data": { "conversation_id": "c0ffee00-1111-2222-3333-444455556666", "role": "user" },
+  "timestamp": "2026-08-04T09:12:00.512301+00:00"
+}
+```
+
+and these headers:
 
 ```
 Content-Type: application/json
+X-CallMissed-Event: message.received
+X-CallMissed-Delivery: <delivery id>
 X-CallMissed-Signature: sha256=<hex digest>
 ```
+
+`X-CallMissed-Delivery` is the `id` you see in the delivery log; use it to de-duplicate, because a retry or a replay can deliver the same event more than once.
+
+A response with a status below `300` counts as delivered. Anything else, or no response within 10 seconds, is retried: up to **5 attempts** in total, waiting 2, 4, 8 and 16 seconds between them. The delivery log records the attempt count, the last status code and the last error.
+
+A Slack Incoming Webhook URL (`https://hooks.slack.com/services/...`) receives the event formatted as Slack message blocks instead of the JSON body above.
+
+## Signing and verification
+
+Every delivery, including the test delivery, carries the `X-CallMissed-Signature` header above.
 
 The digest is `HMAC-SHA256(secret, raw_request_body)`. Compute it over the **raw bytes** you received, before any JSON parsing, and compare with a constant-time function.
 
@@ -73,7 +116,11 @@ The `url` is validated on create, on update, before a test delivery, and on ever
 
 ## GET /api/v1/webhooks
 
-Lists your tenant's subscriptions, newest first. No parameters.
+Lists your tenant's subscriptions, newest first.
+
+| Parameter | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `limit` | `integer` | No | `1 <= limit <= 200`, default `50` |
 
 ```bash
 curl https://api.callmissed.com/api/v1/webhooks \
@@ -95,7 +142,7 @@ curl https://api.callmissed.com/api/v1/webhooks \
 ]
 ```
 
-`403` when a `cm_` key lacks `webhooks:write`.
+`403` when a `cm_` key lacks `webhooks:write`, or a JWT caller is not owner/admin; `422` when `limit` is outside `1 .. 200`.
 
 ## POST /api/v1/webhooks
 
@@ -104,7 +151,7 @@ Creates a subscription and generates its secret. Returns `201`.
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
 | `url` | `string` | Yes | 1-2048 chars. Must pass the URL rules above |
-| `events` | `string[]` | Yes | At least one entry, each from the event table |
+| `events` | `string[]` | Yes | 1-30 entries, each from the event table |
 | `bot_id` | `UUID \| null` | No | Scope the subscription to one agent. Omit for a workspace-wide subscription |
 
 ```bash
@@ -147,7 +194,7 @@ Partial update. Every field is optional; omitted fields are unchanged. Returns t
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
 | `url` | `string \| null` | No | 1-2048 chars. Re-validated when present |
-| `events` | `string[] \| null` | No | Replaces the whole list |
+| `events` | `string[] \| null` | No | Replaces the whole list. An empty array `[]` subscribes to **every** event |
 | `is_active` | `boolean \| null` | No | Pause or resume deliveries |
 | `bot_id` | `UUID \| null` | No | Re-scope to an agent in your tenant |
 | `clear_bot_id` | `boolean` | No | Default `false`. Send `true` to widen a scoped subscription back to the whole workspace. Takes precedence over `bot_id` |
@@ -200,7 +247,7 @@ curl -X POST https://api.callmissed.com/api/v1/webhooks/w1a2b3c4-d5e6-4f70-8192-
 }
 ```
 
-`success` is true only for a 2xx from your endpoint. On a network failure the response is still `200` with `success: false`, `status_code: null`, and a short `error` string (truncated to 500 chars). The 10-second request timeout applies.
+`success` is true only for a 2xx from your endpoint. On a network failure the response is still `200` with `success: false`, `status_code: null`, and a short `error` such as `Connection failed` or `Request timed out`. The 10-second request timeout applies. The test is not retried and is not written to the delivery log.
 
 `403` for insufficient permission; `404` when the subscription is not in your tenant.
 
@@ -266,7 +313,7 @@ curl https://api.callmissed.com/api/v1/webhooks/w1a2b3c4-d5e6-4f70-8192-a3b4c5d6
 
 | Status | Cause |
 | --- | --- |
-| `403` | Key missing `webhooks:write` |
+| `403` | Key missing `webhooks:write`, or JWT caller is not owner/admin |
 | `404` | `Webhook not found` or `Delivery not found` |
 | `422` | Either path id is not a valid UUID |
 

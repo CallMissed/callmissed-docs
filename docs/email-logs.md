@@ -126,12 +126,44 @@ Suppressed recipients are dropped from `to`, `cc`, and `bcc` before sending and 
 | `status` | string | `queued`, `sent` (accepted for delivery), `delivered`, `bounced`, `complained`, `rejected` (we refused it), or `failed` (delivery error) |
 | `size_bytes` | integer | Assembled message size |
 | `sent_at` | string \| null | When it was accepted for delivery |
-| `delivered_at` | string \| null | Set from delivery feedback |
+| `smtp_response` | string \| null | Confirmation that the message was accepted for delivery, up to 512 characters. It shows the hand-off, not that the message reached the inbox: see `delivered_at` and [per-recipient delivery events](#per-recipient-delivery-events). `null` for sends made before this field existed and for messages that were never accepted |
+| `delivered_at` | string \| null | When the first recipient's mail server accepted the message. The outcome for every recipient is in [per-recipient delivery events](#per-recipient-delivery-events) |
 | `bounced_at` | string \| null | Set from bounce feedback |
 | `complained_at` | string \| null | Set from a spam complaint |
 | `created_at` | string \| null | When the row was written |
 
 One row per **message**, so a `messageVersions` batch writes one row per version. This is how you find out which versions of a batch failed.
+
+### Per-recipient delivery events
+
+**`GET /api/v1/email/sends/{id}/events`** returns, for one send, each recipient's delivery outcome reported by the receiving side, ordered by attempt time. This is the audit trail behind `email.delivered` and `email.bounced`, and a read-only key can call it.
+
+```bash
+curl https://api.callmissed.com/api/v1/email/sends/9d0f8b3a-1c2e-4a5b-8f7d-6e2a1b0c9d4e/events \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+[
+  {
+    "id": "5c2a9e41-7b3d-4f0a-9e8c-1d2b3c4d5e6f",
+    "send_id": "9d0f8b3a-1c2e-4a5b-8f7d-6e2a1b0c9d4e",
+    "recipient": "customer@example.com",
+    "status": "delivered",
+    "detail": null,
+    "occurred_at": "2026-08-13T09:41:03.201000+00:00",
+    "received_at": "2026-08-13T09:41:05.770114+00:00"
+  }
+]
+```
+
+| Field | Notes |
+|-------|-------|
+| `status` | `delivered`, `bounced`, `suppressed`, `failed`, `filtered_spam`, `quarantined` or `expanded` (a distribution list was expanded into its members) |
+| `occurred_at` | When delivery to this recipient was attempted |
+| `received_at` | When CallMissed recorded the outcome |
+
+The list is empty until outcomes arrive, usually within seconds to a few minutes of sending. It is always empty for sends made before 2026-10-03. A send id that is not yours returns `404`. Outcomes are kept for the life of your account.
 
 ### Filtering the send log
 
