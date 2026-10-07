@@ -52,17 +52,18 @@ Both paths converge: once a number is in CallMissed, whether rented or imported,
 | **Twilio** | SIP trunk (Elastic SIP Trunking) | Yes | Self-serve |
 | **Plivo** (your own account) | SIP trunk (Zentrunk) | Yes | Self-serve |
 | **Custom SIP** | SIP trunk (any provider) | Manual entry | Self-serve |
-| **Exotel** | SIP trunk (vSIP) | Yes | Set up by our team |
-| **Smartflo** (Tata) | Media streaming (WebSocket) | Yes | Set up by our team |
+| **Exotel** | SIP trunk (vSIP) | n/a | Set up by our team |
+| **Smartflo** (Tata) | Media streaming (WebSocket) | n/a | Set up by our team |
 | **Pulse** | Contact us | n/a | Contact us |
 | **InTalk** | Contact us | n/a | Contact us |
-| **Vobiz** | Contact us | n/a | Contact us |
 
 What the **Status** column means:
 
 - **Self-serve**: you can connect it yourself from the dashboard, start to finish. The three self-serve providers are documented below.
 - **Set up by our team**: the integration exists, but part of the trunk mapping has to be arranged with the provider on your behalf. Write to `support@callmissed.com` with your account details and we complete the connection with you.
 - **Contact us**: not wired yet. Tell us which provider you are on at `support@callmissed.com` and we will scope it.
+
+Over the API, a provider that is not self-serve returns `501` when you try to connect it.
 
 > **Do not follow the self-serve steps for a "Set up by our team" provider.** Their trunk mapping is done by the provider's own support team, not from your console, and a half-configured trunk silently drops inbound calls.
 
@@ -78,7 +79,7 @@ From the [Twilio Console](https://console.twilio.com/) home page, under **Accoun
 - **Account SID**, starts with `AC…`.
 - **Auth Token**, click to reveal.
 
-Prefer a scoped credential? Instead of the Auth Token you can supply a Twilio **API Key SID** (starts with `SK…`) and its **API Key Secret**. Give both or neither: an API Key SID without its secret is rejected.
+Prefer a scoped credential? Alongside the Account SID and Auth Token (both still required), you can supply a Twilio **API Key SID** (starts with `SK…`) and its **API Key Secret**; when present, the API key is what CallMissed uses to call Twilio. Give both or neither: an API Key SID without its secret is rejected.
 
 The credentials must belong to an account (or subaccount) allowed to manage **Elastic SIP Trunking** and to list incoming phone numbers.
 
@@ -90,7 +91,7 @@ Open **Phone numbers → Bring your own telephony → Connect**, choose **Twilio
 
 CallMissed creates the Elastic SIP Trunk in your Twilio account and wires both directions: an **origination URI** pointing at our SIP endpoint for inbound calls, and a **termination URI** for outbound.
 
-The termination domain Twilio issues always ends in `pstn.twilio.com`. If you are supplying an existing trunk instead of letting us create one, its termination domain must end in `pstn.twilio.com` or the connection is rejected.
+The termination domain Twilio issues always ends in `pstn.twilio.com`.
 
 ## Import your numbers
 
@@ -138,10 +139,16 @@ Use this for any provider not listed above that can terminate a SIP trunk. You s
 | **SIP username** | `acme-outbound` | The digest username we authenticate outbound calls with. |
 | **SIP password** | your trunk password | Stored encrypted, never shown again. |
 | **Phone numbers** | `+911140848000` | The `+E.164` numbers to accept inbound calls on. Every entry must carry the leading `+`. |
+| **Inbound source IPs** | `1.2.3.4`, `1.2.3.0/24` | The public IPs or CIDR ranges your provider sends inbound calls from. A bare IP is stored as a single-address range. Required unless you set inbound SIP credentials. |
+| **Inbound SIP username / password** | `carrier-in` | Optional. Digest credentials your provider sends with inbound calls. Give both or neither; the password must be at least 12 characters. Stored encrypted, never shown again. |
 
 > **Outbound calls authenticate with the SIP username and password, not with an IP allowlist.** We cannot guarantee a static egress IP for allowlisting, so an IP-only trunk cannot be authorised. Ask your provider to enable digest (username and password) authentication on the trunk. If they cannot, write to `support@callmissed.com` before you start.
 
-**Inbound.** After the connection is created, CallMissed shows you the SIP endpoint to route to. Set that as the inbound destination on your provider's trunk, then confirm each number is attached to that trunk on their side. Only the numbers you entered are accepted.
+**Inbound.** Set CallMissed's SIP host as the inbound destination on your provider's trunk, then confirm each number is attached to that trunk on their side. The connection response does not include that host for Custom SIP, so ask `support@callmissed.com` for it. Only the numbers you entered are accepted.
+
+> **Inbound calls must be restricted to your provider.** Give the source IPs your provider sends calls from, inbound SIP credentials, or both. A Custom SIP connection with neither is refused, because anyone who knows one of your numbers could otherwise send a call straight to our SIP host and start an AI call billed to your account. Source ranges must be public and no wider than `/16` (IPv4) or `/48` (IPv6); `0.0.0.0/0`, private, loopback and link-local ranges are rejected.
+
+**Connected before inbound protection was required?** Lock the connection to your provider's IPs with [`PUT /provider-connections/{connection_id}/inbound-allowed-addresses`](#restrict-inbound-calls-on-a-custom-sip-connection). Until you do, the connection accepts inbound calls for its numbers from any source.
 
 ## Connecting in the dashboard
 
@@ -164,26 +171,132 @@ The panel tells you exactly where the credentials live in that provider's consol
 
 Paste the credentials, and for Custom SIP the termination host, transport, and number list. Optionally give the connection a **label** (for example "Twilio, prod account") so two accounts on the same provider are easy to tell apart.
 
-Submitting verifies the credentials with your provider. If verification fails, the connection stays unconnected and shows the reason. Nothing partial is left behind.
+Submitting verifies the credentials with your provider. If verification fails, you see the reason and no connection is saved. Nothing partial is left behind.
 
 ## Step 3. Configure and import numbers
 
 CallMissed provisions the trunk, then lists the numbers it found on your account. Select the ones to import. For Custom SIP, this step confirms the numbers you typed in.
 :::
 
-A connection moves through **pending → provisioning → active**. If provisioning fails it lands in **error** with a short, readable reason on the connection card. Fix the cause at your provider and reconnect. A connection you no longer want can be **disabled**.
+A connection is saved only once verification and provisioning have both succeeded, so a new connection is **active** straight away. If either step fails, the request returns the reason and nothing is saved; fix the cause at your provider and connect again. A connection you no longer want is disconnected (deleted).
 
 ## After connecting
 
 - **Imported numbers appear alongside rented ones.** They show up on the Phone numbers page and in the number list of the [Telephony API](/docs/telephony-api), tagged with the provider they came from.
 - **Assign an agent the same way.** Link a voice-agent bot to the number exactly as you would for a rented number. See [Voice Calling](/docs/voice) for building the bot.
 - **Per-number call settings still apply.** Greeting, language, voice, STT and TTS models, system prompt, tools, and maximum call duration are all set per number and override the linked bot on that number's calls. The full list is in [Per-number call overrides](/docs/telephony-api).
-- **Disconnecting only affects CallMissed.** Removing a provider connection removes its numbers from CallMissed. It does **not** release or cancel anything at your provider, and it does not change your contract with them. Point the number's routing back at your own application before you disconnect, or inbound calls will go nowhere.
+- **Disconnecting only affects CallMissed.** Removing a provider connection removes the trunk CallMissed set up for it, so calls on its numbers stop reaching your agent. The imported numbers stay in your number list, detached from any connection. Nothing is released or cancelled at your provider, and your contract with them is unchanged. Point the number's routing back at your own application before you disconnect, or inbound calls will go nowhere.
+
+## API reference
+
+Everything the dashboard wizard does is also available with your `cm_` key. Base path: `https://api.callmissed.com/api/v1/telephony`. Reads need `telephony:read`; connecting, disconnecting and importing need `telephony:write` (and an owner/admin role when called with a JWT).
+
+| Endpoint | Scope | Purpose |
+|---|---|---|
+| `GET /provider-catalog` | `telephony:read` | The providers and the credential fields each one needs |
+| `GET /provider-connections` | `telephony:read` | Your connections, newest first. `limit` 1–200 (default 50), `offset` 0–100000 |
+| `POST /provider-connections` | `telephony:write` | Verify credentials, provision the trunk, and save the connection. `201` |
+| `GET /provider-connections/{connection_id}/numbers` | `telephony:read` | Numbers on your provider account that can be imported. `limit` 1–200 (default 100) |
+| `POST /provider-connections/{connection_id}/import` | `telephony:write` | Import numbers. `201` |
+| `PUT /provider-connections/{connection_id}/inbound-allowed-addresses` | `telephony:write` | Custom SIP only: replace the inbound source IPs. `200` |
+| `DELETE /provider-connections/{connection_id}` | `telephony:write` | Disconnect. `204` |
+
+### The provider catalogue
+
+`GET /provider-catalog` returns one entry per provider: `id`, `label`, `description`, `integration` (`sip`, `wss` or `manual`), `can_auto_provision`, `can_list_numbers`, `contact_us` (`true` means it cannot be connected over the API), `credentials` (the fields to send — each with `name`, `label`, `type`, `required`, `help`) and `docs_url`.
+
+| `provider` id | `credentials` fields |
+|---|---|
+| `twilio` | `account_sid` (required, `AC` + 32 hex), `auth_token` (required), `api_key_sid` and `api_key_secret` (optional, together) |
+| `plivo_byo` | `auth_id` (required), `auth_token` (required) |
+| `custom_sip` | `address` (required, bare host, optional `:port`), `transport` (`auto`/`udp`/`tcp`/`tls`, default `tcp`), `auth_username` (required), `auth_password` (required), `numbers` (list of `+E.164`, up to 200), `inbound_allowed_addresses` (list of public IPs/CIDRs, up to 200), `inbound_auth_username` and `inbound_auth_password` (optional, together, password at least 12 characters). At least one of `inbound_allowed_addresses` or the inbound credential pair is required |
+
+### Connect a provider
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/telephony/provider-connections \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "twilio",
+    "label": "Twilio, prod account",
+    "credentials": {"account_sid": "ACxxxxxxxx...", "auth_token": "your_twilio_auth_token"}
+  }'
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `provider` | string (1–64) | **Required.** An `id` from the catalogue |
+| `label` | string (≤ 128) | Your own name for the connection |
+| `credentials` | object | The fields listed for that provider. Unknown keys are dropped |
+
+**Response (201 Created)** — the connection:
+
+```json
+{
+  "id": "4b8d2f10-6c3e-4a1b-9f2d-7e8a9b0c1d2e",
+  "tenant_id": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+  "provider": "twilio",
+  "label": "Twilio, prod account",
+  "status": "active",
+  "external_account_id": "ACxxxxxxxx...",
+  "provider_trunk_id": "TKxxxxxxxx...",
+  "config": {"outbound_address": "example.pstn.twilio.com", "transport": "tcp"},
+  "last_error": null,
+  "has_credentials": true,
+  "created_at": "2026-09-20T09:00:00Z",
+  "updated_at": "2026-09-20T09:00:00Z"
+}
+```
+
+The response also carries internal routing identifiers for the trunk; treat any field not shown here as opaque. Credentials are never returned.
+
+| Code | Meaning |
+|---|---|
+| `409` | This provider account is already connected |
+| `422` | Unknown `provider`, a missing or malformed credential field, or (Custom SIP) an `address` that is not a public, fully-qualified host, or no inbound restriction (neither `inbound_allowed_addresses` nor inbound credentials) |
+| `501` | The provider is *Set up by our team* or *Contact us* |
+| `4xx` / `5xx` | Your provider rejected the credentials or the trunk setup. The message says which |
+
+### List and import numbers
+
+`GET /provider-connections/{connection_id}/numbers` returns the numbers on your provider account (for Custom SIP, the ones you entered): `e164`, `provider_number_id`, `number_type`, `voice_enabled`, `sms_enabled`, `label`, `already_attached` (the provider already routes it somewhere else — importing takes it over) and `already_imported` (it is already on your CallMissed account).
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/telephony/provider-connections/{connection_id}/import \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"numbers": ["+14155550123", "+14155550124"]}'
+```
+
+`numbers` takes 1–50 `+E.164` entries; duplicates are collapsed. The response is the imported numbers, in the same shape as `GET /numbers` on the [Telephony API](/docs/telephony-api), with no rental charge. `409` if the connection is not active or a number is already in use (your own clashes are named; a number held elsewhere is only counted). A number that cannot be attached to the trunk at your provider is still imported and works for outbound calls; attach it on the provider's side for inbound.
+
+### Restrict inbound calls on a Custom SIP connection
+
+Replaces the inbound source IPs of an existing Custom SIP connection. Use it to lock down a connection made before inbound protection was required, or when your provider's IPs change.
+
+```bash
+curl -X PUT https://api.callmissed.com/api/v1/telephony/provider-connections/{connection_id}/inbound-allowed-addresses \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"addresses": ["1.2.3.4", "1.2.3.0/24"]}'
+```
+
+`addresses` takes 1–200 public IPs or CIDR ranges, validated as above; the list replaces the previous one and cannot be emptied. The response is the connection, with the applied list in `config.inbound_allowed_addresses`. `404` if the connection is not yours, `409` for a Twilio or Plivo connection (their provider's ranges are applied automatically at connect time), `422` for an invalid, private or too-broad entry.
+
+### Disconnect
+
+```bash
+curl -X DELETE https://api.callmissed.com/api/v1/telephony/provider-connections/{connection_id} \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+`204 No Content`. See [After connecting](#after-connecting) for what this does and does not change.
 
 ## Security
 
 - **Credentials are encrypted at rest** before they reach the database. They are decrypted only in memory, only when a call to your provider needs them.
-- **They are never returned by the API.** No response body, log line, or webhook payload contains a provider secret. A connection exposes only whether credentials are present, a masked account identifier, and the non-secret connection facts (trunk ids, SIP address, transport).
+- **They are never returned by the API.** No response body, log line, or webhook payload contains a provider secret. A connection exposes only whether credentials are present (`has_credentials`), your provider account id (Account SID or Auth ID — an identifier, not a secret), and the non-secret connection facts (trunk ids, SIP address, transport).
 - **Scoped per tenant.** A connection belongs to one tenant and is only ever readable inside it.
 - **To rotate a credential**, change it at your provider, then connect the provider again in CallMissed with the new pair. Verification runs against the new credential before it replaces the old one.
 
@@ -199,6 +312,6 @@ If you believe a credential has leaked, revoke it at your provider first, then r
 | Outbound calls time out instead of failing fast. | Wrong termination host, or the wrong transport (for example `tls` on a trunk that only accepts `udp`). | Check the host is a bare hostname with no `sip:` prefix and no parameters, and set the transport to what your provider documents for the trunk. |
 | A number is missing from the import list. | The API credentials cannot list numbers, the number is not voice-capable, or it lives in a subaccount the credentials do not cover. | Use credentials for the account that actually holds the number, and confirm the number has the voice capability. |
 | A number imported but shows a different format than expected. | Plivo returns numbers without a leading `+`. | Nothing to do. CallMissed normalises to `+E.164` on import. If you enter numbers manually, always include the `+` and the country code. |
-| The connection sits in **error**. | Credential verification or trunk provisioning failed upstream. | Read the reason on the connection card, fix it at the provider, and reconnect. Credentials are re-verified on every connect. |
+| Connecting fails with an error. | Credential verification or trunk provisioning failed at your provider. | Read the reason returned, fix it at the provider, and connect again. Credentials are re-verified on every connect. |
 
 Still stuck, or on a provider marked *Set up by our team*? Write to `support@callmissed.com` with your provider, the connection label, and the number you are testing.

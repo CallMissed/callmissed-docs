@@ -123,7 +123,7 @@ Fidelity details that match Twilio exactly:
 - **`duration` and `price` are strings**, not numbers, and stay `null` until the call is billed. `price` is negative (an amount debited).
 - **Dates are RFC 2822** (`"Thu, 24 Aug 2023 05:01:45 +0000"`), not ISO 8601.
 - **`price_unit` is `"credits"`** — CallMissed bills in credits, not a currency, so the field says so rather than pretending to be `"USD"`. Your upstream carrier cost is never exposed.
-- **`status`** is exactly `queued`, `ringing`, `in-progress`, `canceled`, `completed`, `busy`, `failed`, `no-answer`.
+- **`status`** is exactly `queued`, `ringing`, `in-progress`, `canceled`, `completed`, `busy`, `failed`, `no-answer`. (`canceled` is never produced: a call you end through the API reports `completed`.)
 
 ## Fetch and list
 
@@ -132,23 +132,41 @@ Fidelity details that match Twilio exactly:
 curl https://api.callmissed.com/2010-04-01/Accounts/ACxxxxxxxx/Calls/CA0f1e2d....json \
   -u "any:cm_your_api_key"
 
-# List (filters: To, From, Status; paging: Page, PageSize)
+# List (filters: To, From, Status; paging: Page, PageSize — default 50, max 200)
 curl "https://api.callmissed.com/2010-04-01/Accounts/ACxxxxxxxx/Calls.json?Status=completed&PageSize=50" \
   -u "any:cm_your_api_key"
 ```
 
-The list envelope is Twilio's, and the array key is the lower-cased resource name — **`calls`** — with `page`, `page_size`, `uri`, `first_page_uri`, `next_page_uri` and `previous_page_uri`.
+The list envelope is Twilio's, and the array key is the lower-cased resource name — **`calls`** — with `page`, `page_size`, `uri`, `first_page_uri`, `next_page_uri` and `previous_page_uri`. A `PageSize` above 200 is clamped to 200 rather than rejected, as Twilio clamps to its own maximum.
+
+## End a call
+
+```
+POST /2010-04-01/Accounts/{AccountSid}/Calls/{CallSid}.json
+Content-Type: application/x-www-form-urlencoded
+```
+
+Send `Status=completed` to hang up a queued, ringing or in-progress call. The response is `200 OK` with the updated Call object (`status` is `completed`). Hanging up a call that has already ended returns it unchanged. Needs the `telephony:write` scope (or an owner/admin role with a JWT), and the call must belong to your account; anything else is `404` (code `20404`).
+
+```bash
+curl -X POST https://api.callmissed.com/2010-04-01/Accounts/ACxxxxxxxx/Calls/CA0f1e2d....json \
+  -u "any:cm_your_api_key" \
+  --data-urlencode "Status=completed"
+```
+
+`completed` is the only supported update. `Status=canceled` returns `400` (code `61001`): a call ended this way is always reported as `completed`, never `canceled`, so use `Status=completed` for ringing calls too. Redirecting a live call with `Url` or `Twiml` is refused for the same reason as on create (below).
 
 ## Parameters that are rejected, not ignored
 
-Silently ignoring a parameter would connect the call and then behave differently from what you asked — worse than refusing it. These return `400` with a Twilio-shaped error that names the parameter:
+Silently ignoring a parameter would connect the call and then behave differently from what you asked — worse than refusing it. These return `400` with a Twilio-shaped error (code `61001`) that names the parameter:
 
-- **`Url` / `Twiml` / `Method` / `Fallback*`** — there is no TwiML interpreter. CallMissed calls are agent-driven; the behaviour comes from `ApplicationSid` (the agent), not a markup document.
-- **`Record` / `RecordingStatusCallback*`** — per-call recording is not controllable through this API.
+- **`Url` / `Twiml` / `Laml` / `Method` / `Fallback*`** — there is no TwiML interpreter. CallMissed calls are agent-driven; the behaviour comes from `ApplicationSid` (the agent), not a markup document.
+- **`Record` / `Recording*` / `Trim`** — per-call recording is not controllable through this API.
 - **`MachineDetection*` / `AsyncAmd*`** — no answering-machine detection.
 - **`SendDigits`** — no post-answer DTMF injection.
 - **`Timeout` / `TimeLimit`** — no per-call ring/duration override (the agent's configured max duration applies).
-- **`StatusCallback` / `StatusCallbackEvent` / `StatusCallbackMethod`** — per-call status callbacks are not delivered. Subscribe instead to the `call.started` / `call.completed` / `call.failed` [webhook events](/docs/webhooks) at `/api/v1/webhooks`.
+- **`StatusCallback` / `StatusCallbackEvent` / `StatusCallbackMethod`** — per-call status callbacks are not delivered on this surface. Subscribe instead to the `call.started` / `call.completed` / `call.failed` [webhook events](/docs/webhooks) at `/api/v1/webhooks`, or place the call with the native [Telephony API](/docs/telephony-api), whose `status_callback_url` does take a per-call URL.
+- **`CallerId` / `CallReason` / `CallToken` / `SipAuthUsername` / `SipAuthPassword` / `Byoc`** — not supported. (For spoken context use `CallMissedReason`.)
 
 ## Error envelope
 

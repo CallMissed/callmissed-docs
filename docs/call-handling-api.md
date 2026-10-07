@@ -29,7 +29,7 @@ Every endpoint on this page takes either. API-key callers need:
 | Listing, reading, simulating, live state, reputation check | `telephony:read` |
 | Creating, updating, publishing, attaching a number, roster changes, deleting | `telephony:write` |
 
-Call handling is an attribute of telephony, so it reuses those two scopes and adds none. Base URL for every example: `https://api.callmissed.com`. Errors are `{"detail": "..."}`.
+Call handling is an attribute of telephony, so it reuses those two scopes and adds none. Base URL for every example: `https://api.callmissed.com`. Errors are `{"detail": "..."}`. Every create (`POST` on a collection) returns `201 Created`, and every `DELETE` of a flow, menu, queue, member or voicemail message returns `204 No Content`.
 
 <Callout type="info">
   Flows, menus and queues can be built **before** calling is switched on for your account — they only read and write your own configuration. The voicemail-message and reputation endpoints need calling enabled and return `404` until it is.
@@ -453,7 +453,16 @@ curl -X POST https://api.callmissed.com/api/v1/reputation/919000000000/remediate
   -F 'file=@opt-in-proof.pdf'
 ```
 
-Only the file's type and size are checked at upload; the document itself is reviewed afterwards, so a `200` means "under review", not "cleared". The proof must show your business logo, the opt-in date (within the six months before the complaint) and the complainant's exact number, or the review declines it.
+```json
+{
+  "phone_number": "919000000000",
+  "reference_id": "PUCC-000123",
+  "status": "in_review",
+  "message": "Opt-in proof uploaded and the complaint is under review. ..."
+}
+```
+
+A file over 10 MB returns `413`. Only the file's type and size are checked at upload; the document itself is reviewed afterwards, so a `200` means "under review", not "cleared". The proof must show your business logo, the opt-in date (within the six months before the complaint) and the complainant's exact number, or the review declines it.
 
 ## Do this from an AI assistant instead
 
