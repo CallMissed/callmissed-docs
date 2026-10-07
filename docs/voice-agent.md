@@ -24,7 +24,7 @@ The Voice Agent streams conversations over **WebRTC**. Choose one configuration 
 
 - **CallMissed-managed pipeline:** select one speech-recognition model, one language model, and one speech-generation model and voice.
 - **Deepgram-managed pipeline:** select a `deepgram-voice-*` model and its supported recognition and voice settings.
-- **Native speech-to-speech:** select a GPT Realtime or Nova Sonic model and voice.
+- **Native speech-to-speech:** select a GPT Realtime model and voice.
 
 - **Full-duplex speech-to-speech:** select `gpt-live-1`, which listens and speaks at the same time. It behaves differently enough that it has [its own page](/docs/full-duplex-voice).
 
@@ -45,7 +45,7 @@ icon:done | Browser | Receives synthesized speech back over WebRTC and plays it
 
 ### One conversational turn
 
-With Nova Sonic selected, every turn stays in one speech-to-speech model. With a cascaded model selected (or when the speech-to-speech model is unavailable), every turn streams through STT, LLM, and TTS concurrently to minimize time-to-first-audio:
+With a GPT Realtime model selected, every turn stays in one speech-to-speech model. With a cascaded model selected (or when the speech-to-speech model is unavailable), every turn streams through STT, LLM, and TTS concurrently to minimize time-to-first-audio:
 
 :::flow
 icon:stt | STT | Streams partial transcripts as the user speaks, finalizes on end-of-speech
@@ -115,20 +115,22 @@ The agent joins automatically, greets the user, and responds to speech.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `system_prompt` | string | "You are a helpful voice assistant..." | System prompt for LLM |
-| `voice` | string | `shubh` | TTS voice ID (37 voices available) |
+| `voice` | string | `shubh` | A speaker of the selected TTS model (`bulbul:v3` has 37) |
 | `language` | string | `en-IN` | Language code for STT and TTS |
-| `llm_model` | string | resolved server side | One supported voice model. Unavailable selections are not replaced. |
+| `llm_model` | string | `gemma-4-31b` | One voice-capable model. An id the agent cannot serve is rejected at create time with `422` |
 | `tts_provider` | string | *plan-dependent* | Legacy TTS selector; use `tts_model` for per-model selection. Omit it and the server picks by plan: paid plans (starter, pro, enterprise) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
 | `max_duration_seconds` | int | 1800 | Max session duration (30-3600) |
+
+`stt_model`, `tts_model`, `greeting`, `variables`, `bot_id` and the rest are covered in the [Voice Session API](/docs/voice-sessions-api#request-body) reference.
 
 ## Features
 
 - **Interruption handling** — speak while the agent is talking and it stops immediately, listens to you
-- **STT-based turn detection** — server-side VAD detects speech start/end with low-latency (~50ms) endpointing
+- **Server-side turn detection** — voice-activity detection finds where speech starts and ends; no client-side VAD needed
 - **Preemptive generation** — LLM starts generating before STT fully confirms the transcript
 - **Streaming pipeline** — each stage streams to the next, no buffering between stages
 - **Session management** — REST API for creating, listing, deleting sessions and retrieving transcripts
-- **Per-model pricing** — usage tracked and billed per model ($0.81/$4.05 per 1M tokens)
+- **Per-model pricing** — each model is billed at its own catalogue rate (see the [model catalogue](/docs/models)), and [`GET /v1/voice/sessions/{id}/cost`](/docs/voice-sessions-api#session-cost) itemises a call
 - **Tool calling** — built-in tools, your own REST endpoints and MCP servers, mid-conversation. See [Voice Agent Tools](/docs/voice-agent-tools)
 
 ## Legacy WebSocket
@@ -151,4 +153,4 @@ new WebSocket("wss://api.callmissed.com/ws/voice-agent", [
 
 Clients that can set headers may send `Authorization: Bearer cm_your_api_key` instead. The `?key=cm_your_api_key` query parameter is **deprecated** and still accepted for existing integrations.
 
-Send a config message after connecting, then stream PCM audio. This is a direct-WebSocket pipeline, separate from the WebRTC path above. See the [Session API](/docs/voice-sessions-api) for the recommended WebRTC approach.
+Send a config message after connecting (`{"type": "config", "system_prompt": "…", "voice": "shubh", "language": "en-IN", "llm_model": "sarvam-105b"}`), then stream binary 16-bit PCM, 16 kHz mono. The agent's speech comes back as binary MP3 chunks between `audio_start` and `audio_end` events. A key without `stt`, `tts` and `llm` permissions is refused. This is a direct-WebSocket pipeline, separate from the WebRTC path above. See the [Session API](/docs/voice-sessions-api) for the recommended WebRTC approach.

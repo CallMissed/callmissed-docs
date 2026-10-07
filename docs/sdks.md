@@ -1,17 +1,17 @@
 ---
 title: "Libraries & SDKs"
-description: "Use the OpenAI SDK to integrate CallMissed APIs — our endpoints are fully OpenAI-compatible."
+description: "Use the OpenAI or Anthropic SDK to integrate CallMissed — point the client at our base URL and use your cm_ API key."
 slug: "sdks"
 breadcrumb: "Getting Started"
 ---
 
 # Libraries & SDKs
 
-Use the OpenAI SDK to integrate CallMissed APIs — our endpoints are fully OpenAI-compatible.
+Use the OpenAI or Anthropic SDK to integrate CallMissed — point the client at our base URL and use your cm_ API key.
 
-## Official Libraries
+## Supported Libraries
 
-CallMissed supports **two SDK families** — use whichever you prefer. Just change the base URL and use your `cm_` API key.
+CallMissed does not ship its own client library for the inference API. Our endpoints are compatible with **two existing SDK families**, so use whichever you prefer: change the base URL and use your `cm_` API key. The platform APIs under `/api/v1/` (agents, CRM, support, webhooks and the rest) are plain JSON over HTTPS; call them with any HTTP client.
 
 ### OpenAI SDK (recommended for most use cases)
 
@@ -19,7 +19,7 @@ CallMissed supports **two SDK families** — use whichever you prefer. Just chan
 |----------|---------|---------|
 | Python | `openai` | PyPI |
 | JavaScript / TypeScript | `openai` | npm |
-| Go | `openai-go` | go modules |
+| Go | `github.com/openai/openai-go/v3` | go modules |
 | PHP | `openai-php/client` | Composer |
 | Ruby | `ruby-openai` | RubyGems |
 | Java / Kotlin | HTTP client | Maven / Gradle |
@@ -43,7 +43,7 @@ pip install openai
 npm install openai
 ```
 ```bash [Go]
-go get github.com/openai/openai-go
+go get github.com/openai/openai-go/v3
 ```
 ```bash [PHP]
 composer require openai-php/client
@@ -69,7 +69,7 @@ pip install --upgrade openai
 npm install openai@latest
 ```
 ```bash [Go]
-go get -u github.com/openai/openai-go
+go get -u github.com/openai/openai-go/v3
 ```
 ```bash [PHP]
 composer update openai-php/client
@@ -130,8 +130,8 @@ package main
 import (
     "context"
     "fmt"
-    "github.com/openai/openai-go"
-    "github.com/openai/openai-go/option"
+    "github.com/openai/openai-go/v3"
+    "github.com/openai/openai-go/v3/option"
 )
 
 func main() {
@@ -140,14 +140,17 @@ func main() {
         option.WithBaseURL("https://api.callmissed.com/v1"),
     )
 
-    resp, _ := client.Chat.Completions.New(context.Background(),
+    resp, err := client.Chat.Completions.New(context.Background(),
         openai.ChatCompletionNewParams{
-            Model: openai.F("sarvam-105b"),
-            Messages: openai.F([]openai.ChatCompletionMessageParamUnion{
+            Model: "sarvam-105b",
+            Messages: []openai.ChatCompletionMessageParamUnion{
                 openai.UserMessage("Hello"),
-            }),
+            },
         },
     )
+    if err != nil {
+        panic(err)
+    }
     fmt.Println(resp.Choices[0].Message.Content)
 }
 ```
@@ -194,5 +197,6 @@ curl https://api.callmissed.com/v1/chat/completions \
 | Resource | Link |
 |----------|------|
 | API Reference | [docs.callmissed.com](https://docs.callmissed.com) |
+| Docs in your coding agent | [`callmissed-docs-mcp`](/docs/mcp-server) on npm |
 | Dashboard | [console.callmissed.com](https://console.callmissed.com) |
 | LinkedIn | [linkedin.com/company/callmissed](https://www.linkedin.com/company/callmissed) |
