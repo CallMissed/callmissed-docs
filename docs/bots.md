@@ -33,8 +33,8 @@ Authorization: Bearer cm_your_api_key
 
 | Endpoints | Scope needed by a `cm_` key |
 | --- | --- |
-| List, get, get prompt, tool catalog, config schema, validate config | `bots:read` |
-| Create, update, put prompt, patch config, delete, toggle, deploy verify | `bots:write` |
+| List, get, get prompt, tool catalog, skill catalog, config schema, validate config, probe MCP servers, list/get versions | `bots:read` |
+| Create, update, put prompt, patch config, delete, toggle, deploy verify, create/edit/commit/roll back versions | `bots:write` |
 | Knowledge list | `knowledge:read` |
 | Knowledge add, upload, delete | `knowledge:write` |
 
@@ -57,12 +57,17 @@ Most of `config` is stored as-is, which is why [Build an agent programmatically]
 | `analysis_variables` | Post-call extraction schema |
 | `input_variables` | Per-call `{{token}}` declarations |
 | `stt_keyterms` | List of at most 100 unique strings, each 1-100 chars |
+| `pronunciations` | List of at most 100 `{ "word", "say_as" }` objects, each 1-64 chars, unique `word`. The voice says `say_as` instead of `word` (whole-word, case-insensitive); transcripts keep the original text |
 | `web_widget_enabled` | Boolean |
 | `web_widget` | Object; `title` ≤ 100 chars, `greeting` ≤ 500 chars, `color` a hex colour |
 | `fallback_message` | String ≤ 4000 chars |
 | `mcp_servers` | List of at most 10 objects, each with a string `id` and an `https://` `url` |
 | `commands` | List of at most 30 `{name, instruction}`; names are lower-cased, must be unique, 1-32 chars of letters, digits, spaces, `-` or `_`; instructions 1-2000 chars |
 | `disabled_tools` | List of at most 50 tool names, each 1-100 chars, de-duplicated |
+| `followup_agent` | Object; `enabled` and `send_recap` booleans, `instructions` a string ≤ 4000 chars, `max_attempts` an integer 1-5 |
+| `transcript_retention_days`, `recording_retention_days` | Whole number of days, 1-3650. Applies to calls made after you save this; older calls follow your account's retention setting. The server records when each was saved as `transcript_retention_set_at` / `recording_retention_set_at` ([Voice data retention](/docs/voice-data-retention)) |
+| `data_retention_mode` | `"standard"` or `"zdr"` ([Voice data retention](/docs/voice-data-retention)) |
+| `tts_fallbacks` | List of at most 3 `{ "tts_model", "voice" }` objects (`voice` optional). Each `tts_model` must be a voice model that speaks the agent's `language`, each `voice` one of that model's voices, never a cloned voice; no repeats ([Backup voices](/docs/voice-agent#backup-voices-and-spoken-numbers)) |
 
 Two normalisations happen silently on every write: `commands` and `disabled_tools` come back normalised (lower-cased, de-duplicated) rather than as you sent them, and the retired `voice_fallbacks` key is dropped. Everything else in `config` is stored verbatim.
 
@@ -109,13 +114,15 @@ curl https://api.callmissed.com/api/v1/bots/tool-catalog \
 ```json
 [
   {
-    "name": "get_order_status",
-    "description": "Look up the status of a customer order by id.",
-    "category": "commerce",
+    "name": "shopify_order_status",
+    "description": "Look up a Shopify order's payment + fulfillment status and shipping tracking, by order number (e.g. 1001) or the customer's email.",
+    "category": "general",
     "parameters": {
       "type": "object",
-      "properties": { "order_id": { "type": "string" } },
-      "required": ["order_id"]
+      "properties": {
+        "order_number": { "type": "string", "description": "Order number, e.g. '1001' (with or without #)." },
+        "email": { "type": "string", "description": "Customer email to find their recent orders." }
+      }
     },
     "unavailable_on": []
   }
@@ -186,7 +193,7 @@ Returns `201`.
 | --- | --- | --- | --- |
 | `name` | `string` | Yes | 1-255 chars |
 | `type` | `string` | Yes | One of `whatsapp`, `inbound_call`, `outbound_call`, `ivr`, `whatsapp_voice`. Immutable after creation |
-| `system_prompt` | `string` | No | Max 50000 chars, default `""` |
+| `system_prompt` | `string` | No | Max 20000 chars, default `""`. The voice runtime adds its own call-handling instructions on top |
 | `config` | `object \| null` | No | Free-form JSON. Only the sub-keys listed above are validated; everything else is stored as-is and reported in `config_warnings` |
 
 ```bash
@@ -197,7 +204,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots \
     "name": "Support Bot",
     "type": "whatsapp",
     "system_prompt": "You are a friendly support agent for Acme. Keep replies under 3 sentences.",
-    "config": { "tools": ["get_order_status"] }
+    "config": { "tools": ["shopify_order_status"] }
   }'
 ```
 
@@ -208,7 +215,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots \
   "name": "Support Bot",
   "type": "whatsapp",
   "system_prompt": "You are a friendly support agent for Acme. Keep replies under 3 sentences.",
-  "config": { "tools": ["get_order_status"] },
+  "config": { "tools": ["shopify_order_status"] },
   "is_active": true,
   "created_at": "2026-08-04T11:00:00Z",
   "updated_at": "2026-08-04T11:00:00Z",
@@ -217,7 +224,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots \
 }
 ```
 
-`403` without `bots:write`; `422` on an unknown `type`, a name outside 1-255 chars, a prompt over 50000 chars, or a malformed `analysis_variables` / `input_variables` block.
+`403` without `bots:write`; `422` on an unknown `type`, a name outside 1-255 chars, a prompt over 20000 chars, or a malformed `analysis_variables` / `input_variables` block.
 
 ## GET `/api/v1/bots/{bot_id}`
 
@@ -237,7 +244,7 @@ Partial update. Omitted fields are unchanged. `type` cannot be changed. Requires
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
 | `name` | `string \| null` | No | 1-255 chars |
-| `system_prompt` | `string \| null` | No | Max 50000 chars. Written as **one flat string** — see the warning below |
+| `system_prompt` | `string \| null` | No | Max 20000 chars. Written as **one flat string** — see the warning below |
 | `config` | `object \| null` | No | **Replaces** the whole object, not a deep merge |
 
 <Callout type="warn">
@@ -296,11 +303,11 @@ Writes the prompt back in the same four boxes, with the markers the dashboard pa
 
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
-| `objective` | `string \| null` | No | Max 8000 chars |
+| `objective` | `string \| null` | No | Max 8000 chars. The three blocks together must fit in 20000 chars, or the call returns `422` |
 | `response_guidelines` | `string \| null` | No | Max 8000 chars |
 | `conversation_script` | `string \| null` | No | Max 8000 chars |
 | `first_message` | `string \| null` | No | Max 500 chars. Stored as `config.greeting` |
-| `freeform` | `string \| null` | No | Max 50000 chars — the same cap as `system_prompt`, so any stored prompt can be written back. The whole prompt as one block. **Cannot be combined** with the three fields above |
+| `freeform` | `string \| null` | No | Max 20000 chars — the same cap as `system_prompt`. The whole prompt as one block. **Cannot be combined** with the three fields above |
 
 ```bash
 curl -X PUT https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/prompt \
@@ -411,7 +418,7 @@ curl "https://api.callmissed.com/api/v1/bots/config-schema?bot_type=inbound_call
       "type": "string",
       "channels": ["voice"],
       "summary": "The model that speaks the agent's replies.",
-      "default": "deepgram-aura-2",
+      "default": "bulbul:v3",
       "if_omitted": "Falls back to the Indic-tuned default voice, which sounds wrong on an English line.",
       "allowed_values": ["aura-2-en", "aura-2-es", "bulbul:v2", "bulbul:v3", "deepgram-aura-1", "deepgram-aura-2", "gnani-timbre-v2.0", "gpt-4o-mini-tts", "melotts", "sonic-3.6"],
       "values_depend_on": null,
@@ -448,7 +455,7 @@ curl "https://api.callmissed.com/api/v1/bots/config-schema?bot_type=inbound_call
     "type": "inbound_call",
     "system_prompt": "## Objective\n\nYou are the voice of [your business]…",
     "config": {
-      "voice_model": "gpt-oss-120b",
+      "voice_model": "gemma-4-31b",
       "tts_model": "deepgram-aura-2",
       "stt_model": "deepgram-flux-general-en",
       "voice": "Thalia",
@@ -461,12 +468,24 @@ curl "https://api.callmissed.com/api/v1/bots/config-schema?bot_type=inbound_call
     "Every key is optional. minimal_example is the smallest body that creates an agent that answers a call properly.",
     "Nothing here is enforced on write: a config with errors is still saved, and the findings come back in config_warnings.",
     "voice and language are only valid in combination with tts_model — send the stack together and validate it before you save it.",
-    "GET /api/v1/models lists every model id; the voice list for a speech model is on its own model entry."
-  ]
+    "GET /api/v1/models lists every model id; the voice list for a speech model is on its own model entry.",
+    "system_prompt is not one block: the dashboard edits it as an objective, response guidelines and a conversation script… use GET/PUT /api/v1/bots/{bot_id}/prompt instead of writing a flat prompt."
+  ],
+  "voice_tiers": [ { "id": "t1", "label": "Standard", "price_credits_per_minute": 4.0, "billing": "flat", "minimum_seconds": 30.0, "…": "…" } ],
+  "stt_languages": { "deepgram-flux-general-en": ["en"], "…": ["…"] },
+  "multilingual": { "stt": ["deepgram-flux-general-multi", "saaras:v3", "…"], "tts": ["bulbul:v3", "sonic-3.6", "…"] }
 }
 ```
 
-`keys` is the full list for the requested channel — 38 keys for a call agent — trimmed above to three. `notes` carries the four standing caveats plus, for any key whose allowlist runs past 60 values, a line saying `allowed_values` was truncated and that `POST /validate-config` still checks against the whole list.
+`keys` is the full list for the requested channel — 41 keys for a call agent, 9 for a `whatsapp` agent, 46 with no `bot_type` — trimmed above to three. `notes` carries the five standing caveats, preceded, for any key whose allowlist runs past 60 values, by a line saying `allowed_values` was truncated and that `POST /validate-config` still checks against the whole list.
+
+For an agent that speaks (every type except `whatsapp`, and the unfiltered schema), the response carries three more top-level fields:
+
+| Field | Meaning |
+| --- | --- |
+| `voice_tiers` | The priced [voice tiers](/docs/voice-tiers) an agent can run on via `config.voice_tier` instead of its own STT/LLM/TTS stack — `id`, `label`, `blurb`, `price_credits_per_minute`, `speech_inputs`, `voices`, `voices_searchable`, `languages`, `multilingual`, `billing` (`flat`) and `minimum_seconds` |
+| `stt_languages` | For each speech-recognition model, the language codes it can transcribe, in that model's own code format (`hi-IN` or `hi`). Fold to the base subtag before comparing with a TTS language list |
+| `multilingual` | `{stt: [...], tts: [...]}` — the speech-recognition and speech models that can follow the caller's language when `language` is `"multi"` |
 
 Per-key fields:
 
@@ -527,7 +546,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots/validate-config \
       "key": "voice",
       "severity": "error",
       "code": "incompatible",
-      "message": "'anushka' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v2. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
+      "message": "'anushka' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v2; set tts_model to it. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
       "did_you_mean": ["janus"],
       "allowed": ["agathe", "agustina", "alvaro", "ama", "amalthea", "andromeda"]
     }
@@ -617,6 +636,203 @@ A failed check is still `200`, with `channel_verified: false` and a reason such 
 | --- | --- |
 | `403` | Key missing `bots:write`, or `Only owners/admins can verify deployments` for a JWT caller |
 | `404` | `Bot not found` |
+
+## POST `/api/v1/bots/{bot_id}/mcp-servers/probe`
+
+Connects to each MCP server saved in the bot's `config.mcp_servers`, lists its tools, and reports whether it answered. Read-only: nothing is stored. Requires `bots:read`.
+
+| Field | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `ids` | `array of string \| null` | No | Probe only the servers with these `id`s. At most 10. Omit the body (or send `null`) to probe every saved server |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/mcp-servers/probe \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"ids": ["crm"]}'
+```
+
+```json
+{
+  "servers": [
+    {
+      "id": "crm",
+      "host": "mcp.example.com",
+      "ok": true,
+      "tool_count": 3,
+      "tools": ["find_contact", "create_lead", "log_call"],
+      "error": null
+    }
+  ]
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `id` | The server's `id` from `config.mcp_servers` |
+| `host` | Hostname only. The full URL and any header value you stored are never returned |
+| `ok` | `true` when the server answered `tools/list` |
+| `tool_count` / `tools` | How many tools it advertised, and their names (the list is capped at 40) |
+| `error` | On failure, the class of error only (for example `ConnectError` or `TimeoutException`), otherwise `null` |
+
+An unreachable server is still `200`, with `ok: false`. An `id` that is not saved on the bot is simply absent from `servers`.
+
+| Status | Cause |
+| --- | --- |
+| `403` | Key missing `bots:read` |
+| `404` | `Bot not found` |
+| `422` | More than 10 `ids` |
+
+---
+
+# Versions
+
+Stage edits to an agent's `system_prompt` and `config` as a **draft**, publish them atomically, and roll back to any earlier published version. The bot row is always what serves live traffic: a draft changes nothing about what the agent says until you commit it.
+
+- **Version 1 is created lazily.** The first time you create a draft on a bot, a committed `Baseline` version holding the current live prompt and config is created first, so your first commit has something to roll back to. A bot that has never been versioned lists `[]`.
+- **One open draft per bot.** A second `POST` returns `409` naming the existing draft.
+- **Committed versions are immutable.** Rollback never rewrites history: it appends a **new** committed version carrying the old snapshot and publishes it.
+- **History is capped at 50 committed versions per bot.** After each commit or rollback the oldest committed versions beyond that are deleted; a draft is never pruned.
+- Writes made outside versioning — `PUT /api/v1/bots/{bot_id}`, `PATCH .../config`, `PUT .../prompt` — still change the live agent directly and do not create a version.
+
+The version object:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `id` | `uuid` | Version row id |
+| `tenant_id`, `bot_id` | `uuid` | Owner and agent |
+| `version_number` | `integer` | 1, 2, 3… per bot. Every path below addresses a version by this number |
+| `label` | `string \| null` | Your name for the version |
+| `system_prompt` | `string` | The prompt snapshot |
+| `config` | `object \| null` | The config snapshot, credential-redacted exactly like the bot's own `config` |
+| `status` | `string` | `draft` or `committed` |
+| `created_by`, `committed_by` | `uuid \| null` | Dashboard user who created / committed it; `null` when done with an API key |
+| `commit_message` | `string \| null` | Set on commit; `Rollback to vN` on a rollback version |
+| `created_at`, `updated_at`, `committed_at` | `datetime` | `committed_at` is `null` on a draft |
+
+## GET `/api/v1/bots/{bot_id}/versions`
+
+Every version of the bot, newest first. Requires `bots:read`.
+
+```bash
+curl https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/versions \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+[
+  {
+    "id": "0f6c2a51-3d1e-4b7a-9c55-1f2e3d4c5b6a",
+    "tenant_id": "a0b1c2d3-4455-6677-8899-aabbccddeeff",
+    "bot_id": "b1f2c3d4-5678-90ab-cdef-1234567890ab",
+    "version_number": 2,
+    "label": "Shorter greeting",
+    "system_prompt": "You are a concise support agent for Acme.",
+    "config": { "greeting": "Hi, Acme here." },
+    "status": "draft",
+    "created_by": null,
+    "committed_by": null,
+    "commit_message": null,
+    "created_at": "2026-09-20T10:00:00Z",
+    "updated_at": "2026-09-20T10:02:00Z",
+    "committed_at": null
+  },
+  {
+    "id": "8b1d7e40-6a2c-4f13-a8e9-2c3d4e5f6a7b",
+    "tenant_id": "a0b1c2d3-4455-6677-8899-aabbccddeeff",
+    "bot_id": "b1f2c3d4-5678-90ab-cdef-1234567890ab",
+    "version_number": 1,
+    "label": "Baseline",
+    "system_prompt": "You are a friendly support agent for Acme.",
+    "config": { "greeting": "Hi, thanks for calling Acme. How can I help?" },
+    "status": "committed",
+    "created_by": null,
+    "committed_by": null,
+    "commit_message": "Baseline snapshot of the live agent",
+    "created_at": "2026-09-20T10:00:00Z",
+    "updated_at": "2026-09-20T10:00:00Z",
+    "committed_at": "2026-09-20T10:00:00Z"
+  }
+]
+```
+
+`404` `Bot not found`.
+
+## GET `/api/v1/bots/{bot_id}/versions/{version_number}`
+
+One version. Requires `bots:read`. `404` `Bot not found` or `Version not found`.
+
+## POST `/api/v1/bots/{bot_id}/versions`
+
+Stages a draft. Every field defaults to the bot's **current live** value, so an empty body `{}` snapshots what is live and lets you edit it. Returns `201` with the draft. Requires `bots:write`.
+
+| Field | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `label` | `string \| null` | No | 1-255 chars |
+| `system_prompt` | `string \| null` | No | Max 20000 chars. Defaults to the live prompt |
+| `config` | `object \| null` | No | The **whole** config for this version (not a merge). Defaults to the live config. The same sub-keys as `POST /api/v1/bots` are validated |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/versions \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"label": "Shorter greeting", "system_prompt": "You are a concise support agent for Acme."}'
+```
+
+<Callout type="warn">
+  A `config` you send replaces the live config wholesale **when committed**, and the live config's credential fields (for example `access_token`) are not readable back through the API. Omit `config` to inherit the stored config, credentials included, rather than rebuilding it from a redacted read.
+</Callout>
+
+| Status | Cause |
+| --- | --- |
+| `404` | `Bot not found` |
+| `409` | `A draft already exists (vN) — edit or commit it first` |
+| `422` | A field outside its bounds, or a malformed validated `config` sub-key |
+
+## PATCH `/api/v1/bots/{bot_id}/versions/{version_number}`
+
+Edits the open draft. Omitted fields are unchanged; `config`, when sent, replaces the draft's config. Same field table as create. Requires `bots:write`.
+
+| Status | Cause |
+| --- | --- |
+| `404` | `Bot not found` or `Version not found` |
+| `409` | `Committed versions are immutable — roll back to it instead` |
+
+## POST `/api/v1/bots/{bot_id}/versions/{version_number}/commit`
+
+Publishes the draft: copies its `system_prompt` and `config` onto the live agent and marks the version `committed`, in one transaction — a call in progress reads either the whole old agent or the whole new one. Requires `bots:write`.
+
+| Field | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `commit_message` | `string \| null` | No | Max 2000 chars |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/versions/2/commit \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"commit_message": "Tighter greeting after call review"}'
+```
+
+Returns the committed version.
+
+| Status | Cause |
+| --- | --- |
+| `404` | `Bot not found` or `Version not found` |
+| `409` | `Version is already committed` |
+
+## POST `/api/v1/bots/{bot_id}/versions/{version_number}/rollback`
+
+Rolls back by moving forward: appends a new committed version carrying version `version_number`'s snapshot, with `commit_message` `Rollback to vN`, and publishes it. The target version is untouched. No request body. Returns `201` with the new version. Requires `bots:write`.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/versions/1/rollback \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+| Status | Cause |
+| --- | --- |
+| `404` | `Bot not found` or `Version not found` |
+| `409` | `Only a committed version can be rolled back to — commit the draft instead` |
 
 ---
 

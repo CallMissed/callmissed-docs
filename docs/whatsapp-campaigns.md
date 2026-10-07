@@ -19,7 +19,7 @@ All endpoints are under `https://api.callmissed.com/api/v1/whatsapp`.
 icon:gateway | Create | `POST /campaigns` returns a campaign in `draft`
 icon:user | Add recipients | `POST /campaigns/{id}/recipients` in batches of up to 10,000
 icon:llm | Launch | `POST /campaigns/{id}/launch` prices the list, holds the credits, and starts the worker
-icon:done | Track | `GET /campaigns/{id}` returns live counters and a recipient sample
+icon:done | Track | `GET /campaigns/{id}` returns live counters, and `GET /campaigns/{id}/recipients` returns every recipient's status
 :::
 
 **Campaign statuses:** `draft`, `scheduled`, `running`, `completed`, `cancelled`, `failed`.
@@ -158,17 +158,17 @@ Returns the campaign object with `status: "running"` and `started_at` set.
 
 ### The credit hold
 
-Before anything is sent, the whole pending recipient list is priced against the real rate card, per recipient, using the template's category and each number's region. Those credits are then **held**, so a campaign launched a second later cannot spend them.
+Before anything is sent, the whole pending recipient list is priced at the flat per-template fee (0.12 credits per recipient, in every country and category). Those credits are then **held**, so a campaign launched a second later cannot spend them.
 
 If the balance will not cover it the launch is refused with `402` and the campaign stays `draft`, retryable after a top-up. Nothing was sent and nothing was charged.
 
 ```json
 {
-  "detail": "Not enough credits to launch this campaign. It needs about 8631.40 credits for 1200 recipients and you are short by 431.40. Top up your balance and try again."
+  "detail": "Not enough credits to launch this campaign. It needs about 144.00 credits for 1200 recipients and you are short by 24.00. Top up your balance and try again."
 }
 ```
 
-Pricing varies by more than tenfold across markets, so a mixed India and Germany list is priced per recipient rather than at a blended rate. If the campaign's template has not been synced locally, it is priced as `MARKETING`, the most expensive category, so a campaign can never start underfunded.
+The fee is CallMissed's; Meta bills its own per-message charge to your WhatsApp Business Account separately.
 
 **Failures**
 
@@ -273,4 +273,55 @@ curl https://api.callmissed.com/api/v1/whatsapp/campaigns/6d1e8b3a-2c4f-4a5b-8e9
 | `recipients_sample[].sent_at` | datetime, nullable | When the send left |
 | `recipients_sample[].last_status_at` | datetime | Last status change |
 
-The sample is capped at 50 rows and is not paginated. Use the counters on the campaign itself for totals.
+The sample is capped at 50 rows and is not paginated. Use the counters on the campaign itself for totals, and [List recipients](#list-recipients) for every row.
+
+## List recipients
+
+`GET /api/v1/whatsapp/campaigns/{campaign_id}/recipients` · scope `whatsapp:read`
+
+Every recipient of a campaign with its delivery status and WhatsApp's timestamp for each status, paginated. Use it as the campaign's audit record. The order is stable, so paging with `offset` while the campaign runs never skips or repeats a row.
+
+| Param | Type | Default | Notes |
+|---|---|---|---|
+| `status` | string | all | Only recipients in this status: `pending`, `sent`, `delivered`, `read`, `failed` or `skipped` |
+| `limit` | integer, 1 to 1000 | 100 | Rows per page |
+| `offset` | integer, 0 to 1,000,000 | 0 | Rows to skip |
+
+```bash
+curl "https://api.callmissed.com/api/v1/whatsapp/campaigns/6d1e8b3a-2c4f-4a5b-8e9d-0f1a2b3c4d5e/recipients?status=failed&limit=500" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+**Response (200 OK)**
+
+```json
+{
+  "data": [
+    {
+      "id": "aa11bb22-cc33-4d44-8e55-6f7788990011",
+      "to_phone": "919000000000",
+      "status": "failed",
+      "wamid": "wamid.HBgMOTE5MDAwMDAwMDAwFQIAERgSN0MyRDFBOEY0RTVCOTAxMgA=",
+      "error": "131026: Message undeliverable (Message Undeliverable.)",
+      "sent_at": "2026-04-19T12:05:44Z",
+      "delivered_at": null,
+      "read_at": null,
+      "failed_at": "2026-04-19T12:05:49Z",
+      "last_status_at": "2026-04-19T12:05:49Z"
+    }
+  ],
+  "total": 3,
+  "limit": 500,
+  "offset": 0
+}
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `data[]` | array | The recipient fields from [Get one campaign](#get-one-campaign), plus the three timestamps below |
+| `data[].delivered_at`, `data[].read_at`, `data[].failed_at` | datetime, nullable | WhatsApp's timestamp for each status. Null if WhatsApp never reported it |
+| `data[].error` | string, nullable | For a failure WhatsApp reported, `<code>: <title> (<details>)`. For a send CallMissed refused or WhatsApp rejected outright, the reason |
+| `total` | integer | Recipients matching the filter |
+| `limit`, `offset` | integer | Echo of the request |
+
+An unknown `status`, or a `limit` or `offset` outside its range, returns `422`. A campaign that is not yours returns `404`. For the full status history of any one message, look up its `wamid` with [`GET /messages/{wamid}`](/docs/whatsapp-api#look-up-a-message), or receive each status as it happens with the [`message.status` webhook](/docs/whatsapp-api#the-messagestatus-webhook).

@@ -89,12 +89,12 @@ return Response.json({ wsUrl: session.ws_url, token: session.token });
 | `greeting` | string | agent decides its own opener | Max 500 characters. The exact first line the agent speaks |
 | `voice` | string | `shubh` | Max 50 characters |
 | `language` | string | `en-IN` | Max 10 characters, BCP-47 |
-| `llm_model` | string | resolved server side | Omit it to take the platform default voice stack |
+| `llm_model` | string | `gemma-4-31b` | Omit it to take the platform default voice stack |
 | `max_duration_seconds` | int | `1800` | Between 30 and 3600. Hard ceiling for one active call |
 | `variables` | object | none | Values for `{{token}}` placeholders in the greeting and prompt |
 | `metadata` | object | none | Arbitrary JSON stored with the session |
 
-`bot_id`, `webhook_url`, `tts_provider`, `tts_model`, `stt_model` and `tts_engine` are also accepted. Each call uses one selected stack without automatic model or provider substitution. The [Voice Session API](/docs/voice-sessions-api) page is the full reference for the request body, the other endpoints and the webhook events.
+`bot_id`, `webhook_url`, `tts_provider`, `tts_model`, `stt_model` and `tts_engine` are also accepted. A model id the voice agent cannot serve is rejected at create time with `422`. The [Voice Session API](/docs/voice-sessions-api) page is the full reference for the request body, the other endpoints and the webhook events.
 
 ## Step 2: what the response gives you
 

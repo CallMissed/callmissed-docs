@@ -86,7 +86,7 @@ Base URL for every example: `https://api.callmissed.com`. Errors are `{"detail":
 | `body_params` | `array` | |
 | `response_mapping` | `object` | `{output_key: "dotted.path"}`, up to 20 entries. Empty means the raw body is returned |
 | `timeout_seconds` | `integer` | 1-30, default 10 |
-| `phase` | `string` | `pre_call`, `on_call` or `post_call`. Only `on_call` is resolved into the live tool list today, so leave it at the default |
+| `phase` | `string` | `on_call` (default) tools are offered to the model during the conversation. `pre_call` tools run before the call starts and fill call variables, see [Pre-call tools](#pre-call-tools). `post_call` is accepted but not run yet |
 | `enabled` | `boolean` | A disabled tool is never offered to the model |
 | `has_secrets` | `boolean` | Whether an encrypted value is stored. The values themselves are never returned |
 
@@ -278,3 +278,16 @@ Both test endpoints return `200` with a result object, whether or not your endpo
 A tool is offered to the model when all of these hold: `enabled` is `true`, `phase` is `on_call`, and the tool is either scoped to the agent handling the conversation or workspace-wide (`bot_id: null`).
 
 Connecting the tool is half the job. The agent's instructions decide whether it uses it well, and [Connect Your Store](/docs/connect-your-store) has a prompt you can adapt.
+
+## Pre-call tools
+
+Set `"phase": "pre_call"` to look a caller up before the agent speaks. The tool runs once per call, before the greeting on an inbound call and before the call is placed on an outbound one, and its mapped result becomes `{{variable}}` values the greeting and prompt can use. A pre-call tool is never offered to the model.
+
+- **Request.** Use `static` or `context` parameters. The `contact_phone` context key is the caller on an inbound call and the person dialled on an outbound one. A required model-facing parameter is rejected with `422`, because no model fills the arguments.
+- **Response mapping.** Each `response_mapping` key becomes a variable of the same name. Keys must be valid variable names (letters, digits and underscores, not starting with a digit). Only plain values are used: objects, arrays and nulls are skipped. At most 50 variables are kept, each trimmed to 200 characters.
+- **Timeout.** The tool's `timeout_seconds` is used when it is between 1 and 5. Any other value, including the default of 10, falls back to 3 seconds. The whole pre-call step is capped at 4 seconds however many tools you attach.
+- **Precedence.** Variables passed explicitly on the call (for example `variables` when you place a call through the API) win over pre-call values, which win over the agent's declared defaults and the built-in values.
+- **Failure.** If a tool times out, errors or returns something unusable, the call continues without its variables. A pre-call tool never blocks or fails a call.
+- **Audit.** The session records which pre-call tools ran and whether each succeeded, with no response values.
+
+Use `POST /api/v1/agent-tools/{tool_id}/test` to check the endpoint answers; it uses placeholder context values, as described in [Test results](#test-results).
