@@ -64,6 +64,7 @@ Template sends are priced from the recipient's region and the template's categor
 | `to` | string, 5 to 20 chars | Yes | Recipient in E.164, for example `+919000000000` |
 | `text` | string, 1 to 65536 chars | Yes | Message body. WhatsApp caps a single message at 4096 characters, so a longer body is split across several messages and every id comes back in `wamids` |
 | `preview_url` | boolean | No | Render a link preview for the first URL. Default `false` |
+| `context_message_id` | string, max 128 | No | A `wamid` to quote. The message is sent as a reply to it |
 
 :::tabs
 ```bash [cURL]
@@ -352,7 +353,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/interactive \
 ```
 :::
 
-Returns the common send response. The customer's tap arrives back on your webhook as an inbound message with `type: "interactive"` or `type: "button"`. A completed flow arrives as an interactive reply carrying your `flow_token` alongside the screen data the customer submitted, so use `flow_token` to tie the submission back to the order, booking or ticket you sent it for.
+Returns the common send response. The customer's tap arrives on your webhook as a `message.received` event with `type: "interactive"` or `type: "button"`. For these types the event's `text` is `null`: the selected button or row id, and a completed flow's `flow_token` and screen data, are not included in the event today.
 
 **Failures**
 

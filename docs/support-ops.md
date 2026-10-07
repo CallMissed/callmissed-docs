@@ -15,7 +15,7 @@ Three operational primitives sit behind the support desk:
 
 - **Macros** — canned replies. A macro carries a body with `{{placeholder}}` variables and, optionally, `actions` that are applied *besides* sending the text: set a status, add tags, assign a user.
 - **Tags** — your tenant's tag vocabulary for tickets: a name, a display colour and a description.
-- **Routing rules** — an ordered, first-match-wins triage list. Each rule ANDs a set of conditions over a fixed six-field allowlist and, when it matches, applies actions.
+- **Routing rules** — an ordered, first-match-wins triage list. Each rule ANDs a set of conditions over a fixed six-field allowlist and names what should happen when it matches (assignee, priority, tags). The API stores rules and tells you which one matches via a dry run; it does not apply them to tickets for you.
 
 ## Authentication
 
@@ -59,6 +59,8 @@ Authorization: Bearer cm_your_api_key
 | `add_tags` | `string[] \| null` | At most 20, each at most 64 characters, non-blank |
 | `assign_to` | `UUID \| null` | Must be a user in your tenant |
 
+`set_status` must match `^[a-z][a-z0-9_-]{0,31}$`; it is stored as written, not checked against the ticket status list, so use one of the [ticket statuses](/docs/support-tickets) if you intend to apply it to a ticket.
+
 Unknown keys inside `actions` are **rejected** with `422` rather than ignored, so a typo cannot silently do nothing.
 
 ## GET `/api/v1/support/ops/macros`
@@ -72,6 +74,11 @@ Ordered by `usage_count` descending, then name — so the picker shows what your
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
 
+```bash
+curl "https://api.callmissed.com/api/v1/support/ops/macros?category=billing&is_active=true" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
 ## POST `/api/v1/support/ops/macros`
 
 | Field | Type | Required | Constraints |
@@ -82,11 +89,33 @@ Ordered by `usage_count` descending, then name — so the picker shows what your
 | `category` | `string` | No | At most 64 characters |
 | `is_active` | `boolean` | No | Default `true` |
 
-`409 A macro named '…' already exists` on a duplicate name.
+```bash
+curl -X POST https://api.callmissed.com/api/v1/support/ops/macros \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Refund acknowledged",
+    "body": "Hi {{customer_name}}, your refund for order {{order_id}} is on its way.",
+    "actions": { "set_status": "pending", "add_tags": ["refund"] },
+    "category": "billing"
+  }'
+```
+
+Returns `201` with the macro object. `409 A macro named '…' already exists` on a duplicate name; `404 Assignee not found in this tenant` when `actions.assign_to` is not one of your users.
 
 ## PATCH / DELETE `/api/v1/support/ops/macros/{macro_id}`
 
-`PATCH` takes the same fields, all optional; sending `actions: null` clears the actions. `DELETE` returns `204`.
+`PATCH` takes the same fields, all optional, and returns the updated macro; sending `actions: null` clears the actions. `DELETE` returns `204`. Both return `404 Macro not found` for an id outside your tenant.
+
+```bash
+curl -X PATCH https://api.callmissed.com/api/v1/support/ops/macros/{macro_id} \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "is_active": false }'
+
+curl -X DELETE https://api.callmissed.com/api/v1/support/ops/macros/{macro_id} \
+  -H "Authorization: Bearer cm_your_api_key"
+```
 
 ## POST `/api/v1/support/ops/macros/{macro_id}/use`
 
@@ -113,7 +142,7 @@ curl -X POST https://api.callmissed.com/api/v1/support/ops/macros/9b8a…/use \
 }
 ```
 
-Placeholder syntax is `{{name}}`, where the name starts with a letter or underscore. Values are truncated to 500 characters.
+Placeholder syntax is `{{name}}` (surrounding spaces allowed), where the name starts with a letter or underscore and may contain letters, digits, `_` and `.`, up to 64 characters. Substituted values are truncated to 500 characters and are not re-scanned for placeholders.
 
 > **Unknown or null-valued placeholders are left verbatim** — `{{order_id}}` stays in the text rather than becoming an empty gap. Check the rendered body before sending it to a customer, or supply every variable the macro declares.
 
@@ -150,7 +179,25 @@ Applying the returned `actions` is your job: this endpoint renders and counts, i
 | `color` | `string` | No | A hex triplet such as `#c2410c` or `#c40`. Stored lowercase |
 | `description` | `string` | No | At most 255 characters |
 
-Anything other than a hex triplet returns `422 color must be a hex triplet like '#aabbcc'`.
+Anything other than a hex triplet returns `422 color must be a hex triplet like '#aabbcc'`. `PATCH` takes the same fields, all optional, and returns the updated tag; `DELETE` returns `204`. `404 Tag not found` for an id outside your tenant, `409 A tag named '…' already exists` on a duplicate name.
+
+```bash
+curl "https://api.callmissed.com/api/v1/support/ops/tags?limit=100" \
+  -H "Authorization: Bearer cm_your_api_key"
+
+curl -X POST https://api.callmissed.com/api/v1/support/ops/tags \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "refund", "color": "#c2410c", "description": "Money going back to the customer" }'
+
+curl -X PATCH https://api.callmissed.com/api/v1/support/ops/tags/{tag_id} \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "color": "#15803d" }'
+
+curl -X DELETE https://api.callmissed.com/api/v1/support/ops/tags/{tag_id} \
+  -H "Authorization: Bearer cm_your_api_key"
+```
 
 ---
 
@@ -165,6 +212,17 @@ Anything other than a hex triplet returns `422 color must be a hex triplet like 
 | `assign_strategy` | `direct`, `round_robin` |
 
 The field list is a **closed allowlist** — an unknown field is `422`, not a silently-false condition.
+
+| Condition `field` | Read from (in a dry run) |
+| --- | --- |
+| `channel` | `channel` |
+| `priority` | `priority` |
+| `status` | `status` |
+| `subject_contains` | `subject` |
+| `contact_email_domain` | The part of `contact_email` after `@`, lowercased |
+| `tag` | `tags` — `eq` means "carries this tag", `neq` "does not carry it", `contains` "some tag contains the text" |
+
+All comparisons are case-insensitive and ignore surrounding whitespace.
 
 ### Condition value rules
 
@@ -200,7 +258,12 @@ All conditions on a rule are **ANDed**. Rules are evaluated in `position` order 
 
 ## GET `/api/v1/support/ops/routing-rules`
 
-Ordered by `position`. Takes `is_active`, `limit` (`1..500`, default `100`) and `offset` (`0..100000`).
+Returns an array of rule objects in evaluation order (`position`, then creation time). Takes `is_active`, `limit` (`1..500`, default `100`) and `offset` (`0..100000`, default `0`).
+
+```bash
+curl "https://api.callmissed.com/api/v1/support/ops/routing-rules?is_active=true" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
 
 ## POST `/api/v1/support/ops/routing-rules`
 
@@ -217,6 +280,26 @@ Ordered by `position`. Takes `is_active`, `limit` (`1..500`, default `100`) and 
 
 A rule with an empty `conditions` array matches everything — use it deliberately as a final catch-all at the highest `position`.
 
+`round_robin` is stored on the rule for your own assignment logic; the dry run below has no team roster to rotate through, so it returns the rule's `assign_to_user_id` for both strategies.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/support/ops/routing-rules \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Enterprise urgent → Ravi",
+    "position": 0,
+    "conditions": [
+      { "field": "priority", "operator": "eq", "value": "urgent" },
+      { "field": "contact_email_domain", "operator": "in", "value": ["acme.com", "globex.com"] }
+    ],
+    "assign_to_user_id": "b1f2c3d4-1111-2222-3333-444455556666",
+    "add_tags": ["enterprise"]
+  }'
+```
+
+Returns `201` with the rule object. `409 A routing rule named '…' already exists` on a duplicate name; `404 Assignee not found in this tenant` when `assign_to_user_id` is not one of your users.
+
 ## PATCH `/api/v1/support/ops/routing-rules/reorder`
 
 Rewrites the whole evaluation order.
@@ -225,7 +308,14 @@ Rewrites the whole evaluation order.
 | --- | --- | --- | --- |
 | `rule_ids` | `UUID[]` | Yes | 1–500 entries. Must be **every** routing rule in your tenant, exactly once |
 
-New `position` is the array index. A partial list returns `422 rule_ids must list every routing rule in this tenant exactly once` — reordering is all-or-nothing, so two concurrent partial reorders cannot interleave into a nonsense order.
+```bash
+curl -X PATCH https://api.callmissed.com/api/v1/support/ops/routing-rules/reorder \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "rule_ids": ["2c3d…", "8e9f…", "4a5b…"] }'
+```
+
+Returns the rules in their new order. New `position` is the array index. Duplicate ids return `422 rule_ids must not contain duplicates`. A partial list returns `422 rule_ids must list every routing rule in this tenant exactly once` — reordering is all-or-nothing, so two concurrent partial reorders cannot interleave into a nonsense order.
 
 ## POST `/api/v1/support/ops/routing-rules/evaluate`
 
@@ -240,7 +330,7 @@ A **dry run**. Nothing is written; you get back what would happen.
 | `contact_email` | `string` | At most 320 characters |
 | `tags` | `string[]` | At most 100 entries |
 
-Every field is optional. **An absent fact fails any condition that asks about it** — so send the whole picture when testing.
+Every field is optional. **An absent fact fails any `eq`, `contains`, `in` or `is_set` condition that asks about it** (it satisfies `neq` and `is_not_set`) — so send the whole picture when testing.
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/support/ops/routing-rules/evaluate \
@@ -269,9 +359,21 @@ curl -X POST https://api.callmissed.com/api/v1/support/ops/routing-rules/evaluat
 
 Only `is_active: true` rules are considered. When nothing matches you get `{"matched": false, …, "add_tags": []}` — a miss, not an error.
 
+To act on the decision, apply it to the ticket yourself, for example with [`PATCH /api/v1/support/tickets/{ticket_id}`](/docs/support-tickets) (`assignee_user_id`, `priority`, `tags`).
+
 ## PATCH / DELETE `/api/v1/support/ops/routing-rules/{rule_id}`
 
-Same fields as create, all optional. `DELETE` returns `204`.
+Same fields as create, all optional; sending `conditions` replaces the whole list. Returns the updated rule. `DELETE` returns `204`. `404 Routing rule not found` for an id outside your tenant.
+
+```bash
+curl -X PATCH https://api.callmissed.com/api/v1/support/ops/routing-rules/{rule_id} \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "is_active": false }'
+
+curl -X DELETE https://api.callmissed.com/api/v1/support/ops/routing-rules/{rule_id} \
+  -H "Authorization: Bearer cm_your_api_key"
+```
 
 ---
 
@@ -282,6 +384,6 @@ Same fields as create, all optional. `DELETE` returns `204`.
 | `403` | Key is missing `support_ops:read` / `support_ops:write` |
 | `404` | Macro, tag, rule or assignee not in your tenant |
 | `409` | Duplicate macro, tag or rule name |
-| `422` | Over 20 conditions, an unknown condition field or operator, a bad colour, an unknown key in `actions`, an incomplete `reorder` list |
+| `422` | Blank name or body, over 20 conditions, an unknown condition field or operator, a value that does not fit its operator, a bad colour, an unknown key in `actions`, an incomplete or duplicated `reorder` list |
 
 Nothing on this page consumes credits.

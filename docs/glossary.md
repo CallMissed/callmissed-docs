@@ -18,19 +18,19 @@ Definitions for the core CallMissed concepts and terminology used throughout the
 | **Channel** | The surface a bot runs on — WhatsApp or voice (telephony, WebRTC, or a direct WebSocket). |
 | **Conversation** | A thread of messages between an end user and a bot on a channel. |
 | **API Key** | A secret prefixed `cm_` used for server-to-server auth, with scopes, domain locks, and per-key limits. |
-| **Permission** | A service an API key may call — `llm`, `stt`, `tts`, `search`, `image`, or `*`. Enforced on the inference endpoints; default `*`. |
+| **Permission** | A service an API key may call — `llm`, `stt`, `tts`, `search`, `image`, `email`, or `*`. Enforced on the inference endpoints; default `*`. |
 | **Scope** | A platform resource an API key may access — e.g. `bots:read`, `conversations:write`, `knowledge:read`, `webhooks:write`, `whatsapp:write`. Defaults to empty (no resource access). |
 | **Webhook** | An HTTPS endpoint CallMissed calls on events; payloads are HMAC-SHA256 signed. |
-| **Idempotency-Key** | A header that makes a mutating request safely retryable — replays return the original result. |
+| **Idempotency-Key** | A header that makes a `POST` to the inference API (`/v1/*`) safely retryable — replays return the original result. |
 
 ## Billing
 
 | Term | Definition |
 | --- | --- |
-| **Credit** | The universal billing unit. **1 credit = ₹1.** Every API call deducts credits based on usage. |
+| **Credit** | The universal billing unit. **1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96).** Every API call deducts credits based on usage. |
 | **Plan** | Your subscription tier — free, starter, pro, or enterprise — which sets limits and model access. |
-| **Budget cap** | An optional monthly credit limit; requests over the cap are rejected with `budget_exceeded`. |
-| **Credit pack** | A purchasable bundle of credits for top-ups. |
+| **Budget cap** | An optional credit limit. A key's own budget, once spent, rejects that key's requests with `402 budget_exceeded`; the account's monthly budget cap rejects all requests with `429 quota_exceeded` until the 1st. |
+| **Credit top-up** | A one-off credit purchase of any amount from 10 to 50,000 credits, at ₹1 per credit. |
 
 ## AI Services
 
