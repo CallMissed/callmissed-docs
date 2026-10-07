@@ -101,7 +101,7 @@ An **address** may be written three ways, and you can mix them within one array:
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| `from` | string | one of `from` / `sender`, unless a template supplies `default_sender` | Sender as `"Name <donotreply@acme.com>"` or bare address. The domain must be one of your verified domains and the local part must be a registered sender on it. See [Sender Addresses](/docs/email-domains#sender-addresses) |
+| `from` | string | one of `from` / `sender`, unless a template supplies `default_sender` | Sender as `"Name <donotreply@acme.com>"` or bare address. The domain must be one of your verified domains and the local part must be a registered sender on it. See [Sender Addresses](/docs/email-domains#sender-addresses). The display name is stored on the sender address, not on each message, so recipients see the name most recently set for that address. After you change it, the first sends can show the old name for a couple of minutes. Use one display name per sender address; if you need different names, register a separate sender for each |
 | `sender` | object | one of `from` / `sender`, unless a template supplies `default_sender` | Brevo-style sender `{"email", "name"}`, an alternative to `from`. Same registered-sender rule applies |
 | `to` | array | Yes | One or more recipient addresses (min 1). Each delivered recipient is billed |
 | `cc` | array | No | Carbon-copy recipients. Appear in the `Cc` header **and** are delivered |
@@ -161,7 +161,7 @@ A `url` attachment can be inline too: set `content_id` on it and the fetched fil
 
 The one case `content_id` alone cannot express is a part that has a content id **and** should still appear as a normal downloadable attachment. Set `"disposition": "attachment"` for that; an explicit `disposition` always wins.
 
-Inline parts count toward the 25 MB message ceiling like any other attachment, and `cid:` references in your HTML are never rewritten by [click tracking](#open-and-click-tracking).
+Inline parts count toward the 10 MB message ceiling like any other attachment, and `cid:` references in your HTML are never rewritten by [click tracking](#open-and-click-tracking).
 
 ### Tags
 
@@ -219,7 +219,7 @@ Read the results from [engagement metrics](/docs/email-logs#engagement-metrics).
 | Header | Notes |
 |--------|-------|
 | `Authorization` | `Bearer cm_...`, the key needs the **email** permission (required) |
-| `Idempotency-Key` | Optional. A repeat with the same key returns the first send's result without sending or charging again |
+| `Idempotency-Key` | Optional, 1–128 characters. A repeat with the same key returns the first send's result without sending or charging again. Reusing a single send's key on a batch (or the reverse) is `409 idempotency_conflict` |
 
 ## Semantics
 
@@ -227,7 +227,7 @@ Read the results from [engagement metrics](/docs/email-logs#engagement-metrics).
 - **De-duplication.** Each of `to`, `cc` and `bcc` is de-duplicated case-insensitively, then the three are merged into one recipient set. An address listed in both `to` and `cc` is dropped from the `Cc` header and delivered, and billed, once; a `bcc` address already covered by `to` or `cc` is likewise dropped.
 - **Suppression.** Recipients on your [suppression list](/docs/email-logs#suppressions) are dropped from `to`, `cc`, and `bcc` before sending, and returned in `suppressed`.
 - **Recipient limit: 50 per message.** A single (non-batch) send accepts at most **50** recipients, counted across `to` + `cc` + `bcc` **after** de-duplication and suppression filtering, so 60 addresses of which 12 are suppressed and 3 are duplicates does pass. Over the limit is `422 too_many_recipients`. Batches have their own, larger limits; see [Batch (messageVersions)](/docs/email-scheduled#batch-messageversions).
-- **Size limit: 25 MB per message.** The fully assembled message (headers, both bodies, and every attachment **after base64 encoding**) must stay under 25 MB, else `422 message_too_large`. Base64 inflates attachment bytes by roughly 1.37x, so the practical raw-attachment budget is nearer **18 MB**, less whatever the bodies take. The same 25 MB figure caps a `url` attachment while it is being fetched.
+- **Size limit: 10 MB per message.** The whole message (subject, both bodies, and every attachment **after base64 encoding**) must stay within 10 MB, otherwise you get `422 message_too_large` before anything is charged or sent. Base64 makes attachments about 1.37 times larger, so in practice you have about **7 MB** of raw attachments, minus whatever the bodies take. While a `url` attachment is being fetched, it is capped at 25 MB, but the finished message still has to fit in 10 MB.
 - **Validation.** Recipient addresses are validated first: a malformed address, or one containing control characters, is rejected with `422` before any charge. That rejection is a **schema** error, so its body is the validation-array shape, not `{"reason": …}`. See [Errors](/docs/email-limits#response-shapes).
 - **Idempotency.** Send the same `Idempotency-Key` on a retry to guarantee the message is sent and charged at most once; the original response is replayed.
 
@@ -256,6 +256,8 @@ A successful call returns `202 Accepted`:
 | `messageIds` | string[] | Brevo-compatible; `[message_id]` |
 | `status` | string | `sent` when accepted for delivery |
 | `suppressed` | string[] | Recipients dropped by your suppression list |
+| `batchId` | string \| null | `null` on an immediate single send; set on a [scheduled](/docs/email-scheduled) or [batch](/docs/email-scheduled#batch-messageversions) send |
+| `scheduledAt` | string \| null | `null` unless the send was scheduled |
 
 View delivery history and spend: see [Delivery Log & Usage](/docs/email-logs).
 
@@ -269,9 +271,10 @@ View delivery history and spend: see [Delivery Log & Usage](/docs/email-logs).
 | 403 | `email_not_enabled` | The API key lacks the email permission |
 | 403 | `domain_not_verified` | The From domain is registered but hasn't passed verification |
 | 403 | `all_recipients_suppressed` | Every recipient is on your suppression list |
+| 409 | `idempotency_conflict` | The `Idempotency-Key` was already used by a different kind of send |
 | 422 | `empty_body` | Neither `text` nor `html` (nor a template body) was present |
 | 422 | `too_many_recipients` | Over 50 recipients on a single send |
-| 422 | `message_too_large` | The assembled message exceeds 25 MB |
+| 422 | `message_too_large` | The message exceeds 10 MB, attachments included after base64 encoding |
 | 422 | `unresolvable_template_vars` | The subject or body references `{{ contact.something }}`, which nothing can populate. Pass the value in `params` instead |
 | 429 | `rate_limited` / `monthly_cap_exceeded` / `quota_exceeded` | A plan or domain ceiling was hit |
 | 502 | `relay_failed` | The message could not be accepted for delivery |
