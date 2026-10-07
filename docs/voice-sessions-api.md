@@ -18,7 +18,7 @@ The Voice Session API provides a two-step flow for voice agent interactions:
 
 Audio flows over WebRTC; on this API the REST endpoints handle session metadata, token issuance, usage tracking and transcript storage.
 
-Each session runs one selected voice stack. There is no automatic model/provider failover, and `voice_fallbacks` is no longer a request field. Same-provider transient retries remain supported. Select another model explicitly if the requested stack is unavailable.
+Each session runs the voice stack you select. Model ids are checked when you create the session: an id the voice agent cannot serve is rejected with `422` (the error lists the supported ids), and a model under maintenance is rejected with `503`. If the selected stack still cannot be started when the call connects, the call runs on a backup stack instead of failing, and usage and [`/cost`](#session-cost) record the model that actually served it. `voice_fallbacks` is no longer a request field.
 
 If you would rather stream audio straight to us over a plain WebSocket — no WebRTC and no client SDK — use the [Managed Voice Agent](/docs/managed-voice-agent) instead. This page covers the WebRTC session API, which remains the right choice for browser calls with adaptive bitrate.
 
@@ -54,8 +54,10 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
     "language": "en-IN",
     "llm_model": "kimi-k2.5",
     "tts_provider": "sarvam",
+    "tts_model": "bulbul:v3",
+    "stt_model": "saaras:v3",
     "max_duration_seconds": 300,
-    "room": "voice-<random>"
+    "…": "…"
   },
   "ws_url": "wss://…",
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -66,10 +68,12 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
   "total_audio_seconds": 0,
   "end_reason": null,
   "metadata": null,
-  "created_at": "2026-04-19T12:00:00Z"
+  "created_at": "2026-04-19T12:00:00Z",
+  "analysis": null
 }
 ```
 
+- `config` echoes the resolved session settings, including the defaults the server filled in. It can also carry internal bookkeeping keys; treat it as informational and do not depend on keys this page does not list.
 - `ws_url` is the **media server** URL — not the CallMissed API. It is issued per session; read it from the response and pass it straight to the client, do not hardcode it.
 - `token` is the **connection JWT** (not an opaque `vs_*` string). TTL is **1 hour**.
 - The token is returned **once** on creation and is not fetchable again.
@@ -78,14 +82,19 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 
 | Field | Type | Default | Notes |
 |-------|------|---------|-------|
-| `bot_id` | uuid | — | Optional bot to load prompt/knowledge from |
+| `bot_id` | uuid | — | Optional agent to load prompt, tools and settings from. Must belong to your workspace (`404` otherwise) |
 | `system_prompt` | string | "You are a helpful voice assistant..." | Max 4096 chars. Overrides bot's prompt if both set |
-| `voice` | string | `shubh` | TTS voice ID (37 voices) |
-| `language` | string | `en-IN` | BCP-47 language for STT + TTS |
-| `llm_model` | string | `kimi-k2.5` | Any catalog LLM (`sarvam-105b`, `sarvam-105b-conversations`, `kimi-k2.6`, `gpt-5.6-luna`, …). `kimi-k2.5-fast` is under maintenance. |
-| `tts_provider` | string | *plan-dependent* | `sarvam`, `elevenlabs` or `cartesia`. Omit it and the server picks by plan: paid plans (starter, pro, enterprise) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
+| `greeting` | string | — | Max 500 chars. The exact first line the agent speaks; omit it and the agent opens on its own |
+| `voice` | string | `shubh` | Max 50 chars. A speaker of the selected TTS model (`bulbul:v3` has 37); each model's speakers are listed in [`GET /api/v1/voice/models`](/docs/managed-voice-agent#list-available-models) under `tts[].voices` |
+| `language` | string | `en-IN` | Max 10 chars. BCP-47 language for STT + TTS |
+| `llm_model` | string | `gemma-4-31b` | Any voice-capable model id from [`GET /api/v1/voice/models`](/docs/managed-voice-agent#list-available-models) (`kimi-k2.5`, `sarvam-105b`, `gpt-5.6-luna`, `gpt-live-1`, …). Max 100 chars. An unsupported id returns `422`; a model under maintenance (e.g. `kimi-k2.5-fast`) returns `503` |
+| `stt_model` | string | `saaras:v3` | Speech-recognition model id, from the same list. Max 64 chars |
+| `tts_model` | string | follows `tts_provider` | Text-to-speech model id, from the same list. Max 64 chars. Defaults to `bulbul:v3` for `sarvam` and `sonic-3.6` for `cartesia` |
+| `tts_provider` | string | *plan-dependent* | Legacy selector: `sarvam` or `cartesia`; prefer `tts_model`. `elevenlabs` is not available and returns `422`. Omit it and the server picks by plan: paid plans (starter, pro, enterprise) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
+| `tts_engine` | string | `cartesia` | Only for `deepgram-voice-*` models: `deepgram`, `flux`, `cartesia` or `aura-1`. With a `deepgram-voice-*` model and no `stt_model`, recognition defaults to `deepgram-flux-general-multi` |
 | `max_duration_seconds` | int | `1800` | 30–3600 |
-| `webhook_url` | string | — | Receives session events (see below) |
+| `variables` | object | — | Values for `{{token}}` placeholders in the greeting and prompt, e.g. `{"callee_name": "Priya"}`. With `bot_id`, a variable the agent marks required must be supplied (`422` otherwise) |
+| `webhook_url` | string | — | Max 2048 chars; must be a public `http`/`https` URL (`400` otherwise). Stored with the session. Session events are delivered to your registered [webhook endpoints](#webhook-events), not to this URL |
 | `metadata` | object | — | Arbitrary JSON stored with the session |
 
 ## Connect the client
@@ -159,7 +168,23 @@ curl https://api.callmissed.com/v1/voice/sessions/{id} \
   -H "Authorization: Bearer cm_your_api_key"
 ```
 
-Response contains everything from the create response **except** `ws_url` and `token` — those are issued once at creation.
+Response contains everything from the create response **except** `ws_url` and `token` — those are issued once at creation (they come back as empty strings).
+
+If a part of the requested speech stack (speech recognition, LLM or voice) could not be started, the call is served with a backup for that part only, and `metadata.stack_substitution` records it: `requested_llm` / `requested_stt_model` / `requested_tts_model`, the `served_llm` / `served_stt_model` / `served_tts_model` that ran, and `failed` (the parts replaced). Usage is billed for the models that served.
+
+`analysis` is `null` until post-call analysis has run for the session (it is always `null` on the list endpoint). Once present:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `status` | string | Analysis state, e.g. `completed` |
+| `summary` | string \| null | Short call summary |
+| `sentiment` | string \| null | Caller sentiment |
+| `disposition` | string \| null | Call outcome |
+| `extracted` | object | Values for the agent's declared analysis variables; `{}` when it declares none |
+| `goal_met` | bool \| null | `null` when the agent declares no goal variable |
+| `model` | string \| null | Model that produced the analysis |
+| `error` | string \| null | Short machine code when analysis failed |
+| `created_at` / `updated_at` | datetime | |
 
 ## Get Transcript
 
@@ -172,9 +197,26 @@ curl "https://api.callmissed.com/v1/voice/sessions/{id}/transcript?format=json" 
 
 | Format | Content-Type | Shape |
 |--------|--------------|-------|
-| `json` | application/json | Array of turns: `turn_index`, `user_transcript`, `agent_response`, `interrupted`, `stt_ms`, `first_token_ms`, `first_audio_ms`, `total_ms`, `llm_model`, `created_at` |
+| `json` | application/json | Array of turns: `id`, `turn_index`, `user_transcript`, `agent_response`, `interrupted`, `stt_ms`, `first_token_ms`, `tts_ttfb_ms`, `eou_delay_ms`, `first_audio_ms`, `total_ms`, `llm_model`, `created_at`. Timing fields are milliseconds and `null` when a stage was not measured |
 | `txt` | text/plain | Human-readable alternating `User:` / `Agent:` lines |
 | `srt` | application/x-subrip | SubRip subtitles with timing derived from per-turn durations |
+
+Transcripts are saved for every session, whether or not the call is recorded.
+
+## Get Recording
+
+A session's audio is recorded only when its agent has call recording turned on (`record_calls: true` in the agent's config; off by default). The agent then speaks a short recording notice before its greeting unless `recording_notice_enabled` is `false`; `recording_notice` sets the wording. The recording is one MP3 with both sides of the call, available a few seconds after the call ends. This covers every way the agent takes calls (phone in and out, WhatsApp, web) and every voice model. A [managed voice agent](/docs/managed-voice-agent) session is recorded when its `Settings` set `agent.record_calls: true`.
+
+```bash
+curl https://api.callmissed.com/v1/voice/sessions/{id}/recording \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+{ "url": "https://...signed-url..." }
+```
+
+The URL is private and time-limited — fetch it on demand rather than storing it. Returns `404` when the session has no recording, and `503` if recording storage is temporarily unavailable. A phone call's recording is also returned by `GET /api/v1/telephony/calls/{call_id}/recording`.
 
 ## Delete Session
 
@@ -185,28 +227,55 @@ curl -X DELETE https://api.callmissed.com/v1/voice/sessions/{id} \
 
 Returns `204 No Content`. Sessions in `created` or `active` state are marked `completed` with `end_reason = "api_delete"`; already-finished sessions are left unchanged.
 
+## Session Cost
+
+```bash
+curl https://api.callmissed.com/v1/voice/sessions/{id}/cost \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+The AI cost of a session, one line per `(service, model)` pair it actually used — so a call that ran on a backup stack shows the model that served it. Credits are what was actually charged.
+
+```json
+{
+  "session_id": "7c2b9e30-1d8a-4c5f-9b3d-2f4a6e8b1c2d",
+  "total_credits": 1.84,
+  "items": [
+    { "service": "stt", "model": "saaras:v3", "credits": 0.42, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 50.3 },
+    { "service": "llm", "model": "kimi-k2.5", "credits": 0.61, "input_tokens": 5120, "output_tokens": 410, "audio_seconds": 0.0 },
+    { "service": "tts", "model": "bulbul:v3", "credits": 0.81, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 38.9 }
+  ]
+}
+```
+
+Items are ordered STT, LLM, TTS. This covers the AI layer only; phone-carrier charges for a call on a rented number are billed separately.
+
 ## Limits
 
 | Limit | Value | Behavior on exceed |
 |-------|-------|--------------------|
-| Session create rate | 10 / minute / tenant | HTTP 429 |
+| Session create rate | 10 / minute / workspace | HTTP 429 |
+| API key spend cap / per-key rate limit | as set on the key | HTTP 402 / HTTP 429 |
 | Concurrent active sessions (free) | 1 | HTTP 429 |
 | Concurrent active sessions (starter) | 5 | HTTP 429 |
 | Concurrent active sessions (pro) | 20 | HTTP 429 |
 | Concurrent active sessions (enterprise) | unlimited | — |
-| Minimum credit balance to create | server-configured | HTTP 402 |
+| Minimum credit balance to create | server-configured | HTTP 402 (also when your monthly budget cap is exhausted) |
 | Max session duration | 3600s (capped by `max_duration_seconds`) | session auto-ends |
 | Connection token TTL | 3600s (1 hour) | reconnect requires a new session |
 
 ## Webhook Events
 
-If `webhook_url` is set on session creation, the following events are delivered as `POST` requests with JSON body and HMAC-SHA256 signature:
+Session events go to the webhook endpoints you register with the [Webhooks API](/docs/webhooks) — subscribe an endpoint to the events below. Each delivery is a `POST` with the JSON body `{"event": "<name>", "data": {…}, "timestamp": "<ISO 8601>"}`, signed with that endpoint's secret. An endpoint scoped to one agent receives only that agent's sessions.
 
-| Event | When |
-|-------|------|
-| `voice_session.started` | Session created (token issued) |
-| `voice_session.ended` | Session marked completed (normal finish or `DELETE`) |
-| `voice_session.failed` | Session entered failed state |
+| Event | When | `data` |
+|-------|------|--------|
+| `voice_session.started` | Session created (token issued) | `session_id`, `bot_id`, `llm`, `voice`, `language` |
+| `voice_session.ended` | Session completed: the call finished normally or was ended with `DELETE` | `session_id`, `bot_id`, `duration_seconds`, `turn_count`, `end_reason` |
+| `voice_session.failed` | Session failed (`end_reason` `agent_error`), timed out, or its token was never used before it expired (`timeout` / `token_expired`) | `session_id`, `bot_id`, `end_reason`, `duration_seconds` |
+| `voice_analysis.completed` | Post-call analysis finished | `analysis_id`, `session_id`, `bot_id`, `disposition`, `sentiment`, `goal_met` |
+
+Each session fires exactly one of `voice_session.ended` or `voice_session.failed`, once, after the end is saved. The full `end_reason` table is on [Webhooks](/docs/webhooks#voice-session-end-reasons).
 
 **Delivery headers:**
 
@@ -214,7 +283,7 @@ If `webhook_url` is set on session creation, the following events are delivered 
 |--------|-------|
 | `X-CallMissed-Event` | Event name (e.g. `voice_session.started`) |
 | `X-CallMissed-Delivery` | Delivery UUID (unique per attempt batch) |
-| `X-CallMissed-Signature` | `sha256=<hex>` HMAC of the raw body using your webhook secret |
+| `X-CallMissed-Signature` | `sha256=<hex>` HMAC-SHA256 of the raw body using the endpoint's webhook secret |
 
 **Verify the signature:**
 

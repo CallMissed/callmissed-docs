@@ -17,7 +17,7 @@ Send no `Authorization` header. A dashboard JWT or a `cm_` API key is accepted b
 
 Base URL for every example: `https://api.callmissed.com`. Errors are `{"detail": "..."}`; out-of-range query parameters are `422`.
 
-All three endpoints share the same status vocabulary:
+The JSON endpoints share the same status vocabulary:
 
 | `status` value | Meaning |
 | --- | --- |
@@ -31,7 +31,7 @@ All three endpoints share the same status vocabulary:
 
 ## GET /api/v1/status
 
-Live health snapshot plus the catalogue of route groups customers integrate with. No parameters.
+Live health snapshot. No parameters.
 
 ```bash
 curl https://api.callmissed.com/api/v1/status
@@ -71,7 +71,7 @@ curl https://api.callmissed.com/api/v1/status
       "name": "Voice & SMS",
       "group": "channels",
       "status": "operational",
-      "description": "PSTN voice and SMS (Twilio)"
+      "description": "PSTN voice and SMS"
     },
     {
       "name": "Transactional email",
@@ -80,24 +80,41 @@ curl https://api.callmissed.com/api/v1/status
       "description": "Account notifications and receipts"
     }
   ],
-  "user_api_surface": [
-    { "group": "openai_compat", "title": "OpenAI- & Anthropic-compatible APIs (Bearer API key)", "prefixes": ["/v1", "/anthropic/v1"] }
-  ]
+  "self_heal": [],
+  "interval_seconds": 30
 }
 ```
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `overall` | `string` | Derived from the `infrastructure` group only: `down` if any infra row is down, else `degraded` if any is degraded, else `operational` |
+| `overall` | `string` | `down` if any monitored row is down, else `degraded` if any is degraded, else `operational`. Rows with `not_configured` are ignored |
 | `checked_at` | `string` | ISO-8601 UTC timestamp of this check |
 | `services[].name` | `string` | Human label |
 | `services[].group` | `string` | One of `infrastructure`, `ai`, `payments`, `channels`, `notifications` |
 | `services[].status` | `string` | See the vocabulary above |
 | `services[].description` | `string` | What the row covers |
 | `services[].latency_ms` | `integer` | **Optional.** Present only where a live latency was measured |
-| `user_api_surface[]` | `array` | Route-prefix catalogue, each entry with `group`, `title`, and `prefixes` |
+| `services[].checked_at` | `string` | **Optional.** ISO-8601 UTC time this row was last checked |
+| `services[].ci` | `object \| null` | **Optional.** Latest automated API check for the row: `status` (`operational` or `degraded`) and `checked_at` |
+| `self_heal[]` | `array` | Automatic recoveries in the last 7 days, each with `at`, `component` (a `services[].name`), and `result` (`recovered` or `still_failing`) |
+| `interval_seconds` | `integer` | How often the snapshot is refreshed |
 
-To gate a job on platform health, poll this and require `overall == "operational"`.
+To gate a job on platform health, poll this and require `overall == "operational"`. Other fields may appear in the response; treat only the ones above as stable.
+
+## GET /api/v1/status/stream
+
+The same payload as `GET /api/v1/status`, pushed as Server-Sent Events: one `status` event on connect and another on every change, with a `: ping` comment every 25 seconds to keep the connection open.
+
+```bash
+curl -N https://api.callmissed.com/api/v1/status/stream
+```
+
+```
+event: status
+data: {"overall":"operational","checked_at":"…","services":[…]}
+```
+
+Connections are capped: too many from one client returns `429`, and `503` means the stream is at capacity — fall back to polling `GET /api/v1/status`.
 
 ## GET /api/v1/status/uptime
 
