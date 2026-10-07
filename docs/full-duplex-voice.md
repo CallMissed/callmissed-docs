@@ -109,7 +109,7 @@ The voice is fixed for the session — pick it when you create the session.
 
 | What | Rate |
 | --- | --- |
-| Voice session | **$0.05 / minute**, billed per second |
+| Voice session | **$0.05208 / minute**, billed per second |
 
 The per-minute rate covers the whole session, including silence and the time
 the backend spends working. There is no separate per-token rate for the voice

@@ -1,29 +1,29 @@
 ---
 title: "Web Search API"
-description: "Search the live web through a single endpoint. Two modes — shorter (Serper / Google) and detailed (Exa / neural). Flat ₹1 per search."
+description: "Search the live web through a single endpoint with a normalised result shape. From ₹1 per search."
 slug: "web-search"
 breadcrumb: "Images & Search"
 ---
 
 # Web Search API
 
-Search the live web through a single endpoint. Two modes — shorter (Serper / Google) and detailed (Exa / neural). Flat ₹1 per search.
+Search the live web through a single endpoint with a normalised result shape. From ₹1 per search.
 
 ## Overview
 
-One endpoint. By default we serve **Serper web search** (fast, current, citation-backed results); you can also pick **shorter** or **detailed** modes, or set an explicit `provider`. We route for you, charge a flat ₹1 per search, and return a normalised response shape.
+One endpoint for live web search. Pick a `mode`, or name a search `provider` explicitly. We route the query, fail over to another provider if one is down, and return the same normalised response shape whichever provider answered.
 
 **Endpoint:** `POST /v1/search`
 
 **Auth:** `Authorization: Bearer cm_your_key` — the key must have the `search` permission (or `*`).
 
-**Cost:** 1 credit (= ₹1) per successful search, regardless of mode or number of results. Failed upstream calls are not charged.
+**Cost:** 1 credit (= ₹1) per successful search. Searches answered by `exa` add 0.1 credit for each result above 10 (so `num_results: 50` on `exa` costs 5 credits). Failed upstream calls are not charged.
 
 :::flow
 icon:app | Your app | Send a `query` + `mode` to `POST /v1/search`
 icon:gateway | CallMissed gateway | Check the `search` permission and pick the provider for the mode
-icon:search | Search provider | Default **Serper** web search · override with `provider`
-icon:done | Your app | Receive a normalized result list and get charged ₹1 only on success
+icon:search | Search provider | Picked from `mode` or `provider`, with automatic failover
+icon:done | Your app | Receive a normalized result list; you are charged only on success
 :::
 
 ## Basic Usage
@@ -74,13 +74,13 @@ curl -X POST https://api.callmissed.com/v1/search \
 
 ## Modes
 
-| `mode` | Underlying | Best for | p50 latency |
-|------|------|------|------|
-| `shorter` | Serper web search | fast, current, citation-backed results | ~1–2s |
-| `detailed` | Exa search | richer answers with cited sources | ~1–3s |
-| `auto` | tenant default → platform default (Serper) | let CallMissed pick | depends |
+| `mode` | Provider | Default `search_type` |
+|------|------|------|
+| `shorter` | `serper` | `search` |
+| `detailed` | `serper` | `auto` |
+| `auto` (default) | your account's default mode if one is set, otherwise the platform default | — |
 
-By default all modes use **Serper web search**. You can override with `provider: "serper" | "exa" | "firecrawl" | "linkup"` directly; when both `mode` and `provider` are set, `provider` wins. `exa`/`serper`/`firecrawl`/`linkup` are all available and act as automatic fallbacks for resilience — if one provider errors, the request transparently retries another so you always get a result. All providers return the same normalised shape and the same flat ₹1 per search.
+Set `provider` to `serper`, `exa`, `firecrawl` or `linkup` to choose directly; when both `mode` and `provider` are set, `provider` wins. If the chosen provider fails, the request is retried on another provider your key allows, so the `provider` field in the response may differ from the one you asked for. All providers return the same normalised shape.
 
 Operators can set the **tenant default** from **Settings → Web search default**.
 
@@ -92,15 +92,17 @@ Operators can set the **tenant default** from **Settings → Web search default*
 | `mode` | string | `"auto"` | `auto` / `shorter` / `detailed` |
 | `provider` | string | — | Optional raw override: `serper` / `exa` / `firecrawl` / `linkup`. Wins over `mode` |
 | `num_results` | int | `10` | 1–50 |
-| `search_type` | string | mode default | Exa: `auto`/`fast`/`instant`/`deep-lite`/`deep`. Serper: `search`/`news`/`images` |
-| `include_domains` | string[] | — | detailed mode only |
-| `exclude_domains` | string[] | — | detailed mode only |
-| `start_published_date` | `YYYY-MM-DD` | — | detailed mode only |
-| `end_published_date` | `YYYY-MM-DD` | — | detailed mode only |
-| `include_content` | bool | `false` | detailed mode only — fetch page text + highlights |
-| `gl` | string | — | shorter mode only — country ISO (e.g. `in`, `us`) |
-| `hl` | string | — | shorter mode only — language ISO |
-| `tbs` | string | — | shorter mode only — time filter, e.g. `qdr:d` (past day) |
+| `search_type` | string | mode default | `exa`: `auto`/`fast`/`instant`/`deep-lite`/`deep`. `serper`: `search`/`news`/`images`. Ignored by `linkup` |
+| `include_domains` | string[] | — | Up to 50. Honoured by `exa` and `linkup` |
+| `exclude_domains` | string[] | — | Up to 50. Honoured by `exa` and `linkup` |
+| `start_published_date` | `YYYY-MM-DD` | — | Honoured by `exa` and `linkup`. Any other format returns `422` |
+| `end_published_date` | `YYYY-MM-DD` | — | Honoured by `exa` and `linkup`. Any other format returns `422` |
+| `include_content` | bool | `false` | Fetch page text into `content`. Honoured by `exa` and `firecrawl` (`firecrawl` also does this in `detailed` mode) |
+| `gl` | string | — | Country code (e.g. `in`, `us`). Honoured by `serper` |
+| `hl` | string | — | Language code. Honoured by `serper` |
+| `tbs` | string | — | Time filter, e.g. `qdr:d` (past day). Honoured by `serper` |
+
+A filter the serving provider does not honour is ignored, not rejected. Name the `provider` explicitly when a filter must apply.
 
 ## Response Shape
 
@@ -133,10 +135,11 @@ Responses are **normalised across providers** — same keys regardless of which 
 
 ## Pricing & Credits
 
-- **Flat rate:** 1 credit per successful search. 1 credit = ₹1.
+- **Base rate:** 1 credit per successful search. 1 credit = ₹1.
+- **`exa` surcharge:** +0.1 credit per result above 10, charged on the provider that actually served the search.
 - Failed requests (upstream 5xx, rate limits, etc.) are **not charged**.
 - The charge is visible immediately in the `credits_used` + `balance` fields on the response, and in your credit history in the dashboard.
-- Per-key budget caps and the tenant monthly budget cap both apply — hitting either returns HTTP 402 `insufficient_credits`.
+- Per-key budget caps and the account's monthly budget cap both apply — hitting either returns HTTP 402.
 
 ## Permissions
 
@@ -154,10 +157,10 @@ Error envelope matches the rest of `/v1`:
 
 | Status | Code | Meaning |
 |---|---|---|
-| 400 | `invalid_request_error` | Missing or malformed body |
 | 401 | `invalid_api_key` | Bad or revoked key |
 | 402 | `insufficient_credits` | Balance &lt; 1 credit or monthly budget exhausted |
 | 403 | `permission_denied` | Key lacks `search` permission |
-| 403 | `search_provider_not_allowed` | Key's Allowed search providers excludes the requested provider |
+| 403 | `search_provider_not_allowed` | You named a `provider` the key does not allow, or no provider the key allows is available |
+| 422 | — | Validation failed: `query` length, `num_results` outside 1–50, an unknown `provider`, a malformed date |
 | 429 | `rate_limit_exceeded` | Per-key RPM exceeded |
-| 503 | `provider_error` | Upstream search provider unavailable |
+| 503 | `provider_error` | No search provider could answer. Retry shortly |
