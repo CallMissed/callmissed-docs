@@ -164,13 +164,14 @@ if (r.status !== 202) {
 | 403 | `domain_paused` | Sending from the domain is paused (reputation) |
 | 403 | `all_recipients_suppressed` | Every recipient is on your suppression list, nothing to send |
 | 404 | `template_not_found` | The `templateId` doesn't exist or isn't yours |
+| 409 | `idempotency_conflict` | The `Idempotency-Key` was already used by a different kind of send (a single send's key reused on a `messageVersions` batch, or the reverse). Use a fresh key |
 | 422 | `no_sender` | Neither `from`/`sender` nor a template `default_sender` supplied one |
 | 422 | `invalid_from` | The resolved sender is not a usable email address |
 | 422 | `no_recipients` | The resolved recipient list came out empty |
 | 422 | `empty_body` | Neither `text` nor `html` (nor a template body) was present |
 | 422 | `invalid_headers` | A rendered header value contains invalid characters, usually a template `param` with a newline in it |
 | 422 | `unresolvable_template_vars` | The subject or body references `{{ contact.something }}`, a namespace nothing can populate, so it would render empty. Pass the value in `params` instead |
-| 422 | `message_too_large` | The assembled message exceeds 25 MB |
+| 422 | `message_too_large` | The message exceeds 10 MB, attachments included after base64 encoding |
 | 422 | `template_inactive` | The template exists but is not active (`is_active: false`) |
 | 422 | `too_many_recipients` | Over 50 recipients on a single send, or over the union limit on a batch |
 | 422 | `scheduled_batch_unsupported` | A send set both `scheduledAt` and `messageVersions`, pick one |
@@ -181,7 +182,7 @@ if (r.status !== 202) {
 | 429 | `monthly_cap_exceeded` | Monthly recipient volume for your plan exceeded |
 | 429 | `quota_exceeded` | The domain's daily send quota is exhausted |
 | 502 | `relay_failed` | The message could not be accepted for delivery. Uses the flat shape above |
-| 502 | `acs_unavailable` | Domain provisioning or verification is temporarily unavailable, retry the domain call |
+| 502 | `provider_unavailable` (older deployments: `acs_unavailable`) | Domain provisioning or verification is temporarily unavailable, retry the domain call. Both strings mean the same thing; match both |
 | 503 | `sender_propagating` | The `from` address has now been registered as a sender for the domain, but the mail service has not finished propagating it. Retry the send shortly; no further setup is needed. See [Sender Addresses](/docs/email-domains#sender-addresses) |
 | 503 | `sending_unavailable` | Sending is temporarily unavailable |
 

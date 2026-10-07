@@ -21,7 +21,7 @@ The alternative is a **custom stack**: you set `stt_model`, `voice_model` and `t
 | Expressive | `t2` | ₹5 (5 credits) | `multilingual` | Richer, more expressive voices across Indian and world languages |
 | Best latency | `t3` | ₹6 (6 credits) | `multilingual`, `english` | The fastest replies and the best-sounding voices |
 
-1 credit = ₹1 = $0.01. Always read the live list from [`GET /api/v1/bots/config-schema`](/docs/bots) (the `voice_tiers` array) rather than hard-coding it.
+1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96). Always read the live list from [`GET /api/v1/bots/config-schema`](/docs/bots) (the `voice_tiers` array) rather than hard-coding it.
 
 ## How a plan call is billed
 
@@ -48,6 +48,7 @@ curl -X PATCH https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-123
 | `voice_tier` | `t1`, `t2`, `t3` | The agent runs its own models and bills per component |
 | `voice_tier_speech_input` | A listening option the plan offers (see the table above) | The plan's first listening option |
 | `voice` | One of the plan's voices, listed per plan in `voice_tiers[].voices` | The plan's voice model uses its own default speaker |
+| `language` | `multi` (Multilingual, auto-detect) or one of the plan's languages in `voice_tiers[].languages` | The stack's own default (English) |
 
 On a plan, the agent's own `stt_model`, `voice_model`, `tts_model` and `tts_provider` are **ignored**, not merged — a half-overridden plan would no longer match its price. `voice` and `language` stay yours. [`POST /api/v1/bots/validate-config`](/docs/bots) reports a finding when a config sets both.
 
@@ -66,6 +67,21 @@ Standard and Expressive listen in 22 Indian languages plus English, including co
 
 Best latency hears ten languages: English, Spanish, French, German, Hindi, Russian, Portuguese, Japanese, Italian and Dutch. For any other language, use Standard or Expressive.
 
+### Multilingual (auto-detect)
+
+Set `"language": "multi"` to make an agent multilingual on any plan. The call opens in English. After each thing the caller says, the agent detects the language and replies in the language the caller last spoke, switching mid-call if the caller switches. It can switch to any language in the plan's `languages` list. If the caller speaks a language the plan cannot speak, the agent keeps replying in the current language.
+
+```bash
+curl -X PATCH https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/config \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "values": { "voice_tier": "t1", "language": "multi" } }'
+```
+
+On Best latency, multilingual needs the `multilingual` listening option. The `english` option hears English only, so the agent stays in English.
+
+Custom (non-plan) agents accept `"language": "multi"` too. [`POST /api/v1/bots/validate-config`](/docs/bots) warns about any chosen speech-recognition or voice model that cannot follow the caller's language. `GET /api/v1/bots/config-schema` lists the models that can, under `multilingual.stt` and `multilingual.tts`.
+
 ## Read the plans
 
 `GET /api/v1/bots/config-schema` returns the plans beside the per-model keys. Requires `bots:read`.
@@ -80,6 +96,9 @@ Best latency hears ten languages: English, Spanish, French, German, Hindi, Russi
       "price_credits_per_minute": 4.0,
       "speech_inputs": [{ "id": "multilingual", "label": "Multilingual" }],
       "voices": ["…"],
+      "voices_searchable": false,
+      "languages": ["en-IN", "hi-IN", "…"],
+      "multilingual": true,
       "billing": "flat",
       "minimum_seconds": 30.0
     }
@@ -92,10 +111,13 @@ Best latency hears ten languages: English, Spanish, French, German, Hindi, Russi
 | `id` | The value to set as `voice_tier` |
 | `price_credits_per_minute` | The flat rate. 1 credit = ₹1 |
 | `speech_inputs` | Listening options; the first is the default |
-| `voices` | The voices this plan offers |
+| `voices` | The featured voices this plan offers |
+| `voices_searchable` | `true`: the plan also accepts any voice from its voice model's full library ([`GET /api/v1/models/sonic-3.6/voices`](/docs/tts-voices)), not only the featured ones |
+| `languages` | The languages this plan can hear and speak, English first. `language` takes one of these or `multi` |
+| `multilingual` | `true`: the plan accepts `"language": "multi"` |
 | `billing` | Always `flat` |
 | `minimum_seconds` | The billed floor per connected call |
 
 ## Where to see what a call cost
 
-[`GET /v1/voice/sessions/{id}/cost`](/docs/voice-sessions-api) returns the cost of a finished session, and your usage history lists plan calls as one line per call.
+[`GET /v1/voice/sessions/{id}/cost`](/docs/voice-sessions-api#session-cost) returns the cost of a finished session, and your usage history lists plan calls as one line per call.
