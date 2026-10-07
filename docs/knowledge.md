@@ -78,7 +78,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots/$BOT_ID/knowledge \
 
 `POST /api/v1/bots/{bot_id}/knowledge/upload` · scope `knowledge:write`
 
-A multipart upload of a single `file`. Accepted extensions are **PDF, DOCX, and TXT**, up to **20 MB**. Text is extracted server-side and stored in `content`.
+A multipart upload of a single `file`. Accepted extensions are **PDF, DOCX, and TXT**, up to **20 MB**. Text is extracted server-side and stored in `content`; if the extracted text is over **5 MB** of UTF-8 the upload returns `413`.
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/bots/$BOT_ID/knowledge/upload \
@@ -104,7 +104,7 @@ icon:scissors | Chunk | Split into ~600-token chunks with a 100-token overlap
 icon:database | Embed & store | Each chunk is embedded to a 768-dimension vector and indexed for cosine similarity
 :::
 
-Embedding tokens are billed against your [credits](/docs/credits-rate-limits). If your balance cannot cover the embedding, the source is saved with `status: "failed"` and an `error_message` saying so — top up and re-ingest.
+Embedding tokens are billed against your [credits](/docs/credits-rate-limits). The cost is checked before anything is embedded: if your balance (or monthly budget) cannot cover it, nothing is embedded or charged, and the source is saved with `status: "failed"` and an `error_message` saying so — the response's `status` is `"failed"` too. Top up and re-ingest.
 
 ### The source object
 
@@ -206,7 +206,7 @@ A multipart upload. Unlike the text and URL endpoints, the fields are **form fie
 |-------|------|----------|-------|
 | `bot_id` | uuid (form) | Yes | Must be a bot in your tenant |
 | `title` | string (form) | Yes | Label for the source |
-| `file` | file | Yes | PDF only, max **5 MB** |
+| `file` | file | Yes | PDF only, max **5 MB**. The extracted text is also capped at 5 MB of UTF-8 (`413` above it) |
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/knowledge/sources/pdf \
@@ -342,7 +342,7 @@ Cost is one embedding call for the query plus the added context tokens, billed a
 | Storage | Raw documents | Chunks + vectors |
 | Formats | PDF, DOCX, TXT, plain text | Plain text, PDF, URL |
 | Max upload | 20 MB | 5 MB (2 MB for a URL fetch) |
-| Max text per entry | 100,000 characters | 5 MB of UTF-8 |
+| Max text per entry | 100,000 characters typed; 5 MB of UTF-8 extracted from an upload | 5 MB of UTF-8 |
 | Chunking | None | ~600 tokens, 100-token overlap |
 | Semantic search | No | Yes |
 | Scoping | One bot | Ingest per bot; search per bot or tenant-wide |
