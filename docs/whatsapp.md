@@ -20,8 +20,11 @@ CallMissed connects your **WhatsApp Business Account (WABA)** to an AI agent. In
 | Create, list, delete and sync message templates, including carousel, limited-time offer and coupon formats | [Message Templates](/docs/whatsapp-templates) |
 | Bulk template sends with per-recipient variables | [Campaigns](/docs/whatsapp-campaigns) |
 | Take UPI payments in the chat with order details and order status messages | [Payments](/docs/whatsapp-payments) |
+| Build, publish and send WhatsApp Flows (in-chat forms) | [Flows](/docs/whatsapp-flows) |
+| Catalog settings and product, product list and catalog messages | [Catalog & Orders](/docs/whatsapp-orders) |
 | Voice calls over WhatsApp, answered by the same agent | [Calling](/docs/whatsapp-calling) |
 | Connected accounts, numbers, ice breakers and commands, delivery funnel, cost | [WhatsApp API](/docs/whatsapp-api) |
+| Number health, registration, two-step PIN, business profile, blocked users, QR codes | [Number Management](/docs/whatsapp-numbers) |
 
 ## Two ways in
 
@@ -37,8 +40,8 @@ Meta posts every inbound event to a single CallMissed endpoint. You never config
 
 :::flow
 icon:user | Customer | Sends a WhatsApp message to your business number
-icon:gateway | Meta | POSTs the event to `/api/v1/webhooks/whatsapp` with an `X-Hub-Signature-256` header
-icon:gateway | CallMissed | Verifies the signature, archives the raw event, and acknowledges with `200` immediately
+icon:gateway | Meta | Delivers the event to CallMissed, signed by Meta
+icon:gateway | CallMissed | Verifies the signature and acknowledges immediately
 icon:llm | Agent | Routes the number to its linked bot, stores the message, marks it read, and runs the LLM with the conversation history plus knowledge base
 icon:done | Customer | Receives the reply through the WhatsApp Cloud API
 :::
@@ -184,9 +187,12 @@ Add product facts, FAQs and policies as [knowledge base](/docs/knowledge) entrie
 :::cards
 /docs/whatsapp-setup | Business Setup | Settings | Connect a WABA and register a number, with or without Embedded Signup.
 /docs/whatsapp-api | WhatsApp API | Webhook | Auth, scopes, error shapes, accounts, numbers, analytics and inbound events.
+/docs/whatsapp-numbers | Number Management | Smartphone | Health, registration, two-step PIN, business profile, blocked users and QR codes.
 /docs/whatsapp-messages | Sending Messages | Send | Every send endpoint plus media upload and download.
 /docs/whatsapp-templates | Message Templates | FileText | Create, list, delete and sync approved templates.
 /docs/whatsapp-campaigns | Campaigns | Megaphone | Bulk template sends with per-recipient variables.
 /docs/whatsapp-payments | Payments | IndianRupee | UPI payment configurations, order details and order status messages.
 /docs/whatsapp-calling | Calling | Phone | Voice calls over WhatsApp, answered by the same agent.
+/docs/whatsapp-flows | Flows | ClipboardList | Build, publish and send in-chat forms.
+/docs/whatsapp-orders | Catalog & Orders | ShoppingCart | Catalog settings and product messages.
 :::

@@ -41,7 +41,7 @@ Need a model that isn't in the catalog? We deploy 300+ more on demand — see
 
 ## One Credit Currency
 
-Every call — LLM tokens, STT minutes, TTS characters, an image, a web search — deducts **credits**. **1 credit = ₹1.** This removes per-provider pricing math: top up once, spend across every capability. See [Credits & Rate Limits](/docs/credits-rate-limits) for the per-service rates.
+Every call — LLM tokens, STT minutes, TTS characters, an image, a web search — deducts **credits**. **1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96).** This removes per-provider pricing math: top up once, spend across every capability. See [Credits & Rate Limits](/docs/credits-rate-limits) for the per-service rates.
 
 ## Tenancy & Isolation
 

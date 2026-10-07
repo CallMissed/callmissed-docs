@@ -42,24 +42,6 @@ Speaking style is per agent, not per call: pick the STT, LLM and TTS on the agen
 
 Outbound is available through the [Telephony API](/docs/telephony-api) — place a call, attach an agent, and fetch the recording afterwards.
 
-## Legacy: the TwiML media-stream route
+## Older TwiML webhook instructions
 
-:::warning
-**Not implemented — do not build against this.**
-
-Earlier versions of these docs described a Twilio TwiML route that opened
-`wss://api.callmissed.com/ws/call/{call_id}` and ran a streaming
-STT → LLM → TTS pipeline over it. **That pipeline was never completed.** The
-WebSocket accepts audio and discards it: nothing is transcribed, no reply is
-generated, and no audio is sent back.
-
-A number pointed at `/api/v1/webhooks/twilio/voice` therefore never works. What
-the caller hears depends on the deployment: the endpoint returns `503` unless a
-Twilio auth token is configured, and where one is, the call used to play a hold
-message and then stay silent for its whole duration. It now says the number is
-not set up and hangs up, so the failure is at least audible.
-
-It is documented here only so that anyone who wired it up from the old
-instructions knows why their calls never connected. Use one of the two supported
-paths above instead.
-:::
+Earlier versions of these docs told you to set a CallMissed URL as a Twilio number's *A call comes in* webhook. That path is not supported and does not answer calls. If a number is still configured that way, switch it to one of the two paths above.
