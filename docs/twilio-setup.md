@@ -55,20 +55,6 @@ The exact STT, LLM and TTS in that chain are whichever you selected on the agent
 
 ## Not the TwiML webhook
 
-:::warning
-**Do not point your number at `/api/v1/webhooks/twilio/voice`.**
-
-Earlier versions of this page told you to set that URL as the *A call comes in*
-webhook. It returns TwiML that opens a media stream to
-`wss://api.callmissed.com/ws/call/{call_id}`, and **that streaming pipeline was
-never completed** — the socket accepts audio and discards it.
-
-A number wired that way never works. The endpoint returns `503` unless a Twilio
-auth token is configured; where one is, the call used to play a hold message and
-then stay silent. It now says the number is not set up and hangs up.
-
-If you configured it from the old instructions, that is why your test calls never
-connected. Switch to the SIP setup linked above.
-:::
+Earlier versions of this page told you to set a CallMissed URL as the number's *A call comes in* webhook. That path is not supported and does not answer calls: a number wired that way never reaches your agent. If you configured it from the old instructions, clear the webhook and switch to the SIP setup linked above.
 
 > **Tip:** For browser/mobile WebRTC agents (no phone number required) use the [Voice Agent](/docs/voice-agent) and [Voice Sessions API](/docs/voice-sessions-api) instead. [Voice Calling](/docs/voice) compares the telephony paths.

@@ -28,7 +28,15 @@ Authorization: Bearer cm_your_api_key
 
 ## Supported providers
 
-Provider ids are lowercase. The accepted set is intentionally small — only providers whose credentials the gateway can actually inject into inference — for example `google` and `sarvam`. An unsupported value returns `422` and lists the full accepted set.
+Provider ids are lowercase. The accepted set is intentionally small — only providers whose credentials the gateway can actually inject into inference — for example `google` and `sarvam`. An unsupported value returns `422` and lists the supported provider ids.
+
+## Which requests use your key, and billing
+
+A stored key is used for `POST /v1/chat/completions` (and `/v1/responses`, `/v1/messages` and Batch lines) when the model you call is served through that provider — for example a `google` key for the `gemini-*` chat models, and a `sarvam` key for the `sarvam-*` chat models.
+
+- A completion served on your own key costs **0 credits**: you pay the provider directly. It still appears in your [usage logs](/docs/usage-api).
+- With no active key for that provider, or if the stored key cannot be read, the request runs on CallMissed's credential and is billed normally.
+- Your key is only ever sent to the provider it belongs to. If a [`models` fallback](/docs/chat-completion#model-substitution) is served by a different provider, that fallback runs on our credential and is billed normally.
 
 ## The uniqueness rule
 

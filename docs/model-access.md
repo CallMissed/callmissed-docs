@@ -11,7 +11,7 @@ See which models each plan tier (Free, Starter, Pro, Enterprise) can access, wit
 
 ## Overview
 
-The Model Access endpoint returns which model IDs each plan tier can call, bucketed by category (LLM, STT, TTS, Image). This is useful for:
+The Model Access endpoint returns which model IDs each plan tier can call, bucketed by category (LLM, STT, TTS, Image, Embedding). This is useful for:
 
 - Showing users which models they can access on their current plan
 - Building model selectors that grey out unavailable models
@@ -39,22 +39,22 @@ GET /api/v1/models/access
         "image": ["flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm"],
         "embedding": ["text-embedding-3-small", "text-embedding-3-large"]
       },
-      "restriction": "27 models across 5 categories"
+      "restriction": "Only the models listed here are callable on the free plan. Other models require Starter or higher."
     },
     "starter": {
       "models": ["...every model in the catalog"],
       "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
-      "restriction": "All models"
+      "restriction": "All models callable. Per-service monthly call limits apply…"
     },
     "pro": {
       "models": ["..."],
       "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
-      "restriction": "All models"
+      "restriction": "All models callable. Higher per-service monthly call limits than Starter."
     },
     "enterprise": {
       "models": ["..."],
       "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
-      "restriction": "All models + models deployed on demand"
+      "restriction": "All models callable. Custom per-service call limits."
     }
   }
 }
@@ -108,7 +108,9 @@ The free tier includes **27 models**:
 | Image (6) | `flux-2-klein-9b`, `flux-2-dev`, `lucid-origin`, `phoenix-1.0`, `sdxl-lightning`, `dreamshaper-8-lcm` |
 | Embedding (2) | `text-embedding-3-small`, `text-embedding-3-large` |
 
-Every other model — `kimi-k2.5-fast`, the first-party OpenAI / xAI / DeepSeek IDs, the realtime voice models, the Deepgram direct line, and the paid image models — requires Starter, Pro, or Enterprise.
+`restriction` is a human-readable note — branch on `models` / `by_category`, not on this text.
+
+Every other model — `kimi-k2.5-fast`, `glm-5.3`, `gemma-4-31b`, the `gemini-*` chat models, the first-party OpenAI / xAI / DeepSeek IDs, the realtime voice models, the Deepgram direct line, the other paid speech models, and the paid image models — requires Starter, Pro, or Enterprise.
 
 ## Error Handling
 
@@ -117,11 +119,13 @@ When a free-plan user calls a paid model, the API returns:
 ```json
 {
   "error": {
-    "message": "Model 'gpt-5.6-luna' requires a paid plan. See GET /api/v1/models/access for the full list of free-plan models. Upgrade at https://console.callmissed.com/org/billing",
+    "message": "Model 'gpt-5.6-luna' requires a paid plan. See GET /api/v1/models/access for the full list of free-plan models. Upgrade at https://console.callmissed.com/org/plans",
     "type": "invalid_request_error",
     "code": "model_not_available"
   }
 }
 ```
 
-HTTP status: `403`
+HTTP status: `403`. The request is refused before any model runs, so it is not billed.
+
+A key whose `allowed_models` list excludes the model gets `403` with `code: "model_not_allowed"` instead, on any plan.
