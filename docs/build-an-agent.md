@@ -255,7 +255,7 @@ The speaker list belongs to the speech model, not to the platform. `anushka` is 
   "key": "voice",
   "severity": "error",
   "code": "incompatible",
-  "message": "'anushka' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v2. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
+  "message": "'anushka' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v2; set tts_model to it. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
   "did_you_mean": ["janus"],
   "allowed": ["agathe", "agustina", "alvaro", "ama", "amalthea", "andromeda"]
 }
@@ -327,7 +327,7 @@ A name can also be real and still do nothing on this agent. Two findings say so,
 
 ### 5. `tts_provider` set without `tts_model`
 
-`tts_provider` is the legacy speech switch, and it decides almost nothing: the call only branches on it for one value, `elevenlabs`. Every other speech stack is chosen by `tts_model`. Set `tts_provider` on its own — no `tts_model` alongside it — and the call does **not** switch to that provider. It speaks on the platform's default model instead, on whichever provider that model belongs to.
+`tts_provider` is the legacy speech switch, and it decides nothing: every speech stack is chosen by `tts_model`. (`elevenlabs` is not available, and a config naming it is refused with `422`.) Set `tts_provider` on its own — no `tts_model` alongside it — and the call does **not** switch to that provider. It speaks on the platform's default model instead, on whichever provider that model belongs to.
 
 ```json
 { "tts_provider": "gnani" }
@@ -354,7 +354,7 @@ Naming a provider that disagrees with the `tts_model` you *did* set is a softer 
   "key": "tts_provider",
   "severity": "warning",
   "code": "incompatible",
-  "message": "'deepgram-aura-2' is a deepgram model, so the call speaks on deepgram — tts_provider is only read to select elevenlabs. Change tts_model if you meant to speak on sarvam."
+  "message": "'deepgram-aura-2' is a deepgram model, so the call speaks on deepgram — tts_provider does not choose the provider. Change tts_model if you meant to speak on sarvam."
 }
 ```
 
@@ -366,7 +366,7 @@ And a value the platform does not serve at all — `tts_provider: "google"`, say
   "severity": "warning",
   "code": "unknown_value",
   "message": "'google' is not a speech provider the platform serves. It is not read either way — the provider comes from tts_model.",
-  "allowed": ["cartesia", "deepgram", "elevenlabs", "gnani", "sarvam"]
+  "allowed": ["cartesia", "deepgram", "gnani", "sarvam"]
 }
 ```
 
