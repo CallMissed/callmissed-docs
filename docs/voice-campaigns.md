@@ -49,7 +49,7 @@ A brand-new campaign is a `draft`, and `draft` cannot jump straight to `running`
 
 ## Create a campaign
 
-`POST /` · scope `campaigns:write`
+`POST /` · scope `campaigns:write` · `201 Created`
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
@@ -66,6 +66,10 @@ A brand-new campaign is a `draft`, and `draft` cannot jump straight to `running`
 | `parallel_lines` | integer 1–5 | No | Calls at once in `parallel` mode. Default `1` |
 | `amd_enabled` | boolean | No | Detect an answering machine. Off by default |
 | `voicemail_template_id` | uuid | No | Voicemail to leave on a machine. Omit to detect and hang up |
+| `dlt_principal_entity_id` | string (≤32, letters/digits) | No | Your India DLT principal entity ID. See [TRAI readiness](#trai-readiness-for-ai-calls-india) |
+| `dlt_header` | string (≤32) | No | The DLT header / caller ID these calls go out under |
+| `dlt_template_id` | string (≤64) | No | DLT content template ID, if you registered one |
+| `dlt_consent_ref` | string (≤128) | No | Your reference to the recorded consent these calls rely on |
 
 A `bot_id`, `from_number_id` or `voicemail_template_id` your account does not own returns `404`. A calling window that is empty or wraps midnight returns `422`, and so does `parallel_lines` above 1 in the same request as a non-parallel `dial_mode`.
 
@@ -129,7 +133,7 @@ A campaign that is not yours returns `404`, never another account's row.
 
 `PATCH /{campaign_id}` · scope `campaigns:write`
 
-Accepts `name`, `scheduled_at`, `from_number_id` and every rail from the create table. Anything you leave out is kept. **Status is not settable here** — use the transition endpoint below, so the allowed-move table always applies.
+Accepts `name`, `scheduled_at`, `from_number_id` and every rail, answering-machine (`amd_enabled`, `voicemail_template_id`) and DLT field from the create table. `bot_id` cannot be changed after creation. Anything you leave out is kept; an empty string clears a DLT field. **Status is not settable here** — use the transition endpoint below, so the allowed-move table always applies.
 
 ## Change status
 
@@ -143,6 +147,8 @@ curl -X POST https://api.callmissed.com/api/v1/voice-campaigns/6d1e.../status \
 ```
 
 Returns the updated campaign, or `409` if the move is not allowed. Posting the status it is already in is a no-op that returns `200`.
+
+Moving to `scheduled` or `running` runs the [TRAI readiness check](#trai-readiness-for-ai-calls-india). If your account enforces it and the campaign is not ready, the move returns `409` naming what is missing.
 
 Moving to `running` fires the `campaign.started` webhook; reaching `completed` fires `campaign.completed`. Pausing, cancelling and scheduling fire nothing — they are operator moves, not lifecycle beats a subscriber acts on.
 
@@ -246,6 +252,51 @@ Returns the calls this campaign has on the wire right now — each with the cont
 
 A `preview` campaign dials only approved contacts, so this is what makes the phone ring. `409` on a campaign that is not in `preview` mode, or on a contact that is no longer waiting; `404` on a contact that is not on this campaign.
 
+## TRAI readiness for AI calls (India)
+
+TRAI's Third Amendment to the TCCCPR (announced 18 September 2026, [press release 119/2026](https://www.trai.gov.in/sites/default/files/2026-09/PR_No119of2026.pdf)) treats calls placed by an application or automated platform, including AI and artificial-voice calls, as A2P calls. Every business making them must declare that use, and the caller IDs it uses, to its telecom provider beforehand. An undeclared A2P call is treated as unsolicited commercial communication. Every campaign call is an A2P call.
+
+You make the declaration with your telecom provider; CallMissed cannot file it for you. What CallMissed does:
+
+- Records, per number, that you have declared it ([`PUT /numbers/{number_id}/a2p-declaration`](/docs/telephony-api#declare-a-number-for-ai-calls-india)).
+- Stores the DLT fields above on each campaign.
+- Checks both before a campaign starts, and again before each dial.
+
+A campaign is ready when all of these are true:
+
+- The number it calls from is declared.
+- `dlt_principal_entity_id` and `dlt_header` are set.
+- Either `dlt_template_id` or `dlt_consent_ref` is set.
+
+Enforcement is **off by default**. With it off, a campaign that is not ready still starts and the warning is written to your audit log. With it on, a campaign that is not ready cannot be scheduled or started. A running campaign that stops being ready, for example because its number's declaration is withdrawn, is paused before its next call. An account owner or admin switches enforcement on or off in the dashboard, under **Campaigns**. API keys cannot change it.
+
+`GET /{campaign_id}/trai-readiness` · scope `campaigns:read`
+
+```bash
+curl https://api.callmissed.com/api/v1/voice-campaigns/6d1e.../trai-readiness \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+{
+  "enforced": true,
+  "ready": false,
+  "issues": [
+    { "code": "number_not_declared", "message": "The calling number is not declared for automated/AI calls. ..." }
+  ]
+}
+```
+
+| `code` | Meaning |
+|--------|---------|
+| `no_from_number` | No active number to call from |
+| `number_not_declared` | The calling number has no A2P declaration recorded |
+| `dlt_principal_entity_missing` | `dlt_principal_entity_id` is empty |
+| `dlt_header_missing` | `dlt_header` is empty |
+| `dlt_consent_or_template_missing` | Neither `dlt_template_id` nor `dlt_consent_ref` is set |
+
+`GET /trai-settings` · scope `campaigns:read` returns `{"enforce": false, "updated_at": null}`.
+
 ## Delete a campaign
 
 `DELETE /{campaign_id}` · scope `campaigns:write` · `204`
@@ -285,8 +336,8 @@ Takes a number back off the list. Do this only when the person has asked to hear
 |--------|------|
 | `403` | The API key is missing `campaigns:read` or `campaigns:write` |
 | `404` | The campaign, contact, agent, number or voicemail template is not yours |
-| `409` | The status move is not allowed, or you are adding contacts to a running campaign |
-| `422` | A calling window that wraps midnight, a batch over the cap, a malformed `column_map`, or a CSV that is empty or too large |
+| `409` | The status move is not allowed, the campaign fails an enforced TRAI readiness check, or you are adding contacts to a running campaign |
+| `422` | A DLT field with characters an identifier cannot have, a calling window that wraps midnight, a batch over the cap, a malformed `column_map`, or a CSV that is empty or too large |
 
 ## Related
 

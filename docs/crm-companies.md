@@ -13,7 +13,7 @@ The account object — create, search and link companies, the domain uniqueness 
 
 A **company** (an account) is the organisation a contact belongs to. It is the spine the rest of the CRM hangs off: deals point at a company, notes and tasks attach to one, and the [timeline](/docs/crm-lead-scores#timeline) rolls up its activity.
 
-Contacts link to a company through the contact's own `company_id`.
+Contacts link to a company through the contact's own `company_id` — list a company's people with [`GET /api/v1/contacts?company_id=…`](/docs/crm-contacts#get-apiv1contacts).
 
 ## Authentication
 
@@ -93,7 +93,9 @@ Returns `201`.
 
 ## GET / PATCH / DELETE `/api/v1/companies/{company_id}`
 
-`PATCH` accepts the same fields, all optional, with the same bounds. `DELETE` returns `204`.
+`PATCH` accepts the same fields, all optional, with the same bounds. Only the fields you send are changed; `name` cannot be cleared (`422 name must not be blank`).
+
+`DELETE` returns `204`. Contacts and deals that pointed at the company are kept, with their `company_id` cleared.
 
 `404 Company not found` for an unknown or another tenant's id.
 

@@ -119,7 +119,7 @@ Instagram — `POST /api/v1/instagram/comments/{comment_id}/reply`
 
 | Field | Type | Description |
 |---|---|---|
-| `message` | string | The reply text. Required. |
+| `message` | string | The reply text, 1–8,000 characters. Required. |
 
 ```bash [cURL]
 curl -X POST https://api.callmissed.com/api/v1/instagram/comments/17924118234567890/reply \
@@ -143,6 +143,10 @@ Hiding removes a comment from public view without deleting it. Send `hidden`:
 |---|---|---|
 | `hidden` | boolean | `true` to hide, `false` to unhide. Required. |
 
+```json
+{ "success": true }
+```
+
 ## Delete a comment
 
 Facebook — `DELETE /api/v1/facebook/comments/{comment_id}`
@@ -150,7 +154,23 @@ Instagram — `DELETE /api/v1/instagram/comments/{comment_id}`
 
 Permanently deletes a comment you have permission to remove. You can only delete
 comments on your own posts/media, or your own comments — Meta enforces the rest.
-Irreversible; there is no undo, so hide first if you are unsure.
+Irreversible; there is no undo, so hide first if you are unsure. Returns
+`{ "success": true }`.
+
+## Errors
+
+Every endpoint on this page maps Meta failures to these statuses (Meta's own text
+is never returned):
+
+| HTTP | Meaning |
+|---|---|
+| `401` | The account's access token is no longer valid. Reconnect it. |
+| `403` | The account lacks the comment-moderation permission. |
+| `409` | The account is disconnected, or its access token is unavailable. |
+| `422` | Meta rejected the call — the comment or post may no longer exist. |
+| `429` | Meta is rate-limiting the account. Wait and retry. |
+| `502` | The upstream call failed. |
+| `504` | Meta did not answer in time; the action may not have applied. Check, then retry. |
 
 Every endpoint on this page also exists in the legacy account-id-in-path form
 (`GET /api/v1/facebook/{page_uuid}/posts/{post_id}/comments` and siblings), which

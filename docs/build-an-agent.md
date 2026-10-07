@@ -255,7 +255,7 @@ The speaker list belongs to the speech model, not to the platform. `anushka` is 
   "key": "voice",
   "severity": "error",
   "code": "incompatible",
-  "message": "'anushka' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v2. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
+  "message": "'anushka' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v2; set tts_model to it. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
   "did_you_mean": ["janus"],
   "allowed": ["agathe", "agustina", "alvaro", "ama", "amalthea", "andromeda"]
 }

@@ -39,7 +39,7 @@ A scheduled send returns `202`:
 }
 ```
 
-`message_id` is empty and `suppressed` is `[]` because nothing has been built or filtered yet: suppression, quota, billing and delivery all run when the send fires. `batchId` and `scheduledAt` appear only on a scheduled enqueue.
+`message_id` is empty and `suppressed` is `[]` because nothing has been built or filtered yet: suppression, quota, billing and delivery all run when the send fires. `scheduledAt` is set only on a scheduled enqueue, and `batchId` only on a scheduled enqueue or a batch; both are `null` on an immediate single send.
 
 ### Managing scheduled sends
 
