@@ -115,14 +115,25 @@ The `201` response wraps the subscription and the secret:
 
 | Event | Fires when | Status |
 |-------|-----------|--------|
+| `email.sent` | The message was accepted for delivery. Fires once per message | **Live** |
+| `email.opened` | A message with open tracking was opened for the first time. Fires once per message | **Live** |
 | `email.bounced` | A recipient's mail server rejected the message. The address is also added to your [suppression list](/docs/email-logs#suppressions) | **Live** |
 | `email.complained` | A recipient marked the message as spam. The address is suppressed too | **Live** |
-| `email.sent` | The message was accepted for delivery | Subscribable; not emitted yet |
-| `email.delivered` | Delivery to the recipient's mailbox was confirmed | Subscribable; not emitted yet |
-| `email.opened` | A tracked message was opened | Subscribable; not emitted yet |
+| `email.delivered` | The recipient's mail server accepted the message. Fires once per recipient | **Live** |
 | `email.received` | Inbound mail arrived at one of your receiving addresses | Subscribable; not emitted yet |
 
-You can subscribe to any of the six today. The four marked *not emitted yet* are accepted so your subscription does not have to be rewritten when they start firing — until then they simply deliver nothing. For inbound mail right now, use the per-address `forward_url` on [Receive Email](/docs/email-inbound), which is live; for opens and clicks, read the aggregates from [engagement metrics](/docs/email-logs#engagement-metrics).
+You can subscribe to all six now. `email.received` is accepted so you won't have to rewrite your subscription when it starts firing; until then it delivers nothing. For inbound mail right now, use the per-address `forward_url` on [Receive Email](/docs/email-inbound), which is live.
+
+**Proof of delivery.** Two events track each message:
+
+- `email.sent`: we accepted the message for delivery. It fires once per message.
+- `email.delivered`: a recipient's mail server accepted the message. It fires once for each recipient, with the time of the delivery attempt.
+
+If a recipient's server refuses the message, you get `email.bounced` for that recipient instead. [`GET /sends/{id}/events`](/docs/email-logs#per-recipient-delivery-events) returns the same per-recipient outcomes, so you can look up delivery evidence for any send at any time.
+
+`email.delivered` means the receiving server took the message. It does not tell you whether the message went to the inbox or a spam folder, or whether anyone read it. Sends made before 2026-10-03 have no per-recipient delivery events.
+
+**About opens.** Opens are counted with a tracking pixel, so they are approximate. Some mail apps and privacy proxies load images automatically, which can register an open nobody saw. Other apps block images, so a real open is never seen. Treat `email.opened` as a sign of engagement, not as proof that someone read the message.
 
 ### Payload
 
@@ -153,6 +164,83 @@ Every delivery is a POST with this envelope:
 | `data.domain` | Your sending domain the message went out on |
 
 `email.bounced` and `email.complained` carry the shape above.
+
+#### `email.sent`
+
+```json
+{
+  "type": "email.sent",
+  "created_at": "2026-08-13T09:40:58.402113+00:00",
+  "data": {
+    "email_id": "9d0f8b3a-1c2e-4a5b-8f7d-6e2a1b0c9d4e",
+    "message_id": "<1a2b3c4d@acme.com>",
+    "recipients": ["customer@example.com", "accounts@example.com"],
+    "domain": "acme.com",
+    "smtp_response": "accepted for delivery",
+    "accepted_at": "2026-08-13T09:40:58.398000+00:00"
+  }
+}
+```
+
+#### `email.opened`
+
+```json
+{
+  "type": "email.opened",
+  "created_at": "2026-08-13T10:02:11.031552+00:00",
+  "data": {
+    "email_id": "9d0f8b3a-1c2e-4a5b-8f7d-6e2a1b0c9d4e",
+    "message_id": "<1a2b3c4d@acme.com>",
+    "recipients": ["customer@example.com", "accounts@example.com"],
+    "domain": "acme.com",
+    "opened_at": "2026-08-13T10:02:10.991000+00:00"
+  }
+}
+```
+
+| Field | Notes |
+|-------|-------|
+| `data.recipients` | Every address the message was sent to (`to`, `cc` and `bcc`, minus suppressed addresses). Each message fires one event, not one per recipient. A message is accepted in one hand-off and has a single tracking pixel, so these events cannot be tied to an individual recipient |
+| `data.smtp_response` | Confirmation that the message was accepted for delivery, up to 512 characters |
+| `data.accepted_at` | When the message was accepted, the same value as `sent_at` on the send |
+| `data.opened_at` | When the first open was recorded |
+
+In a `messageVersions` batch, each version that was handed to the mail server fires its own `email.sent`.
+
+#### `email.delivered`
+
+```json
+{
+  "type": "email.delivered",
+  "created_at": "2026-08-13T09:41:05.774201+00:00",
+  "data": {
+    "email_id": "9d0f8b3a-1c2e-4a5b-8f7d-6e2a1b0c9d4e",
+    "message_id": "<1a2b3c4d@acme.com>",
+    "recipient": "customer@example.com",
+    "delivered_at": "2026-08-13T09:41:03.201000+00:00",
+    "detail": null
+  }
+}
+```
+
+| Field | Notes |
+|-------|-------|
+| `data.recipient` | The one recipient this event is about. A message with three recipients can fire three `email.delivered` events |
+| `data.delivered_at` | When the recipient's mail server accepted the message |
+| `data.detail` | The receiving side's status message, when one is given |
+
+#### Which outcome fires which event
+
+| Outcome reported for a recipient | Event | Address suppressed |
+|---|---|---|
+| Delivered | `email.delivered` | No |
+| Bounced (the address or domain does not exist) | `email.bounced` | Yes |
+| Suppressed (the address hard-bounced before) | `email.bounced` | Yes |
+| Failed (the message could not be delivered) | `email.bounced` | No |
+| Rejected as spam by the receiving side | `email.bounced` | No |
+| Quarantined by the receiving side | none, recorded in [delivery events](/docs/email-logs#per-recipient-delivery-events) | No |
+
+For these failures, `data.detail` on `email.bounced` starts with the outcome, for example `FilteredSpam: …`, so you can tell them apart.
 
 ### Headers
 
