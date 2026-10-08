@@ -57,14 +57,46 @@ appears in `config.tools`.
 | Utility | `web_search`, `calculator`, `get_current_time` |
 | Knowledge | `search_knowledge_base`, `save_to_knowledge` |
 | Memory | `remember`, `recall_memory` |
-| CRM | `update_contact`, `set_contact_optin` |
+| CRM | `update_contact`, `set_contact_optin`, `add_call_note`, `create_follow_up_task`, `update_contact_fields`, `create_or_update_deal` |
 | Scheduling | `calcom_list_slots`, `calcom_book`, `google_calendar_find_free_slots`, `google_calendar_create_event` |
 | Spreadsheets | `google_sheets_find_rows`, `google_sheets_append_row`, `google_sheets_update_row`, `google_sheets_list_spreadsheets` |
 | Commerce | `shopify_order_status`, `shopify_product_lookup`, `woocommerce_order_status` |
-| WhatsApp messaging | `send_text_message`, `send_template_message`, `send_quick_reply_buttons`, `send_list_menu`, `send_cta_url_button`, `send_location` |
-| Calling | `request_call` |
+| WhatsApp messaging | `send_text_message`, `list_message_templates`, `send_template_message`, `send_quick_reply_buttons`, `send_list_menu`, `send_cta_url_button`, `send_location`, `send_document`, `request_contact_info` |
 | Email | `send_email`, `gmail_send_email` |
 | HTTP | `http_request` |
+
+### Sending a WhatsApp template during a call
+
+On phone and WhatsApp calls the WhatsApp messaging tools are on automatically
+when your workspace has a connected WhatsApp number. A template is sent from a
+number on the WhatsApp Business Account that owns it, so a workspace with several
+accounts works too; only templates whose account has a connected number are
+offered. To send an approved template, the agent:
+
+1. calls `list_message_templates`, which returns each approved template with
+   its `inputs` (every value the template needs: body placeholders, a text
+   header placeholder as `header_<n>`, a link ending as `button_<n>`), each
+   tagged with the `field` it is sent in (`input_1`, `input_2`, …);
+2. asks the caller whether to send it to the number they are calling from or
+   to a different number, and reads a different number back to confirm. A
+   number given without a country code takes the caller's own (India only);
+3. asks for any input it does not already know, and reads the details back;
+4. calls `send_template_message` with `send_to` and each input as its field,
+   for example `"input_1": "Rahul", "input_2": "12 Oct, 4 pm"` (up to
+   `input_8`). If a value is missing the tool names the field, so the agent
+   asks for it instead of the send failing.
+
+The tool then waits a few seconds for WhatsApp's delivery report and tells the
+agent whether the message was delivered. If the number cannot receive WhatsApp,
+the agent offers to send it to another number. A temporary WhatsApp failure is
+retried automatically (up to 3 attempts); a send that may already have gone out
+is never sent twice, and the same message is not sent twice on one call unless
+the caller asks. Every send, its recipient and its outcome appear on the call
+in the console and through
+[`GET /v1/voice/sessions/{id}/whatsapp_sends`](/docs/voice-sessions-api#whatsapp-messages).
+A delivered paid template is billed like any other WhatsApp template.
+
+Templates with an image, video or document header cannot be sent this way.
 
 A tool whose integration is not connected — a Shopify store, a Cal.com key, a
 Google account — does not break the call. It returns an error the model can
@@ -105,14 +137,48 @@ a voice call is "send me that in the chat": a tracking link, an address, a
 price. If the call is not linked to a connected WhatsApp sender, the tool
 returns an error the model relays instead of sending anything.
 
+### CRM writes during a call
+
+Four CRM tools are for phone and WhatsApp calls. Add the ones you want to
+`config.tools`; none is on by default.
+
+| Tool | What it does |
+| --- | --- |
+| `add_call_note` | Saves a short note on the caller's contact, tagged with the call. Retrying the same note does not duplicate it. |
+| `create_follow_up_task` | Creates a follow-up task for the caller. Give the due moment as an ISO 8601 date or date-time in `due`, or whole days from today in `due_in_days` (up to 366; a bare date means noon UTC). With no time, the task is created without a due date. |
+| `update_contact_fields` | Saves `name`, `email`, `company_name`, `lifecycle_stage` (`subscriber`, `lead`, `qualified`, `opportunity`) and `lead_source` (only when none is recorded). An email already on another contact is refused. |
+| `create_or_update_deal` | Creates a deal in your default (or a named) pipeline, or updates the caller's open deal with the same title. Amount is capped at 100,000,000. Stage and pipeline must already exist. |
+
+What they will not do, whatever the caller says:
+
+- They only touch the contact matched to the number on the call. If no contact
+  matches, they return an error and nothing is created. Nothing takes an id,
+  owner or assignee, and passing one is refused.
+- `lifecycle_stage` cannot be set to `customer` or `churned`, and a contact
+  already at one of those stages is left alone. A deal cannot be moved to a
+  won or lost stage from a call.
+- `create_or_update_deal` requires `caller_confirmed: true`. The tool
+  description tells the model to read the deal back and wait for a yes first.
+
+Set `crm_task_assignee_user_id` on the agent to a user in your workspace to
+assign the tasks it creates; otherwise they are unassigned. The id is checked
+on every call.
+
+**Retention and privacy.** When the call runs under zero data retention, the
+note tool refuses, the task keeps only a generic title with no details, the deal
+keeps a generic title, and `update_contact_fields` accepts only
+`lifecycle_stage` and `lead_source`. With `redact_pii` on, card, Aadhaar, PAN
+and OTP digits are masked in the text these tools store.
+
 ### Not available on voice
 
-Two categories are excluded from voice calls:
+Three categories are excluded from voice calls:
 
 | Category | Why |
 | --- | --- |
 | `conversation` | Inbox-thread actions — notes, tags, status, escalation — belong to the chat channels |
 | `personal_whatsapp` | Needs a linked personal-WhatsApp session, which a call does not have |
+| `calling` | `request_call` and `request_phone_call` ask for a phone call from a chat; on a call, use `transfer_to_human` below for a callback |
 
 Every tool in those categories comes back from `GET /api/v1/bots/tool-catalog`
 with `"unavailable_on": ["voice"]`, and listing one in a calling agent's
@@ -205,13 +271,6 @@ way past.
 
 ### `transfer_to_human`
 
-<Callout type="warn">
-`transfer_to_human` does **not** connect a person to the live call. It notifies
-your team, who call the caller back. The agent tells the caller someone will
-ring them back, then wraps up. Write your prompt around a callback, not a warm
-transfer.
-</Callout>
-
 It takes a short `reason` for the team and a 1–2 sentence `summary` written for
 the colleague picking it up: what the caller wants, what has been covered, key
 facts like an order number, and whether identity was checked. The result tells
@@ -220,6 +279,75 @@ reached.
 
 Use it when the caller explicitly asks for a person, is upset and wants
 escalation, or has a request the agent genuinely cannot handle.
+
+**Live transfer on phone calls.** List up to 10 people in the agent's config as
+`transfer_targets`, each `{name, phone, description}` with the phone number in
+international format (`+919812345678`). On a phone call the tool then takes a
+`target` — one of those names — and puts the caller through while the call is
+live. The model only ever sees the names and descriptions, and can only reach a
+number you listed.
+
+- The caller hears hold music while the person's phone rings, for up to 30
+  seconds. The music stops as soon as they answer, or when the attempt fails.
+- `transfer_mode: "warm"` (the default) has the agent introduce the caller and
+  the reason for the call, both listening, then leave. `"cold"` connects them
+  straight away. `"cold_refer"` hands the call to your phone carrier instead
+  (see below).
+- A person can carry their own `mode` (`warm`, `cold` or `cold_refer`), which
+  overrides `transfer_mode` for them only:
+  `{"name": "Billing", "phone": "+919812345679", "description": "", "mode": "cold_refer"}`.
+- If nobody answers, the caller is returned to the agent and a callback request
+  is recorded for your team instead.
+- The transferred leg is billed like any outbound call minute from your
+  workspace's number. The agent's own session ends with `end_reason`
+  `transferred`.
+- On a call the agent placed, the transferred call still ends at the agent's
+  maximum call duration.
+
+**Handing the call to your carrier (`cold_refer`).** Instead of connecting the
+person through the call, the call is handed to your phone carrier with a SIP
+REFER: the carrier connects the caller to the person and the agent leaves the
+call at once. It applies only on numbers you bring from your own carrier, and
+only if that carrier accepts call transfers (some need it switched on for the
+trunk). The onward call is then placed and billed by your carrier. On a number
+you rent from us, or if the carrier refuses the transfer or the person does not
+pick up, the person is connected through the call as with `"cold"` instead, so
+choosing `cold_refer` never loses a transfer.
+
+**Fallback when the agent fails.** Set `fallback_transfer_target` to the name of
+one of your `transfer_targets`, and a phone call whose agent fails is put
+through to that person instead of being hung up on. `fallback_on` picks which
+failures count:
+
+| Value | When |
+| --- | --- |
+| `agent_error` | The agent fails mid-call: a speech or language service stops working and cannot recover, or the agent stops unexpectedly. The default when `fallback_on` is unset |
+| `stack_unavailable` | The agent's voice setup cannot be started for the call at all |
+
+```bash
+curl -X PATCH https://api.callmissed.com/api/v1/bots/{bot_id}/config \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"values": {"fallback_transfer_target": "Sales", "fallback_on": ["agent_error", "stack_unavailable"]}}'
+```
+
+- The name must be one of the agent's `transfer_targets` when you save it, and
+  the number is always the one saved on that person.
+- The caller hears hold music while the phone rings. If nobody answers, a
+  callback request is recorded for your team and the call ends.
+- A person with `mode: "cold_refer"` is reached through your carrier as
+  described above.
+- A phone number can override both keys for calls to that number through its
+  per-number config (`fallback_transfer_target`, `fallback_on`), for example to
+  send failures on a night line to a different person.
+- The transferred call is billed like any other live transfer, and the session
+  ends with `end_reason` `transferred`.
+
+<Callout type="warn">
+Without `transfer_targets`, and on WhatsApp and browser calls, `transfer_to_human`
+does **not** connect a person to the live call. It notifies your team, who call
+the caller back, and the agent tells the caller someone will ring them back.
+</Callout>
 
 ## Errors
 

@@ -52,10 +52,10 @@ Authorization: Bearer cm_your_api_key
 
 | Field type | Accepted `value` |
 | --- | --- |
-| `text` | A non-blank string, at most 2,000 characters |
-| `number` | A finite number |
+| `text` | A non-blank string. Longer than 2,000 characters is truncated |
+| `number` | A finite number (not a numeric string, not a boolean) |
 | `boolean` | `true` or `false` |
-| `date` | An ISO 8601 date |
+| `date` | An ISO 8601 date or datetime string; stored as `YYYY-MM-DD` |
 | `select` | One of the definition's `options` |
 
 ### GET `/api/v1/crm/custom-fields`
@@ -76,7 +76,7 @@ Ordered by entity type, then position, then key.
 | `key` | `string` | Yes | At most 64 characters, matching `^[a-z][a-z0-9_]{0,63}$`. Unique per entity type |
 | `label` | `string` | Yes | 1–255 characters, not blank |
 | `field_type` | `string` | Yes | One of the five types above |
-| `options` | `string[]` | Conditional | **Required for `select`, rejected otherwise.** At most 100 entries, each at most 128 characters, no blanks or duplicates |
+| `options` | `string[]` | Conditional | **Required for `select`, rejected otherwise.** 1–100 entries, each truncated to 128 characters, no blanks or duplicates |
 | `is_required` | `boolean` | No | Default `false` |
 | `position` | `integer` | No | `0 <= position <= 10000`, default `0` |
 
@@ -93,11 +93,11 @@ curl -X POST https://api.callmissed.com/api/v1/crm/custom-fields \
   }'
 ```
 
-A duplicate key returns `409 A custom field with this key already exists for this entity type`.
+Returns `201`. A duplicate key returns `409 A custom field with this key already exists for this entity type`.
 
 ### PATCH `/api/v1/crm/custom-fields/{def_id}`
 
-Accepts `label`, `options`, `is_required` and `position`.
+Accepts `label`, `options`, `is_required` and `position`, all optional. `options` may only be sent for a `select` field (`422 options are only valid for a select field`). Changing `options` does not re-validate values already stored.
 
 > `key`, `entity_type` and `field_type` are **immutable** — changing a field's type would silently invalidate every stored value. Create a new field and migrate instead.
 
@@ -187,9 +187,9 @@ Returns `204`.
 
 ## Visibility
 
-A view is reachable only when `is_shared` is `true`, **or** you created it. A teammate's private view returns `404`, not `403` — its existence is not disclosed.
+A view is reachable only when `is_shared` is `true`, **or** you created it. A teammate's private view returns `404`, not `403` — its existence is not disclosed, on reads and writes alike. A shared view can be edited and deleted by anyone who can see it.
 
-> API keys have no user identity, so a view created with a key has `created_by_user_id: null`. **Set `is_shared: true` on views you want a key to read back**, otherwise the key will not see them.
+> API keys have no user identity, so a view created with a key has `created_by_user_id: null`. Every API key in your tenant counts as the creator of such views and can read them back; dashboard users only see them once `is_shared` is `true`.
 
 ## GET `/api/v1/crm/saved-views`
 
@@ -208,10 +208,26 @@ Newest first.
 | `entity_type` | `string` | Yes | `contact`, `company`, `deal` or `task` |
 | `name` | `string` | Yes | 1–255 characters, unique per entity type |
 | `filters` | `object` | No | Default `{}`. At most 16,000 characters serialised |
-| `sort` | `object` | No | `{ "field": "...", "dir": "asc" \| "desc" }`. `field` at most 64 characters, `dir` defaults to `desc` |
+| `sort` | `object` | No | `{ "field": "...", "dir": "asc" \| "desc" }`. `field` 1–64 characters matching `^[A-Za-z_][A-Za-z0-9_.]*$`; `dir` defaults to `desc` |
 | `columns` | `string[]` | No | At most 100, each non-blank and at most 128 characters |
 | `layout` | `string` | No | `table` (default) or `kanban` |
 | `is_shared` | `boolean` | No | Default `false` |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/crm/saved-views \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entity_type": "deal",
+    "name": "Open enterprise deals",
+    "filters": { "status": "open" },
+    "sort": { "field": "expected_close_date", "dir": "asc" },
+    "layout": "kanban",
+    "is_shared": true
+  }'
+```
+
+Returns `201`. A name already used for that entity type returns `409 A deal view named '…' already exists`.
 
 ## GET / PATCH / DELETE `/api/v1/crm/saved-views/{view_id}`
 

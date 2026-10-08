@@ -29,7 +29,7 @@ Every endpoint on this page takes either. API-key callers need:
 | Listing, reading, simulating, live state, reputation check | `telephony:read` |
 | Creating, updating, publishing, attaching a number, roster changes, deleting | `telephony:write` |
 
-Call handling is an attribute of telephony, so it reuses those two scopes and adds none. Base URL for every example: `https://api.callmissed.com`. Errors are `{"detail": "..."}`.
+Call handling is an attribute of telephony, so it reuses those two scopes and adds none. Base URL for every example: `https://api.callmissed.com`. Errors are `{"detail": "..."}`. Every create (`POST` on a collection) returns `201 Created`, and every `DELETE` of a flow, menu, queue, member or voicemail message returns `204 No Content`.
 
 <Callout type="info">
   Flows, menus and queues can be built **before** calling is switched on for your account — they only read and write your own configuration. The voicemail-message and reputation endpoints need calling enabled and return `404` until it is.
@@ -44,14 +44,31 @@ A number's binding is stored on the number itself, and each surface has its own 
 | Flow | `POST /api/v1/call-flows/{id}/numbers/{number_id}` | `DELETE` the same path |
 | Menu | `POST /api/v1/call-menus/{id}/numbers/{number_id}` | `DELETE` the same path |
 | Queue | `POST /api/v1/call-queues/{id}/numbers/{number_id}` | `DELETE` the same path |
+| [Agent squad](/docs/voice-squads#answering-a-phone-number) | `POST /api/v1/voice/squads/{id}/numbers/{number_id}` | `DELETE` the same path |
 
-<Callout type="info">
-  Attaching a **flow or menu** to a number is not yet available — inbound flow and menu execution is still being wired, so both attach calls return `409` for now. Flows and menus can still be created, published and simulated; detach stays live so an existing binding can always be cleared. **Queue** attach is unaffected and works today.
-</Callout>
+Attaching takes effect from the next inbound call on that number. A flow answers only once it is **published**, and a menu only while it is **enabled**; until then the number answers with its agent as usual.
+
+If one number carries more than one binding, the first that can answer wins: a published **flow**, then an enabled **menu**, then the **queue**, then an active **squad** (its entry agent answers). A number answered by a flow or menu reaches its queues through a key or a `route` step instead of putting every caller on hold first.
 
 Detach is idempotent: unbinding a number that is not bound is a success, not an error. Deleting the flow, menu or queue a number points at is also safe — the call simply answers normally, because the binding is re-checked against your own rows on every call.
 
 Both ids are checked against your account on every one of these calls, so a number can never be pointed at another account's flow, menu or queue.
+
+## What the caller experiences
+
+A flow or menu runs before any agent speaks. The caller hears the prompt (your `prompt_audio_url` recording if you set one, otherwise the `prompt` text read aloud) and presses a key. A key pressed while the prompt is still playing is accepted straight away. Pressing nothing within `timeout_seconds`, or a key that maps nowhere, replays the prompt until `max_retries` is spent. If the call is recorded, the recording notice plays before the first prompt.
+
+Where each destination takes the call:
+
+| Destination | What happens |
+| --- | --- |
+| `bot` | That agent takes the call and greets the caller with its own greeting, prompt, voice and tools. The call, its transcript and its analytics move to that agent |
+| `queue` | The caller joins that queue and holds until a member is free |
+| `phone` | The number is dialled and the caller is connected as soon as someone answers. If nobody answers, the number's own agent picks the call back up |
+| `hangup` | The call ends |
+| a `voicemail` node | After the prompt the caller leaves a message. It ends after a few seconds of quiet or at `max_duration_seconds`, and lands in your [handoffs](/docs/handoffs) queue as a callback request with the caller's words and number, filed under the agent linked to the number |
+
+If a step cannot complete — a menu deleted mid-call, an agent that is switched off, or an agent that runs on a different voice tier or a different kind of voice model from the number's agent (a speech-to-speech model in place of a standard one, or the reverse) — the number's own agent answers the call instead, so a caller is never left in silence. Use agents on the same voice tier and model kind as the number's agent for `bot` destinations.
 
 ## Call flows
 
@@ -89,7 +106,7 @@ A flow is a directed graph of steps. Each step is a **node** with a `type` and a
 | `dtmf_menu` | Asks for a keypress and routes on it | `prompt`, `prompt_audio_url`, `options`, `timeout_seconds` (1–60, default 5), `max_retries` (0–5, default 2), `invalid_action` (`reprompt` or `hangup`) | none — its branches live in `options` |
 | `business_hours` | Splits on whether you are open | `timezone` (an IANA name), `hours`, `holidays` (≤ 60 `YYYY-MM-DD` dates) | `open`, `closed` |
 | `route` | Terminal: hands the call over | `destination` | none |
-| `voicemail` | Takes a message | `prompt`, `prompt_audio_url`, `max_duration_seconds` (5–600, default 120) | none |
+| `voicemail` | Takes a message (see [What the caller experiences](#what-the-caller-experiences)) | `prompt`, `prompt_audio_url`, `max_duration_seconds` (5–600, default 120) | none |
 | `webhook` | Calls your endpoint mid-call | `url` (required), `method` (`GET` or `POST`), `timeout_seconds` (1–10), `headers` (≤ 10) | `ok`, `error` |
 
 A destination — used by `route.destination` and by each key in a `dtmf_menu`'s `options` — is `{"type": ..., "value": ..., "label": ...}`:
@@ -98,7 +115,7 @@ A destination — used by `route.destination` and by each key in a `dtmf_menu`'s
 | --- | --- |
 | `bot` | One of your agents' ids |
 | `queue` | One of your call queues' ids |
-| `phone` | A number in E.164 form |
+| `phone` | A number in E.164 form, e.g. `+919812345678`. Premium-rate and other blocked ranges are refused with `422` when you save, and checked again when a call is forwarded |
 | `menu` | **Inside a flow this means another NODE in the same flow.** The id of that node, so a key hop stays in the graph |
 | `hangup` | None |
 
@@ -277,6 +294,7 @@ A queue holds callers until someone on its roster is free.
   "name": "Support",
   "strategy": "round_robin",
   "hold_audio_url": null,
+  "position_announce_seconds": null,
   "max_wait_seconds": 300,
   "overflow_action": "voicemail",
   "enabled": true,
@@ -289,10 +307,13 @@ A queue holds callers until someone on its roster is free.
 | --- | --- | --- |
 | `name` | `string` | 1–255 characters |
 | `strategy` | `string` | `round_robin`, `longest_idle` or `priority`. Default `round_robin` |
-| `hold_audio_url` | `string` | A public `https` clip played while holding. `""` clears it |
+| `hold_audio_url` | `string` | A public `https` audio clip (up to 5 MB) looped while the caller holds. `""` clears it, and callers then hear built-in hold music |
+| `position_announce_seconds` | `int` | `0` (or unset) never announces; otherwise 10–600. The caller hears their place in line this often |
 | `max_wait_seconds` | `int` | 0–3600, default 300. `0` means hold indefinitely |
 | `overflow_action` | `string` | `voicemail`, `hangup` or `callback`. What happens after `max_wait_seconds` |
 | `enabled` | `bool` | `false` keeps the queue but stops it taking calls |
+
+While a caller holds, the agent does not listen to them and the AI per-minute fee does not run; it starts when the caller is routed to an agent. A caller routed to a person is put through to them live when that member has a `transfer_target` (see the roster below); otherwise, or if nobody answers, they are promised a callback and the request appears in your handoffs.
 
 | Endpoint | Scope | Notes |
 | --- | --- | --- |
@@ -321,14 +342,22 @@ A member is either an agent (`kind: "ai"`, `bot_id`) or a person in your workspa
 | `priority` | `int` | 0–1000, default 100. Lower is served sooner |
 | `max_concurrent` | `int` | 1–50, default 1. How many calls at once |
 | `enabled` | `bool` | `false` keeps them on the roster and sends them nothing |
+| `transfer_target` | `string` | `human` members only, up to 60 characters. The name of one of the answering agent's `transfer_targets`: a caller routed to this member is put through to that person live, with hold music while the phone rings. Unset (or `""` on `PATCH`) means a callback request instead |
 
-`PATCH` changes `priority`, `max_concurrent` and `enabled` only — `kind`, `bot_id` and `user_id` are immutable, so point a queue at a different answerer by removing the member and adding a new one. Raising `max_concurrent` or re-enabling a member pulls waiting callers in straight away rather than at the next release.
+How a person is reached: a member stores a transfer-target name, never a phone number. When a caller is routed to them, the name is looked up in the transfer targets of the agent answering the dialed number, and the number saved there is called. A name that agent does not have, or a person who does not pick up, falls back to the callback request. See [live transfer](/docs/voice-agent-tools) for how transfer targets are set up and billed.
+
+`PATCH` changes `priority`, `max_concurrent`, `enabled` and `transfer_target` only — `kind`, `bot_id` and `user_id` are immutable, so point a queue at a different answerer by removing the member and adding a new one. Raising `max_concurrent` or re-enabling a member pulls waiting callers in straight away rather than at the next release.
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/call-queues/{queue_id}/members \
   -H "Authorization: Bearer cm_your_api_key" \
   -H "Content-Type: application/json" \
   -d '{"kind": "ai", "bot_id": "8f14e45f-ceea-467a-9f6b-0f9a7bd1c111", "max_concurrent": 3}'
+
+curl -X POST https://api.callmissed.com/api/v1/call-queues/{queue_id}/members \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"kind": "human", "user_id": "c4ca4238-a0b9-4382-8dcc-509a6f75849b", "transfer_target": "Sales"}'
 ```
 
 ### GET /api/v1/call-queues/\{queue_id\}/live
@@ -453,7 +482,16 @@ curl -X POST https://api.callmissed.com/api/v1/reputation/919000000000/remediate
   -F 'file=@opt-in-proof.pdf'
 ```
 
-Only the file's type and size are checked at upload; the document itself is reviewed afterwards, so a `200` means "under review", not "cleared". The proof must show your business logo, the opt-in date (within the six months before the complaint) and the complainant's exact number, or the review declines it.
+```json
+{
+  "phone_number": "919000000000",
+  "reference_id": "PUCC-000123",
+  "status": "in_review",
+  "message": "Opt-in proof uploaded and the complaint is under review. ..."
+}
+```
+
+A file over 10 MB returns `413`. Only the file's type and size are checked at upload; the document itself is reviewed afterwards, so a `200` means "under review", not "cleared". The proof must show your business logo, the opt-in date (within the six months before the complaint) and the complainant's exact number, or the review declines it.
 
 ## Do this from an AI assistant instead
 

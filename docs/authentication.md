@@ -11,13 +11,13 @@ Every API request authenticates with a CallMissed API key.
 
 ## API Key
 
-Every request authenticates with an API key. Create one from your Profile page in the dashboard — keys are prefixed with `cm_` and are passed as a Bearer token:
+Every request authenticates with an API key. Create one in the console under **Developer → API keys** — keys are prefixed with `cm_` and are passed as a Bearer token:
 
 ```
 Authorization: Bearer cm_your_api_key_here
 ```
 
-API keys never expire but can be revoked at any time.
+A key has no expiry unless you set one when you create it (1-365 days). An expired key gets `401` (`api_key_expired` on the inference endpoints), and an `api_key.expired` [webhook](/docs/webhooks) fires. Any key can be revoked at any time.
 
 ### Anthropic SDK (x-api-key header)
 
@@ -55,27 +55,33 @@ API keys carry two independent access controls.
 
 ### Service permissions
 
-Permissions decide which AI services a key may call. They are enforced on the inference endpoints — a key without the matching permission gets `403 permission_denied`. Set any combination of `llm`, `stt`, `tts`, `search`, `image`, or `*` for all (the default for new keys).
+Permissions decide which AI services a key may call. They are enforced on the inference endpoints — a key without the matching permission gets `403 permission_denied`. Set any combination of `llm`, `stt`, `tts`, `search`, `image`, `email`, or `*` for all (the default for new keys).
 
 | Permission | Gates |
 |------------|-------|
-| `llm` | `/v1/chat/completions`, `/v1/messages` (+ `/anthropic/v1/messages`) |
+| `llm` | `/v1/chat/completions`, `/v1/responses`, `/v1/messages` (+ `/anthropic/v1/messages`), `/v1/embeddings`, `/v1/batches` and `/v1/files` |
 | `stt` | `/v1/audio/transcriptions`, `/v1/audio/translations` |
 | `tts` | `/v1/audio/speech` |
 | `search` | `/v1/search` |
-| `image` | `/v1/images/generations` |
+| `image` | `/v1/images/generations`, `/v1/images/history` |
+| `email` | The [Email API](/docs/email) |
+
+Voice agents run the whole speech pipeline, so the [Voice Session API](/docs/voice-sessions-api) and the [Managed Voice Agent](/docs/managed-voice-agent) sockets need **all three** of `stt`, `tts` and `llm`.
 
 ### Resource scopes
 
-Scopes gate the resource endpoints under `/api/v1/` — bots, conversations, knowledge, webhooks. Unlike permissions, scopes default to **empty = no resource access** — you opt in explicitly.
+Scopes gate the resource endpoints under `/api/v1/` — agents, conversations, CRM, support, knowledge, webhooks and the rest. Unlike permissions, scopes default to **empty = no resource access** — you opt in explicitly.
 
 | Scope | Gates |
 |-------|-------|
-| `bots:read` / `bots:write` | View vs. create/update/delete bots |
-| `conversations:read` / `conversations:write` | View vs. update conversations |
-| `knowledge:read` / `knowledge:write` | View vs. add/remove knowledge entries |
-| `webhooks:write` | Manage outbound webhook subscriptions |
-| `whatsapp:read` / `whatsapp:write` | Read vs. manage WhatsApp messaging |
+| `bots:read` / `bots:write` | [Agents](/docs/bots): view vs. create/update/delete |
+| `conversations:read` / `conversations:write` | [Conversations](/docs/conversations) and the [handoff queue](/docs/handoffs): view vs. update |
+| `knowledge:read` / `knowledge:write` | [Knowledge](/docs/knowledge): search and view vs. add/remove sources |
+| `webhooks:write` | [Webhook subscriptions and the delivery log](/docs/webhooks), reads included. There is no `webhooks:read` |
+| `whatsapp:read` / `whatsapp:write` / `whatsapp:send` | WhatsApp: read accounts, numbers and templates vs. manage them vs. send messages |
+| `campaigns:read` / `campaigns:write` | [Outbound calling campaigns](/docs/voice-campaigns) and the do-not-call list |
+| `telephony:read` / `telephony:write` | Phone numbers, compliance and calls: view vs. provision/update |
+| `integrations:read` / `integrations:write` | Connected integrations and sheet automations: view vs. connect/update/remove |
 | `*` | All resource scopes |
 
 #### Gateway scopes
@@ -86,11 +92,13 @@ Scopes gate the resource endpoints under `/api/v1/` — bots, conversations, kno
 | `prompts:read` / `prompts:write` | [Stored prompts, versions, labels and presets](/docs/gateway-prompts). Rendering counts as a read |
 | `cache:read` / `cache:write` | [Cache statistics vs. purging](/docs/gateway-cache) |
 | `provider_keys:read` / `provider_keys:write` | [Your own provider credentials](/docs/provider-keys) |
+| `end_user_budgets:read` / `end_user_budgets:write` | [Per-end-user monthly budgets](/docs/gateway-controls) |
 
 #### CRM scopes
 
 | Scope | Gates |
 |-------|-------|
+| `contacts:read` / `contacts:write` | [Contacts](/docs/crm-contacts) |
 | `companies:read` / `companies:write` | [Companies](/docs/crm-companies) |
 | `crm_notes:read` / `crm_notes:write` | [Notes](/docs/crm-notes-tasks) |
 | `crm_tasks:read` / `crm_tasks:write` | [Tasks](/docs/crm-notes-tasks) |
@@ -102,6 +110,11 @@ Scopes gate the resource endpoints under `/api/v1/` — bots, conversations, kno
 | `crm_bulk:write` | [Bulk update and delete](/docs/crm-import-export#bulk-operations). Write-only, no read half |
 | `crm_csv:read` / `crm_csv:write` | [CSV export vs. import](/docs/crm-import-export#csv) |
 | `crm_scores:read` / `crm_scores:write` | [Lead scoring rules and recompute](/docs/crm-lead-scores) |
+| `crm_leads:read` / `crm_leads:write` | [Leads and lead conversion](/docs/crm-leads) |
+| `crm_products:read` / `crm_products:write` | [Products **and** tax rates](/docs/crm-products) — one pair covers both |
+| `crm_quotes:read` / `crm_quotes:write` | [Quotes](/docs/crm-quotes) |
+| `crm_invoices:read` / `crm_invoices:write` | [Invoices and payments](/docs/crm-invoices) |
+| `crm_billing:read` / `crm_billing:write` | [Billing profile](/docs/crm-products#billing-profile) |
 
 #### Support desk scopes
 

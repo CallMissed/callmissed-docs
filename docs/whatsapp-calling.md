@@ -119,6 +119,8 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/calling/permission-reque
 
 The customer's answer arrives as an inbound event, and their permission state is reflected on the next permission check.
 
+WhatsApp allows at most **1 permission request to the same customer in 24 hours, and 2 in 7 days**; a connected call between you and that customer resets both counts. A request past either limit returns `429` with `{"code": "whatsapp_call_limit", "message": "..."}` and a `Retry-After` header, and nothing is sent.
+
 ### List allowed numbers
 
 `GET /api/v1/whatsapp/calling/allowed-numbers` · scope `whatsapp:read`
@@ -201,10 +203,13 @@ WhatsApp's own `call_id` does not exist yet. It is minted moments later as the c
 | Code | Meaning |
 |---|---|
 | `402` | Not enough credits to cover the call. Nothing was placed |
-| `403` | The customer has not granted call permission. Send a permission request first |
+| `403` | The customer has not granted call permission, or 4 calls in a row to them went unanswered (WhatsApp then revokes the permission). Send a permission request first |
 | `404` | The calling number is not on your workspace |
 | `409` | Calling is not enabled on the number, or its messaging limit is below 2000 |
+| `429` | `whatsapp_call_limit`: WhatsApp's limit of 100 connected calls to the same customer from the same number in 24 hours is reached. `Retry-After` says when to try again |
 | `503` | The calling media bridge is unavailable right now |
+
+**WhatsApp's per-customer limits.** These are WhatsApp's own rules for each pair of your number and one customer, checked before the call is placed (WhatsApp's own counts win when it reports them). After 2 unanswered calls in a row WhatsApp asks the customer to reconsider your permission; after 4 it is treated as revoked until the customer grants it again. The same limits apply when an agent places the call with its `request_call` tool.
 
 ### The credit hold
 

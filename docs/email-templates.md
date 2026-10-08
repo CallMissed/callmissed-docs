@@ -40,10 +40,10 @@ The template object returns `id`, `name`, `subject`, `html`, `text`, `default_se
 
 `PUT /templates/{id}` takes the same fields, all optional, and applies only the ones you actually send.
 
-Two write-time rejections apply to both create and update, and both come back as a `422` with a plain string `detail`:
+Two write-time rejections apply to both create and update, and both come back as a `422`:
 
-- A control character in `subject`, `default_sender` or `default_reply_to`. Those values are rendered into raw headers at send time.
-- A body or subject that references `{{ contact.anything }}`. Nothing can populate that namespace, so the reference would render as an empty string and ship a broken message. Pass the value in `params` instead. The same reference on a send is rejected as `422 unresolvable_template_vars`.
+- A control character in `subject`, `default_sender` or `default_reply_to`. Those values are rendered into raw headers at send time. This is a schema rejection, so `detail` is the validation array.
+- A body or subject that references `{{ contact.anything }}`, returned with a plain string `detail`. Nothing can populate that namespace, so the reference would render as an empty string and ship a broken message. Pass the value in `params` instead. The same reference on a send is rejected as `422 unresolvable_template_vars`.
 
 ## Using a template on send
 
