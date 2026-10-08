@@ -49,13 +49,14 @@ A brand-new campaign is a `draft`, and `draft` cannot jump straight to `running`
 
 ## Create a campaign
 
-`POST /` · scope `campaigns:write`
+`POST /` · scope `campaigns:write` · `201 Created`
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | `name` | string (1–255) | Yes | Your own label for the campaign |
 | `bot_id` | uuid | No | The voice agent that answers for you on each call |
 | `from_number_id` | uuid | No | Which of your numbers to call from |
+| `caller_id_pool_id` | uuid | No | Dial from a [caller ID pool](/docs/caller-id-pools) instead. While the pool is enabled it replaces `from_number_id`. Send `null` on a patch to detach |
 | `scheduled_at` | timestamp | No | When the campaign should begin |
 | `timezone` | string | No | IANA zone the calling hours are read in. Default `Asia/Kolkata` |
 | `quiet_hours_start` | integer 0–23 | No | Earliest local hour a call may be placed. Default `9` |
@@ -65,7 +66,12 @@ A brand-new campaign is a `draft`, and `draft` cannot jump straight to `running`
 | `pace_seconds` | integer 5–3600 | No | Seconds between calls in `power` mode. Default `30` |
 | `parallel_lines` | integer 1–5 | No | Calls at once in `parallel` mode. Default `1` |
 | `amd_enabled` | boolean | No | Detect an answering machine. Off by default |
+| `amd_mode` | `classic` \| `full_greeting` \| `off` | No | How a machine is detected while `amd_enabled` is on. Unset uses the agent's own `amd_mode`, else `classic`. See [Answering-machine detection](#answering-machine-detection) |
 | `voicemail_template_id` | uuid | No | Voicemail to leave on a machine. Omit to detect and hang up |
+| `dlt_principal_entity_id` | string (≤32, letters/digits) | No | Your India DLT principal entity ID. See [TRAI readiness](#trai-readiness-for-ai-calls-india) |
+| `dlt_header` | string (≤32) | No | The DLT header / caller ID these calls go out under |
+| `dlt_template_id` | string (≤64) | No | DLT content template ID, if you registered one |
+| `dlt_consent_ref` | string (≤128) | No | Your reference to the recorded consent these calls rely on |
 
 A `bot_id`, `from_number_id` or `voicemail_template_id` your account does not own returns `404`. A calling window that is empty or wraps midnight returns `422`, and so does `parallel_lines` above 1 in the same request as a non-parallel `dial_mode`.
 
@@ -102,6 +108,7 @@ curl -X POST https://api.callmissed.com/api/v1/voice-campaigns \
   "pace_seconds": 45,
   "parallel_lines": 1,
   "amd_enabled": false,
+  "amd_mode": null,
   "created_at": "2026-09-20T09:00:00Z",
   "updated_at": "2026-09-20T09:00:00Z"
 }
@@ -117,6 +124,22 @@ curl -X POST https://api.callmissed.com/api/v1/voice-campaigns \
 
 `parallel_lines` above 1 requires `dial_mode: "parallel"`. Switching a parallel campaign to another mode silently resets it to 1 line, so a `power` campaign never carries stale concurrency.
 
+## Answering-machine detection
+
+With `amd_enabled` on, each answered call is checked for a voicemail greeting before your agent carries on. A machine gets your voicemail drop (`voicemail_template_id`) and the call ends; with no drop set, the call simply ends. Outbound calls placed outside a campaign use the same two keys, plus `amd_mode`, on the agent's config.
+
+| `amd_mode` | How it decides | When the drop plays |
+| --- | --- | --- |
+| `classic` (default) | The callee's first words are matched against known voicemail and network greetings in English, Hindi and Hinglish | As soon as a greeting phrase is recognised |
+| `full_greeting` | Listens to the whole greeting and classifies it with your agent's language model. A short spoken "hello" counts as a person straight away | After the greeting ends and the record beep has sounded |
+| `off` | No detection, even with `amd_enabled` on | Never |
+
+In `full_greeting` mode your agent waits for the callee to speak first, so a person who picks up and stays silent hears your agent after a few seconds. A greeting saying no message can be left (a full or unset mailbox, a phone that is switched off or out of coverage) ends the call without a drop. A phone menu or a call screener asking who is calling is treated as a person, so your agent answers it. A spoken notice that the call is recorded never counts as a machine on its own, in either mode. Agents that run a speech-to-speech model or your own language model use `classic` detection.
+
+The `full_greeting` classification runs on your agent's language model and is billed as that call's model usage, at the agent's model rate: typically one or two short requests per call. It adds no speech-to-text cost, because it reads the call's own transcript.
+
+Every verdict is sent as the `call.amd_detected` [webhook](/docs/webhooks) event. Its payload carries `amd_result` (`human`, `machine` or `unknown`), `voicemail_dropped`, `amd_detector` (`classic` or `full_greeting`) and, from `full_greeting`, `amd_category` (`human`, `machine-vm`, `machine-unavailable`, `machine-ivr` or `uncertain`).
+
 ## List and read
 
 `GET /` · scope `campaigns:read` · `limit` 1–100 (default 50), `offset` 0–100000
@@ -129,7 +152,7 @@ A campaign that is not yours returns `404`, never another account's row.
 
 `PATCH /{campaign_id}` · scope `campaigns:write`
 
-Accepts `name`, `scheduled_at`, `from_number_id` and every rail from the create table. Anything you leave out is kept. **Status is not settable here** — use the transition endpoint below, so the allowed-move table always applies.
+Accepts `name`, `scheduled_at`, `from_number_id` and every rail, answering-machine (`amd_enabled`, `amd_mode`, `voicemail_template_id`) and DLT field from the create table. `bot_id` cannot be changed after creation. Anything you leave out is kept; an empty string clears a DLT field. **Status is not settable here** — use the transition endpoint below, so the allowed-move table always applies.
 
 ## Change status
 
@@ -143,6 +166,8 @@ curl -X POST https://api.callmissed.com/api/v1/voice-campaigns/6d1e.../status \
 ```
 
 Returns the updated campaign, or `409` if the move is not allowed. Posting the status it is already in is a no-op that returns `200`.
+
+Moving to `scheduled` or `running` runs the [TRAI readiness check](#trai-readiness-for-ai-calls-india). If your account enforces it and the campaign is not ready, the move returns `409` naming what is missing.
 
 Moving to `running` fires the `campaign.started` webhook; reaching `completed` fires `campaign.completed`. Pausing, cancelling and scheduling fire nothing — they are operator moves, not lifecycle beats a subscriber acts on.
 
@@ -246,6 +271,51 @@ Returns the calls this campaign has on the wire right now — each with the cont
 
 A `preview` campaign dials only approved contacts, so this is what makes the phone ring. `409` on a campaign that is not in `preview` mode, or on a contact that is no longer waiting; `404` on a contact that is not on this campaign.
 
+## TRAI readiness for AI calls (India)
+
+TRAI's Third Amendment to the TCCCPR (announced 18 September 2026, [press release 119/2026](https://www.trai.gov.in/sites/default/files/2026-09/PR_No119of2026.pdf)) treats calls placed by an application or automated platform, including AI and artificial-voice calls, as A2P calls. Every business making them must declare that use, and the caller IDs it uses, to its telecom provider beforehand. An undeclared A2P call is treated as unsolicited commercial communication. Every campaign call is an A2P call.
+
+You make the declaration with your telecom provider; CallMissed cannot file it for you. What CallMissed does:
+
+- Records, per number, that you have declared it ([`PUT /numbers/{number_id}/a2p-declaration`](/docs/telephony-api#declare-a-number-for-ai-calls-india)).
+- Stores the DLT fields above on each campaign.
+- Checks both before a campaign starts, and again before each dial.
+
+A campaign is ready when all of these are true:
+
+- The number it calls from is declared.
+- `dlt_principal_entity_id` and `dlt_header` are set.
+- Either `dlt_template_id` or `dlt_consent_ref` is set.
+
+Enforcement is **off by default**. With it off, a campaign that is not ready still starts and the warning is written to your audit log. With it on, a campaign that is not ready cannot be scheduled or started. A running campaign that stops being ready, for example because its number's declaration is withdrawn, is paused before its next call. An account owner or admin switches enforcement on or off in the dashboard, under **Campaigns**. API keys cannot change it.
+
+`GET /{campaign_id}/trai-readiness` · scope `campaigns:read`
+
+```bash
+curl https://api.callmissed.com/api/v1/voice-campaigns/6d1e.../trai-readiness \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+{
+  "enforced": true,
+  "ready": false,
+  "issues": [
+    { "code": "number_not_declared", "message": "The calling number is not declared for automated/AI calls. ..." }
+  ]
+}
+```
+
+| `code` | Meaning |
+|--------|---------|
+| `no_from_number` | No active number to call from |
+| `number_not_declared` | The calling number has no A2P declaration recorded |
+| `dlt_principal_entity_missing` | `dlt_principal_entity_id` is empty |
+| `dlt_header_missing` | `dlt_header` is empty |
+| `dlt_consent_or_template_missing` | Neither `dlt_template_id` nor `dlt_consent_ref` is set |
+
+`GET /trai-settings` · scope `campaigns:read` returns `{"enforce": false, "updated_at": null}`.
+
 ## Delete a campaign
 
 `DELETE /{campaign_id}` · scope `campaigns:write` · `204`
@@ -285,8 +355,8 @@ Takes a number back off the list. Do this only when the person has asked to hear
 |--------|------|
 | `403` | The API key is missing `campaigns:read` or `campaigns:write` |
 | `404` | The campaign, contact, agent, number or voicemail template is not yours |
-| `409` | The status move is not allowed, or you are adding contacts to a running campaign |
-| `422` | A calling window that wraps midnight, a batch over the cap, a malformed `column_map`, or a CSV that is empty or too large |
+| `409` | The status move is not allowed, the campaign fails an enforced TRAI readiness check, or you are adding contacts to a running campaign |
+| `422` | A DLT field with characters an identifier cannot have, a calling window that wraps midnight, a batch over the cap, a malformed `column_map`, or a CSV that is empty or too large |
 
 ## Related
 

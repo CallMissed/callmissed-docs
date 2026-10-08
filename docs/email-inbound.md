@@ -103,14 +103,14 @@ Set `forward_url` on an address and every message that arrives there is POSTed t
     "subject": "Where is my order?",
     "text": "Hi, checking on order 1043.",
     "html": "<p>Hi, checking on order 1043.</p>",
-    "auth_results": null,
+    "auth_results": "not_evaluated",
     "size_bytes": 4821,
     "received_at": "2026-08-13T09:41:02.118431+00:00"
   }
 }
 ```
 
-The `data` object is the message as we stored it. Raw MIME is not included; it is not retained after parsing. `auth_results` carries the sender-authentication verdicts computed when the message was received, and is `null` when none were recorded.
+The `data` object is the message as we stored it. Raw MIME is not included; it is not retained after parsing. `auth_results` carries the sender-authentication verdicts computed when the message was received, and is the string `"not_evaluated"` when none were recorded. The request carries an `X-CallMissed-Event: email.received` header.
 
 The forward payload uses shorter key names than the messages API, so a handler written against one does not read the other unchanged:
 
