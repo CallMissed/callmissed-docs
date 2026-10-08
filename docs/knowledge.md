@@ -78,7 +78,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots/$BOT_ID/knowledge \
 
 `POST /api/v1/bots/{bot_id}/knowledge/upload` · scope `knowledge:write`
 
-A multipart upload of a single `file`. Accepted extensions are **PDF, DOCX, and TXT**, up to **20 MB**. Text is extracted server-side and stored in `content`.
+A multipart upload of a single `file`. Accepted extensions are **PDF, DOCX, and TXT**, up to **20 MB**. Text is extracted server-side and stored in `content`; if the extracted text is over **5 MB** of UTF-8 the upload returns `413`.
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/bots/$BOT_ID/knowledge/upload \
@@ -104,7 +104,7 @@ icon:scissors | Chunk | Split into ~600-token chunks with a 100-token overlap
 icon:database | Embed & store | Each chunk is embedded to a 768-dimension vector and indexed for cosine similarity
 :::
 
-Embedding tokens are billed against your [credits](/docs/credits-rate-limits). If your balance cannot cover the embedding, the source is saved with `status: "failed"` and an `error_message` saying so — top up and re-ingest.
+Embedding tokens are billed against your [credits](/docs/credits-rate-limits). The cost is checked before anything is embedded: if your balance (or monthly budget) cannot cover it, nothing is embedded or charged, and the source is saved with `status: "failed"` and an `error_message` saying so — the response's `status` is `"failed"` too. Top up and re-ingest.
 
 ### The source object
 
@@ -123,6 +123,9 @@ Embedding tokens are billed against your [credits](/docs/credits-rate-limits). I
 | `chunk_count` | int | Number of retrievable chunks |
 | `created_at` | datetime | |
 | `ingested_at` | datetime \| null | Set when indexing completes |
+| `resync_interval_hours` | int \| null | URL sources only: re-fetch the page every N hours (6–720). `null` = ingest once |
+| `last_resync_at` | datetime \| null | When the last automatic re-fetch ran |
+| `resync_error` | string \| null | Why the last automatic re-fetch failed; the previous content keeps serving |
 
 All three ingest endpoints return the same envelope — the source plus a flat summary:
 
@@ -184,6 +187,7 @@ The server fetches the page itself, strips HTML to text, and indexes the result.
 | `bot_id` | uuid | Yes | Must be a bot in your tenant |
 | `url` | string | Yes | A bare domain works — `https://` is added when no scheme is present |
 | `title` | string (≤512) | No | Defaults to the URL |
+| `resync_interval_hours` | int (6–720) | No | Re-fetch the page automatically every N hours. Omit to ingest once |
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/knowledge/sources/url \
@@ -196,6 +200,12 @@ curl -X POST https://api.callmissed.com/api/v1/knowledge/sources/url \
 
 A page that yields no extractable text returns `400`, so JavaScript-rendered pages with no server-side HTML will not ingest.
 
+### Auto re-sync a URL
+
+`PATCH /api/v1/knowledge/sources/{source_id}` · scope `knowledge:write`
+
+Set `{"resync_interval_hours": 24}` (6–720) to have the page re-fetched on that schedule, or `{"resync_interval_hours": null}` to stop. Only URL sources can be re-synced (`400` otherwise). Each re-fetch uses the same public-URL checks as the first ingest. The page text is compared with the last indexed version; chunks are replaced only when it changed, and the replacement is all-or-nothing, so retrieval never sees a half-updated source. Re-embedding a changed page is billed as embedding tokens exactly like the first ingest; an unchanged page costs nothing. If a re-fetch fails (page down, no text, balance too low), the previous content stays in place, the reason appears in `resync_error`, and the next attempt is delayed progressively.
+
 ### Ingest a PDF
 
 `POST /api/v1/knowledge/sources/pdf` · scope `knowledge:write` · returns `201`
@@ -206,7 +216,7 @@ A multipart upload. Unlike the text and URL endpoints, the fields are **form fie
 |-------|------|----------|-------|
 | `bot_id` | uuid (form) | Yes | Must be a bot in your tenant |
 | `title` | string (form) | Yes | Label for the source |
-| `file` | file | Yes | PDF only, max **5 MB** |
+| `file` | file | Yes | PDF only, max **5 MB**. The extracted text is also capped at 5 MB of UTF-8 (`413` above it) |
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/knowledge/sources/pdf \
@@ -342,7 +352,7 @@ Cost is one embedding call for the query plus the added context tokens, billed a
 | Storage | Raw documents | Chunks + vectors |
 | Formats | PDF, DOCX, TXT, plain text | Plain text, PDF, URL |
 | Max upload | 20 MB | 5 MB (2 MB for a URL fetch) |
-| Max text per entry | 100,000 characters | 5 MB of UTF-8 |
+| Max text per entry | 100,000 characters typed; 5 MB of UTF-8 extracted from an upload | 5 MB of UTF-8 |
 | Chunking | None | ~600 tokens, 100-token overlap |
 | Semantic search | No | Yes |
 | Scoping | One bot | Ingest per bot; search per bot or tenant-wide |

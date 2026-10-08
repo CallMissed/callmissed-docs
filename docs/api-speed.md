@@ -35,7 +35,6 @@ client = OpenAI(
     base_url="https://api.callmissed.com/v1",
 )
 
-# stream=True is the default in the Anthropic SDK; explicit here.
 stream = client.chat.completions.create(
     model="gpt-oss-120b",
     messages=[{"role": "user", "content": "Explain quicksort in one paragraph."}],
@@ -90,37 +89,45 @@ Reasoning models can spend 100+ tokens "thinking" before producing visible conte
 }
 ```
 
-Behaviour per model — verified live against each upstream on 2026-05-01:
+Behaviour per model, as the gateway applies it. Each model's accepted values come from its provider's documentation and, where the documentation is silent, live probes:
 
 | Model | `"none"` | `"low"` | `"medium"` | `"high"` | `"xhigh"` | `"minimal"` |
 | --- | --- | --- | --- | --- | --- | --- |
-| `gpt-6-sol` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
-| `gpt-6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
-| `gpt-5.6-sol` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
-| `gpt-5.6-terra` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
-| `gpt-5.6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
+| `gpt-6-sol`, `gpt-6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
+| `gpt-6.1-sol` | ↓ `"low"` | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
+| `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5.5` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
-| `kimi-k2.5` | ✅ off | ✅ | ✅ | ✅ | — | ↓ `"none"` |
-| `kimi-k2.6` | ✅ off | ✅ | ✅ | ✅ | — | ↓ `"none"` |
-| `gpt-oss-120b` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
-| `nemotron-3-super` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
-| `glm-4.7-flash` | ✅ off | ⊘ | ⊘ | ⊘ | — | ✅ off |
-| `glm-5.2` | ✅ off | ⊘ | ⊘ | ⊘ | — | ✅ off |
-| `gemma-4-26b-a4b-it` | ✅ off | ⊘ | ⊘ | ⊘ | — | ✅ off |
-| `sarvam-105b`, `sarvam-105b-conversations` | ↓ `"low"` | ✅ | ✅ | ✅ | — | ↓ `"low"` |
+| `gpt-5-mini` | ↓ `"minimal"` | ✅ | ✅ | ✅ | ↓ `"high"` | ✅ |
+| `gpt-4o`, `gpt-4.1`, `grok-4.3` | ⊘ | ⊘ | ⊘ | ⊘ | ⊘ | ⊘ |
+| `gemini-3.8-flash`, `gemini-3.7-flash`, `gemini-3.1-pro-preview` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"high"` | ↓ `"low"` |
+| `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite` | ↓ `"minimal"` | ✅ | ✅ | ✅ | ↓ `"high"` | ✅ |
+| `kimi-k2.5` | ✅ off | ✅ | ✅ | ✅ | ⊘ | ↓ `"none"` |
+| `kimi-k2.6` | ✅ off | ↓ `"high"` | ↓ `"high"` | ✅ | ↓ `"high"` | ↓ `"none"` |
+| `gpt-oss-120b` | ↓ `"low"` | ✅ | ✅ | ✅ | ⊘ | ↓ `"low"` |
+| `nemotron-3-super` | ↓ low-effort mode | ✅ low-effort mode | ⊘ | ⊘ | ⊘ | ↓ low-effort mode |
+| `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash` | ✅ off | ✅ | ↓ `"high"` | ✅ | ↓ `"high"` | ↓ `"low"` |
+| `glm-4.7-flash`, `gemma-4-26b-a4b-it` | ✅ off | ⊘ | ⊘ | ⊘ | ⊘ | ✅ off |
+| `glm-5.2` | ✅ off | ↓ `"high"` | ↓ `"high"` | ✅ | ↓ `"max"` | ✅ off |
+| `sarvam-105b`, `sarvam-105b-conversations` | ✅ off | ✅ | ⊘ default | ✅ | ↓ `"max"` | ✅ off |
 | `glm-5.3` | ↓ `"low"` | ✅ | ↓ `"high"` | ✅ | ↓ `"max"` | ↓ `"low"` |
 | `gemma-4-31b` | ✅ off | ✅ | ✅ | ✅ | ↓ `"high"` | ↓ `"none"` |
-| `kimi-k2.7-code` | ⊘ | ⊘ | ⊘ | ⊘ | — | ⊘ |
-| `mistral-small-3.1` | ⊘ | ⊘ | ⊘ | ⊘ | — | ⊘ |
+| `kimi-k2.7-code`, `mistral-small-3.1` | ⊘ | ⊘ | ⊘ | ⊘ | ⊘ | ⊘ |
 
-Legend: ✅ = sent to upstream verbatim · ✅ off = thinking is switched off · ↓ = mapped to the listed value before forwarding · ⊘ = dropped from the request; the model runs at its default thinking behaviour · — = not accepted by that model.
+Legend: ✅ = sent to the model as-is · ✅ off = thinking is switched off · ↓ = mapped to the listed value before forwarding · ⊘ = dropped from the request; the model runs at its default thinking behaviour and the request still succeeds.
 
-Three notes worth reading before you rely on a value:
+Notes worth reading before you rely on a value:
 
-- `glm-4.7-flash`, `glm-5.2` and `gemma-4-26b-a4b-it` honour only the off switch. `"none"` and `"minimal"` turn thinking off. `"low"`, `"medium"` and `"high"` are dropped, so the model thinks at its own default — they are not an intensity dial.
+- `glm-4.7-flash` and `gemma-4-26b-a4b-it` honour only the off switch. `"none"` and `"minimal"` turn thinking off. `"low"`, `"medium"` and `"high"` are dropped, so the model thinks at its own default — they are not an intensity dial.
+- `glm-5.2` accepts `"max"` (its default), `"high"` and off. `"low"` and `"medium"` run as `"high"`, and `"xhigh"` as `"max"`. `DeepSeek-V4-Pro` and `DeepSeek-V4-Flash` accept `"max"`, `"high"` (default), `"low"` and `"none"`. `kimi-k2.6` has two levels, `"high"` (default) and `"none"`, so every other value runs as `"high"`. Send `"max"` directly where the model has it.
+- `nemotron-3-super` takes no `reasoning_effort` field upstream. `"low"`, `"none"` and `"minimal"` switch it to its low-effort reasoning mode. Higher values leave its default reasoning on. It has no full off switch through this API.
+- `sarvam-105b` and `sarvam-105b-conversations` switch thinking fully off for `"none"` and `"minimal"`. Their levels are `"low"`, `"high"` and `"max"`; `"medium"` is not one of them, so it is dropped and the model runs at its own default. When you omit `max_tokens` on a Sarvam model we send 4,096 (16,384 for `glm-5.3`), because thinking tokens count toward the limit and the upstream default of 2,048 cut answers short.
 - `glm-5.3` always reasons and defaults to its highest level, `"max"`. Send `"low"` when latency matters: in our tests it cut time to first word from about 3.5s to about 0.9s. `gemma-4-31b` does not think unless asked. Any of `"low"`, `"medium"` or `"high"` switches thinking on (in our tests it did not track the level), and `"none"` or `"minimal"` keep it off at about 0.25s to first word.
-- `kimi-k2.7-code` and `mistral-small-3.1` expose no reasoning control. Every value is dropped. Both still return 200.
-- The GPT-5.5 / GPT-5.6 family accepts the full `none`/`low`/`medium`/`high`/`xhigh` ladder. `"minimal"` is rejected upstream, so we map it to `"low"`. Send `xhigh`, not `max` or `ultra`.
+- `kimi-k2.7-code`, `mistral-small-3.1`, `gpt-4o`, `gpt-4.1` and `grok-4.3` take no reasoning control through this API. Every value is dropped and the request still returns 200. `kimi-k2.7-code` always thinks and returns its trace in `reasoning_content`.
+- The `gemini-*` models map `reasoning_effort` onto their own thinking levels. They have no full off switch: `"none"` gives the lowest level the model accepts.
+- The GPT-5.5 / GPT-5.6 / GPT-6 family accepts the full `none`/`low`/`medium`/`high`/`xhigh` ladder. `"minimal"` is rejected upstream, so we map it to `"low"`. Send `xhigh`, not `max` or `ultra`. `gpt-5-mini` is an original GPT-5 model: its ladder is `minimal`/`low`/`medium`/`high`, so `"none"` is sent as `"minimal"` and `"xhigh"` as `"high"`.
+- On `gpt-6-sol` and `gpt-6-luna`, `temperature` and `top_p` are applied only when `reasoning_effort` is `"none"`; with any other effort they are dropped, because the model accepts only the default sampling while it reasons.
+- On the GPT-5.6 and GPT-6 models, a request that includes `tools` always runs with `reasoning_effort: "none"`, whatever you send — those models cannot combine function tools with reasoning on Chat Completions.
+- `gpt-6.1-sol` always reasons: it accepts `low`/`medium`/`high`/`xhigh` (default `medium`) and cannot switch thinking off, so `"none"` and `"minimal"` are sent as `"low"` and `"max"` is sent as `"xhigh"`.
 
 Concrete numbers on `kimi-k2.6` answering "What is 2+2?":
 
