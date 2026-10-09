@@ -1,17 +1,19 @@
 ---
 title: "Agent Squads"
-description: "Group specialist voice agents behind one entry point, control handoffs with a policy, dry-run the routing decision, and draft a new agent from a description."
+description: "Group specialist voice agents behind one entry point, hand a live call between them, control handoffs with a policy, dry-run the routing decision, and draft a new agent from a description."
 slug: "voice-squads"
 breadcrumb: "Voice Agents"
 ---
 
 # Agent Squads
 
-Group specialist voice agents behind one entry point, control handoffs with a policy, dry-run the routing decision, and draft a new agent from a description.
+Group specialist voice agents behind one entry point, hand a live call between them, control handoffs with a policy, dry-run the routing decision, and draft a new agent from a description.
 
 ## Overview
 
-A **squad** is several specialist voice agents behind one entry point. The entry agent answers, and hands off to a member when the caller's need matches that member's role. A **handoff policy** bounds how far that can go, so a call cannot bounce between agents forever.
+A **squad** is several specialist voice agents behind one entry point. The entry agent answers, and hands the live call to a member when the caller's need matches that member's role. The member gets the whole conversation so far, introduces itself and carries on, so the caller never repeats themselves. A **handoff policy** bounds how far that can go, so a call cannot bounce between agents forever.
+
+A call runs as a squad when you [bind the squad to a phone number](#answering-a-phone-number), pass [`squad_id` when you create a voice session](#web-and-api-sessions), or set [`squad_id` on an agent](#an-agents-own-squad). See [Live handoff](#live-handoff-on-a-call) for what happens on the call.
 
 Two extras sit alongside the roster:
 
@@ -28,6 +30,7 @@ Authorization: Bearer cm_your_api_key
 | --- | --- |
 | List/get squads, list members, **simulate a handoff** | `squads:read` |
 | Create/update/delete squads and members, **draft an agent** | `squads:write` |
+| Bind or unbind a phone number | `squads:write` **and** `telephony:write` |
 
 ## Limits
 
@@ -135,11 +138,71 @@ Ordered by `position`, then oldest first. **No pagination** — the 12-member ca
 
 `422 A squad holds at most 12 agents. Past that, use a call flow.` · `409 That agent is already in this squad`.
 
+Members share one live call, so every member must run **the same kind of voice pipeline** as the squad's entry agent (all speech-to-text + language model + text-to-speech, or all speech-to-speech models such as `gpt-realtime`) and be on **the same [voice tier](/docs/voice-tiers)**, because a call is billed at one tier. An agent on a managed voice-agent model (`deepgram-voice-*`, or the tier built on one) cannot take over a call from another agent. Each case is a `422` with the reason.
+
 ### PATCH / DELETE `/api/v1/voice/squads/members/{member_id}`
 
 `PATCH` takes `role`, `description` (explicit `null` clears it) and `position`. `bot_id` is not editable — remove the member and add the other agent.
 
 Removing the entry agent returns `409 This agent answers the call for the squad. Point entry_bot_id at another member before removing it.`
+
+---
+
+## Live handoff on a call
+
+While a call runs as a squad, the agent answering it can hand the caller to another member. It sees every other member's `role` and `description` and picks one when the caller's need is clearly that member's job. Then:
+
+1. The handoff is checked against the squad's [handoff policy](#handoff-policy): the per-call cap, no handing straight back to the member that just handed over (unless `allow_return_to_previous`), no handing to itself, and only roles on the roster. The agent can propose a member; it cannot get around these rules.
+2. The new member takes the call in the same session: same caller, same recording, same transcript. It receives the conversation so far, introduces itself in one sentence and continues. It does not repeat the greeting or the recording notice.
+3. The handoff is recorded on the session (`metadata.squad_handoffs` on [`GET /v1/voice/sessions/{id}`](/docs/voice-sessions-api#get-session): from and to agent, roles, reason, time), the session's `bot_id` moves to the new member, and a [`call.handoff`](/docs/webhooks#squad-handoff-event) webhook is sent.
+
+From the handoff on, the new member's prompt, voice (including a [cloned voice](/docs/voice-cloning)), language, model, tools, [fallback transfer](/docs/voice-agent-tools#transfer_to_human) and [moderation](/docs/voice-moderation) settings apply, and its usage is billed at its own model rates (or the squad's tier). Settings fixed when the call started stay with the call: turn-taking, the pronunciation dictionary, the moderation blocklist, call recording and its notice, and the AI disclosure (spoken once, at the start of the call).
+
+An agent that is inactive is never handed a call. An agent in [zero data retention](/docs/voice-data-retention) mode can only hand a call to another agent in that mode (the handoff is refused with `data_retention` otherwise), so content from the first part of the call is never stored by the next agent. If a handoff cannot be completed, the agent keeps the caller and carries on.
+
+---
+
+## Answering a phone number
+
+### POST `/api/v1/voice/squads/{squad_id}/numbers/{number_id}`
+
+Answer inbound calls on one of your numbers with this squad. The squad's **entry agent** answers, with the number's own call settings (greeting, voice and so on) applied as they would be for the number's agent. Needs `squads:write` and `telephony:write`.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/voice/squads/sq10…/numbers/pn40… \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+{ "status": "bound", "squad_id": "sq10…", "number_id": "pn40…" }
+```
+
+A number answers with one squad; binding another squad replaces it. A [call flow, call menu or call queue](/docs/call-handling-api#how-a-number-picks-one) on the same number answers first, and the squad does not apply to those calls. An inactive squad, or one whose entry agent is inactive, leaves the number answering with its own agent.
+
+### DELETE `/api/v1/voice/squads/{squad_id}/numbers/{number_id}`
+
+Stop answering the number with this squad. Returns `{"status": "unbound", …}`. Idempotent: a number bound to a different squad, or to none, is left as it is.
+
+`404 Squad not found` · `404 Phone number not found` (not one of your numbers).
+
+---
+
+## Web and API sessions
+
+Pass `squad_id` to [`POST /v1/voice/sessions`](/docs/voice-sessions-api#request-body). The squad's entry agent answers, or `bot_id` when you name another active member. The answering agent uses its own prompt, greeting and voice; any field you send in the request still wins. `404` for an unknown or inactive squad, `422` for a `bot_id` that is not an active member.
+
+---
+
+## An agent's own squad
+
+Set `squad_id` in an agent's configuration and the agent hands calls within that squad on any call it answers or places, as long as it is a member. A value that is not a squad id is reported by config validation; remove it with `{ "unset": ["squad_id"] }`.
+
+```bash
+curl -X PATCH https://api.callmissed.com/api/v1/bots/{bot_id}/config \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "values": { "squad_id": "sq10…" } }'
+```
 
 ---
 
@@ -193,7 +256,7 @@ curl -X POST https://api.callmissed.com/api/v1/voice/squads/sq10…/simulate-han
 | `ping_pong` | The target is the previous member and returns are disallowed |
 | `already_current` | The best match is already handling the call |
 | `no_match` | Nothing reached `min_score` |
-| `unknown_role` | The configured fallback role matches no member |
+| `unknown_role` | A routing model named a role that is not on the roster. Only produced by model-based routing on a live call; this keyword dry run never returns it |
 
 ---
 
@@ -228,7 +291,7 @@ curl -X POST https://api.callmissed.com/api/v1/voice/squads/author/draft \
     "response_guidelines": "Keep replies under two sentences…",
     "conversation_script": "",
     "first_message": "Namaste, thanks for calling. How can I help?",
-    "tools": ["book_appointment", "cancel_appointment", "handoff_to_human"],
+    "tools": ["calcom_list_slots", "calcom_book", "escalate_to_human"],
     "voice_model": "…",
     "tts_model": "…",
     "stt_model": "…",
@@ -247,6 +310,7 @@ At most 12 tools are proposed, de-duplicated and validated against the registry.
 | Status | Detail | Note |
 | --- | --- | --- |
 | `402` | `Not enough credits to draft an agent. Top up to continue.` | Checked **before** any model runs — costs nothing |
+| `402` | `Monthly budget cap reached` | Your account's monthly budget cap is spent. Also checked before any model runs |
 | `422` | `Could not draft an agent: …` | The model returned an unusable draft. **This attempt is still billed** — the work was done |
 | `502` | `The agent drafting service is unavailable.` | Retry |
 
@@ -256,8 +320,8 @@ Cost appears in [usage logs](/docs/usage-api) as `service: "llm"`.
 
 | Status | When |
 | --- | --- |
-| `402` | Credit balance exhausted before drafting |
+| `402` | Credit balance exhausted, or the monthly budget cap reached, before drafting |
 | `403` | Key is missing `squads:read` / `squads:write` |
-| `404` | Squad, member or agent not in your tenant |
-| `409` | Duplicate squad or role name, agent already a member, or removing the entry agent |
-| `422` | Over 12 members, a blank name/role, an unknown key in `handoff_policy`, or an `entry_bot_id` that is not a member |
+| `404` | Squad, member, agent or phone number not in your tenant |
+| `409` | Duplicate squad name, agent already a member, or removing the entry agent |
+| `422` | Over 12 members, a blank name/role, an unknown key in `handoff_policy`, an `entry_bot_id` that is not a member, or a member on a different voice pipeline or tier |

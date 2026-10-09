@@ -25,7 +25,7 @@ resolution model, and the error shapes every other Social page depends on.
 |---|---|
 | Publish posts, photos, reels, carousels, stories | [Publishing](/docs/social-publish) |
 | Read, reply to, hide and delete comments | [Comments](/docs/social-comments) |
-| Read inbox threads and reply to DMs | [Messaging](/docs/social-messaging) |
+| Read inbox threads, reply to DMs, messaging analytics | [Messaging](/docs/social-messaging) |
 | Generate a caption, hashtags and an image from a topic | [Post Studio](/docs/social-posts) |
 
 ## Connecting an account
@@ -38,6 +38,71 @@ every endpoint below works without naming it.
 
 An Instagram account must be a **Business or Creator** account with content
 publishing granted. A personal account cannot publish through the API.
+
+### Completing the connection yourself
+
+If you run Meta's login dialog in your own front end instead of the dashboard,
+post the authorization code it returns to CallMissed. The code must be issued for
+**CallMissed's** Meta app — a code from your own Meta app is rejected with `400` —
+and it is single-use and short-lived, so post it straight away. Needs
+`whatsapp:write`.
+
+`POST /api/v1/facebook/onboarding/exchange`
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `code` | string, 1 to 2048 chars | Yes | The authorization code from Facebook Login for Business |
+| `page_id` | string, 1 to 64 chars | No | Connect only this Page. Omit to connect **every** Page the login granted |
+| `bot_id` | UUID | No | The agent that answers these Pages' DMs |
+
+The response lists one entry per connected Page, plus any granted Page that could
+not be connected and why:
+
+```json
+{
+  "pages": [
+    {
+      "page": {
+        "id": "3f9a2c71-5d8e-4b16-9f03-7c1a2e5b84d0",
+        "page_id": "102938475610293",
+        "name": "Kalyani Motors",
+        "bot_id": null,
+        "connected_user_id": "7788990011223344",
+        "is_active": true,
+        "is_default": true,
+        "created_at": "2026-08-20T11:04:18.912004+00:00"
+      },
+      "fully_provisioned": true,
+      "onboarding_error": null,
+      "instagram_business_account_id": "17841400000000000"
+    }
+  ],
+  "skipped": []
+}
+```
+
+`POST /api/v1/instagram/onboarding/exchange`
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `code` | string, 1 to 2048 chars | Yes | The authorization code from Business Login for Instagram (strip any trailing `#_`) |
+| `ig_user_id` | string, 1 to 64 chars | No | Assert which account you expect; the login's own account is always the one connected |
+| `redirect_uri` | string, max 2048 | No | Must match the `redirect_uri` used when the login was started, if one was used |
+| `bot_id` | UUID | No | The agent that answers this account's DMs |
+
+The response is `{ "account": { … }, "fully_provisioned": true, "onboarding_error": null }`,
+with `account` in the [Instagram account shape](#list-connected-accounts).
+
+`fully_provisioned: false` means the account is saved but inbound DMs will not
+arrive yet; `onboarding_error` gives a short reason. Re-run the connection to
+retry — it is idempotent for an account already in your workspace.
+
+| HTTP | Meaning |
+|---|---|
+| `400` | Meta rejected the code (expired, already used, or issued for another app) |
+| `403` | The login does not grant access to the Page or account you named, or grants none |
+| `404` | The `bot_id` is not one of your agents |
+| `409` | The Page or account is already connected to another workspace |
 
 ## Authentication
 
@@ -53,9 +118,9 @@ across the messaging channels — a Facebook or Instagram call is authorized by 
 
 | Scope | Grants |
 |---|---|
-| `whatsapp:read` | List connected accounts, list comments and their replies, read inbox threads and messages |
-| `whatsapp:write` | Complete a connection (`/onboarding/exchange`) and change which account is the default |
-| `whatsapp:send` | Publish posts, reply to and hide/delete comments, send DMs, read the Instagram publishing quota |
+| `whatsapp:read` | List connected accounts, list comments and their replies, read inbox threads and messages, read messaging analytics, draft an agent system prompt |
+| `whatsapp:write` | Complete a connection (`/onboarding/exchange`), change which account is the default, attach or clear an account's agent |
+| `whatsapp:send` | Publish posts, reply to and hide/delete comments, send DMs, check and publish Instagram containers, read the Instagram publishing quota |
 
 A key without the scope gets `403`. Add scopes under the key's **Permissions**
 section in your dashboard.
@@ -161,14 +226,49 @@ updated account in the shape above, with `bot_id` reflecting the change.
 The account must be connected: attaching an agent to a disconnected account
 returns `409` and asks you to reconnect it first.
 
+### Draft an agent system prompt
+
+`POST /api/v1/facebook/ai/build_system_prompt`
+`POST /api/v1/instagram/ai/build_system_prompt` — needs `whatsapp:read`.
+
+Turns a plain-language description of your business into a system prompt shaped
+for DMs and comment replies (short, plain text). It writes nothing: review the
+returned markdown and save it onto your agent yourself. Not metered.
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `intent` | string, 10 to 8000 chars | Yes | What the business does and what the agent should handle, or an existing prompt to improve |
+| `language` | string, 2 to 8 chars | No | Default `en` |
+| `tone` | string, max 40 | No | e.g. `friendly`, `playful` |
+| `existing_prompt` | string, max 8000 | No | When set, this prompt is improved instead of starting fresh |
+
+```json
+{ "system_prompt": "## Role\nYou answer DMs for Kalyani Motors..." }
+```
+
+If the model cannot produce a usable prompt the call returns `422`; rephrase the
+description and retry.
+
 ### Legacy: the account id in the path
 
-The older form — `POST /api/v1/facebook/{page_uuid}/posts`,
-`GET /api/v1/instagram/{ig_account_uuid}/media/{media_id}/comments`, and their
-siblings — still works and is not being removed. Same bodies, same responses,
-same scopes. New integrations should use the shorter paths on this site: they need
-no id at all in the common case, and one query parameter in the multi-account
-case.
+The older form, with the account's **CallMissed id** (a UUID — not Meta's id) in
+the path, still works and is not being removed. Same bodies, same responses, same
+scopes; these paths do not take `?account=`.
+
+| Facebook | Instagram |
+|---|---|
+| `POST /api/v1/facebook/{page_uuid}/posts` | `POST /api/v1/instagram/{ig_account_uuid}/posts` |
+| `POST /api/v1/facebook/{page_uuid}/photos` | `GET /api/v1/instagram/{ig_account_uuid}/posts/{container_id}` |
+| `POST /api/v1/facebook/{page_uuid}/reels` | `POST /api/v1/instagram/{ig_account_uuid}/posts/{container_id}/publish` |
+| | `GET /api/v1/instagram/{ig_account_uuid}/publishing_limit` |
+| `GET /api/v1/facebook/{page_uuid}/posts/{post_id}/comments` | `GET /api/v1/instagram/{ig_account_uuid}/media/{media_id}/comments` |
+| `GET /api/v1/facebook/{page_uuid}/comments/{comment_id}/replies` | `GET /api/v1/instagram/{ig_account_uuid}/comments/{comment_id}/replies` |
+| `POST /api/v1/facebook/{page_uuid}/comments/{comment_id}/reply` | `POST /api/v1/instagram/{ig_account_uuid}/comments/{comment_id}/reply` |
+| `POST /api/v1/facebook/{page_uuid}/comments/{comment_id}/hide` | `POST /api/v1/instagram/{ig_account_uuid}/comments/{comment_id}/hide` |
+| `DELETE /api/v1/facebook/{page_uuid}/comments/{comment_id}` | `DELETE /api/v1/instagram/{ig_account_uuid}/comments/{comment_id}` |
+
+New integrations should use the shorter paths on this site: they need no id at
+all in the common case, and one query parameter in the multi-account case.
 
 ## Errors
 
@@ -193,7 +293,7 @@ These are the statuses you will actually hit across the Social API:
 | `429` | Meta is rate-limiting this account. Wait a few minutes and retry. |
 | `502` | The upstream call failed. |
 | `503` | The channel is temporarily unavailable. |
-| `504` | An ambiguous upstream timeout — the action **may or may not** have completed. Check the account before retrying rather than assuming it failed. |
+| `504` | An ambiguous upstream timeout — the action **may or may not** have completed. Check the account before retrying rather than assuming it failed. (An ambiguous Instagram **publish** reports this as `409` instead.) |
 
 Two details worth designing around:
 

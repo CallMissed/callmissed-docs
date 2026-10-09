@@ -33,8 +33,8 @@ Authorization: Bearer cm_your_api_key
 
 | Endpoints | Scope needed by a `cm_` key |
 | --- | --- |
-| List, get, get prompt, tool catalog, config schema, validate config | `bots:read` |
-| Create, update, put prompt, patch config, delete, toggle, deploy verify | `bots:write` |
+| List, get, get prompt, tool catalog, skill catalog, config schema, validate config, probe MCP servers, list/get versions | `bots:read` |
+| Create, update, put prompt, patch config, delete, toggle, deploy verify, create/edit/commit/roll back versions | `bots:write` |
 | Knowledge list | `knowledge:read` |
 | Knowledge add, upload, delete | `knowledge:write` |
 
@@ -57,14 +57,77 @@ Most of `config` is stored as-is, which is why [Build an agent programmatically]
 | `analysis_variables` | Post-call extraction schema |
 | `input_variables` | Per-call `{{token}}` declarations |
 | `stt_keyterms` | List of at most 100 unique strings, each 1-100 chars |
+| `pronunciations` | List of at most 100 `{ "word", "say_as" }` objects, each 1-64 chars, unique `word`. The voice says `say_as` instead of `word` (whole-word, case-insensitive); transcripts keep the original text |
 | `web_widget_enabled` | Boolean |
 | `web_widget` | Object; `title` ≤ 100 chars, `greeting` ≤ 500 chars, `color` a hex colour |
 | `fallback_message` | String ≤ 4000 chars |
 | `mcp_servers` | List of at most 10 objects, each with a string `id` and an `https://` `url` |
 | `commands` | List of at most 30 `{name, instruction}`; names are lower-cased, must be unique, 1-32 chars of letters, digits, spaces, `-` or `_`; instructions 1-2000 chars |
 | `disabled_tools` | List of at most 50 tool names, each 1-100 chars, de-duplicated |
+| `button_actions` | List of at most 20 rules for WhatsApp button taps ([WhatsApp button actions](#whatsapp-button-actions)); `button` 1-25 chars and unique ignoring case, `action` one of `ai_reply`, `send_text`, `send_document`, `send_template`, plus that action's fields |
+| `callback_calls` | Object ([WhatsApp callback calls](#whatsapp-callback-calls)); `enabled` and `allow_other_number` booleans, `voice_bot_id` (required when enabled) and `from_number_id` ids of your own agent and active phone number, `hours_start` 0-23, `hours_end` 1-24 and later than `hours_start`, `max_per_day` 1-10. Stored with every field filled in |
+| `followup_agent` | Object; `enabled` and `send_recap` booleans, `instructions` a string ≤ 4000 chars, `max_attempts` an integer 1-5 |
+| `transcript_retention_days`, `recording_retention_days` | Whole number of days, 1-3650. Applies to calls made after you save this; older calls follow your account's retention setting. The server records when each was saved as `transcript_retention_set_at` / `recording_retention_set_at` ([Voice data retention](/docs/voice-data-retention)) |
+| `data_retention_mode` | `"standard"` or `"zdr"` ([Voice data retention](/docs/voice-data-retention)) |
+| `tts_fallbacks` | List of at most 3 `{ "tts_model", "voice" }` objects (`voice` optional). Each `tts_model` must be a voice model that speaks the agent's `language`, each `voice` one of that model's voices, never a cloned voice; no repeats ([Backup voices](/docs/voice-agent#backup-voices-and-spoken-numbers)) |
 
 Two normalisations happen silently on every write: `commands` and `disabled_tools` come back normalised (lower-cased, de-duplicated) rather than as you sent them, and the retired `voice_fallbacks` key is dropped. Everything else in `config` is stored verbatim.
+
+### WhatsApp button actions
+
+`config.button_actions` decides what happens when a customer taps a quick-reply button (for example on a template you sent them) on a WhatsApp Business number linked to this agent. The action runs as configured, without the AI choosing it.
+
+```json
+{
+  "button_actions": [
+    {"button": "Send itinerary", "action": "send_document", "document": "itinerary", "text": "Here is the full itinerary"},
+    {"button": "Price and inclusions", "action": "send_text", "text": "The 5-day trip is Rs 24,999 per person, stay and breakfast included."},
+    {"button": "Talk to the team", "action": "send_template", "template": "callback_confirm", "language": "en", "then_ai_reply": true},
+    {"button": "Something else", "action": "ai_reply"}
+  ]
+}
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `button` | Yes | The button's text, 1-25 chars (WhatsApp's quick-reply limit). Matched against the tapped button's text or payload, ignoring case and extra spaces |
+| `action` | Yes | `ai_reply`, `send_text`, `send_document` or `send_template` |
+| `text` | `send_text`: yes (≤ 4096 chars). `send_document`: optional caption (≤ 1024 chars) | |
+| `document` | `send_document` | The name of one of the agent's [documents](#agent-documents) |
+| `template` | `send_template` | An approved template on the same WhatsApp account as the number. Only templates with no variables and no media header can be sent this way |
+| `language` | No (`send_template`) | The template's language code. Needed only when the template is approved in more than one language |
+| `then_ai_reply` | No | `true` lets the agent also reply after the action. Default `false`. Not allowed on `ai_reply` |
+
+A tap with no matching rule, or an `ai_reply` rule, is answered by the agent like any other message. If an action cannot be sent (the document or template is missing, a template needs values, or WhatsApp's 24-hour window has closed), the agent answers instead.
+
+### WhatsApp callback calls
+
+`config.callback_calls` lets a WhatsApp agent arrange a phone call when a customer asks for one ("can someone call me at 5pm?"). While `enabled` is `true` the agent gets the `request_callback` tool. It queues a call to the customer's WhatsApp number, right away or at the time they ask for, placed by the voice agent you name from one of your phone numbers. That voice agent opens by saying why it is calling and is briefed with the customer's reason and the last messages of the chat.
+
+```json
+{
+  "callback_calls": {
+    "enabled": true,
+    "voice_bot_id": "c2d3e4f5-6789-4abc-8def-0123456789ab",
+    "from_number_id": null,
+    "hours_start": 9,
+    "hours_end": 21,
+    "max_per_day": 3,
+    "allow_other_number": false
+  }
+}
+```
+
+| Field | Default | Notes |
+| --- | --- | --- |
+| `enabled` | `false` | Offers `request_callback` to the agent on WhatsApp chats. It is not listed in `GET /bots/tool-catalog` and is never offered on a call |
+| `voice_bot_id` | — | The agent that places the call. Required when `enabled` |
+| `from_number_id` | `null` | One of your active phone numbers. `null` uses the number whose outbound agent is `voice_bot_id`, else your oldest active number |
+| `hours_start`, `hours_end` | `9`, `21` | Calls are placed only from `hours_start`:00 up to `hours_end`:00 in your workspace timezone. Asked for outside them, the agent asks the customer for another time |
+| `max_per_day` | `3` | Calls back per customer in any 24 hours |
+| `allow_other_number` | `false` | When `true`, the customer may ask to be called on another number in the same country as their WhatsApp number |
+
+What the agent checks before it promises a call: the number is not on your [do-not-call list](/docs/voice-campaigns) for calls, you have credit, no call to that number is already on the line, the time is within 7 days and inside the hours above, and the daily limit is not reached. A customer has at most one call waiting per agent: asking again with a new time moves it. The call is placed within about a minute of its time, with the same do-not-call, credit and destination checks as any other call. If it cannot start because all your lines are in use or the phone network errors, it is tried up to twice more; a customer who does not answer is not called again. See and cancel waiting calls with [the callback endpoints](#callback-calls).
 
 ---
 
@@ -109,13 +172,15 @@ curl https://api.callmissed.com/api/v1/bots/tool-catalog \
 ```json
 [
   {
-    "name": "get_order_status",
-    "description": "Look up the status of a customer order by id.",
-    "category": "commerce",
+    "name": "shopify_order_status",
+    "description": "Look up a Shopify order's payment + fulfillment status and shipping tracking, by order number (e.g. 1001) or the customer's email.",
+    "category": "general",
     "parameters": {
       "type": "object",
-      "properties": { "order_id": { "type": "string" } },
-      "required": ["order_id"]
+      "properties": {
+        "order_number": { "type": "string", "description": "Order number, e.g. '1001' (with or without #)." },
+        "email": { "type": "string", "description": "Customer email to find their recent orders." }
+      }
     },
     "unavailable_on": []
   }
@@ -186,7 +251,7 @@ Returns `201`.
 | --- | --- | --- | --- |
 | `name` | `string` | Yes | 1-255 chars |
 | `type` | `string` | Yes | One of `whatsapp`, `inbound_call`, `outbound_call`, `ivr`, `whatsapp_voice`. Immutable after creation |
-| `system_prompt` | `string` | No | Max 50000 chars, default `""` |
+| `system_prompt` | `string` | No | Max 20000 chars, default `""`. The voice runtime adds its own call-handling instructions on top |
 | `config` | `object \| null` | No | Free-form JSON. Only the sub-keys listed above are validated; everything else is stored as-is and reported in `config_warnings` |
 
 ```bash
@@ -197,7 +262,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots \
     "name": "Support Bot",
     "type": "whatsapp",
     "system_prompt": "You are a friendly support agent for Acme. Keep replies under 3 sentences.",
-    "config": { "tools": ["get_order_status"] }
+    "config": { "tools": ["shopify_order_status"] }
   }'
 ```
 
@@ -208,7 +273,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots \
   "name": "Support Bot",
   "type": "whatsapp",
   "system_prompt": "You are a friendly support agent for Acme. Keep replies under 3 sentences.",
-  "config": { "tools": ["get_order_status"] },
+  "config": { "tools": ["shopify_order_status"] },
   "is_active": true,
   "created_at": "2026-08-04T11:00:00Z",
   "updated_at": "2026-08-04T11:00:00Z",
@@ -217,7 +282,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots \
 }
 ```
 
-`403` without `bots:write`; `422` on an unknown `type`, a name outside 1-255 chars, a prompt over 50000 chars, or a malformed `analysis_variables` / `input_variables` block.
+`403` without `bots:write`; `422` on an unknown `type`, a name outside 1-255 chars, a prompt over 20000 chars, or a malformed `analysis_variables` / `input_variables` block.
 
 ## GET `/api/v1/bots/{bot_id}`
 
@@ -237,7 +302,7 @@ Partial update. Omitted fields are unchanged. `type` cannot be changed. Requires
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
 | `name` | `string \| null` | No | 1-255 chars |
-| `system_prompt` | `string \| null` | No | Max 50000 chars. Written as **one flat string** — see the warning below |
+| `system_prompt` | `string \| null` | No | Max 20000 chars. Written as **one flat string** — see the warning below |
 | `config` | `object \| null` | No | **Replaces** the whole object, not a deep merge |
 
 <Callout type="warn">
@@ -296,11 +361,11 @@ Writes the prompt back in the same four boxes, with the markers the dashboard pa
 
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
-| `objective` | `string \| null` | No | Max 8000 chars |
+| `objective` | `string \| null` | No | Max 8000 chars. The three blocks together must fit in 20000 chars, or the call returns `422` |
 | `response_guidelines` | `string \| null` | No | Max 8000 chars |
 | `conversation_script` | `string \| null` | No | Max 8000 chars |
 | `first_message` | `string \| null` | No | Max 500 chars. Stored as `config.greeting` |
-| `freeform` | `string \| null` | No | Max 50000 chars — the same cap as `system_prompt`, so any stored prompt can be written back. The whole prompt as one block. **Cannot be combined** with the three fields above |
+| `freeform` | `string \| null` | No | Max 20000 chars — the same cap as `system_prompt`. The whole prompt as one block. **Cannot be combined** with the three fields above |
 
 ```bash
 curl -X PUT https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/prompt \
@@ -411,7 +476,7 @@ curl "https://api.callmissed.com/api/v1/bots/config-schema?bot_type=inbound_call
       "type": "string",
       "channels": ["voice"],
       "summary": "The model that speaks the agent's replies.",
-      "default": "deepgram-aura-2",
+      "default": "bulbul:v3",
       "if_omitted": "Falls back to the Indic-tuned default voice, which sounds wrong on an English line.",
       "allowed_values": ["aura-2-en", "aura-2-es", "bulbul:v2", "bulbul:v3", "deepgram-aura-1", "deepgram-aura-2", "gnani-timbre-v2.0", "gpt-4o-mini-tts", "melotts", "sonic-3.6"],
       "values_depend_on": null,
@@ -448,7 +513,7 @@ curl "https://api.callmissed.com/api/v1/bots/config-schema?bot_type=inbound_call
     "type": "inbound_call",
     "system_prompt": "## Objective\n\nYou are the voice of [your business]…",
     "config": {
-      "voice_model": "gpt-oss-120b",
+      "voice_model": "gemma-4-31b",
       "tts_model": "deepgram-aura-2",
       "stt_model": "deepgram-flux-general-en",
       "voice": "Thalia",
@@ -461,12 +526,24 @@ curl "https://api.callmissed.com/api/v1/bots/config-schema?bot_type=inbound_call
     "Every key is optional. minimal_example is the smallest body that creates an agent that answers a call properly.",
     "Nothing here is enforced on write: a config with errors is still saved, and the findings come back in config_warnings.",
     "voice and language are only valid in combination with tts_model — send the stack together and validate it before you save it.",
-    "GET /api/v1/models lists every model id; the voice list for a speech model is on its own model entry."
-  ]
+    "GET /api/v1/models lists every model id; the voice list for a speech model is on its own model entry.",
+    "system_prompt is not one block: the dashboard edits it as an objective, response guidelines and a conversation script… use GET/PUT /api/v1/bots/{bot_id}/prompt instead of writing a flat prompt."
+  ],
+  "voice_tiers": [ { "id": "t1", "label": "Standard", "price_credits_per_minute": 4.0, "billing": "flat", "minimum_seconds": 30.0, "…": "…" } ],
+  "stt_languages": { "deepgram-flux-general-en": ["en"], "…": ["…"] },
+  "multilingual": { "stt": ["deepgram-flux-general-multi", "saaras:v3", "…"], "tts": ["bulbul:v3", "sonic-3.6", "…"] }
 }
 ```
 
-`keys` is the full list for the requested channel — 38 keys for a call agent — trimmed above to three. `notes` carries the four standing caveats plus, for any key whose allowlist runs past 60 values, a line saying `allowed_values` was truncated and that `POST /validate-config` still checks against the whole list.
+`keys` is the full list for the requested channel — 41 keys for a call agent, 9 for a `whatsapp` agent, 46 with no `bot_type` — trimmed above to three. `notes` carries the five standing caveats, preceded, for any key whose allowlist runs past 60 values, by a line saying `allowed_values` was truncated and that `POST /validate-config` still checks against the whole list.
+
+For an agent that speaks (every type except `whatsapp`, and the unfiltered schema), the response carries three more top-level fields:
+
+| Field | Meaning |
+| --- | --- |
+| `voice_tiers` | The priced [voice tiers](/docs/voice-tiers) an agent can run on via `config.voice_tier` instead of its own STT/LLM/TTS stack — `id`, `label`, `blurb`, `price_credits_per_minute`, `speech_inputs`, `voices`, `voices_searchable`, `languages`, `multilingual`, `billing` (`flat`) and `minimum_seconds` |
+| `stt_languages` | For each speech-recognition model, the language codes it can transcribe, in that model's own code format (`hi-IN` or `hi`). Fold to the base subtag before comparing with a TTS language list |
+| `multilingual` | `{stt: [...], tts: [...]}` — the speech-recognition and speech models that can follow the caller's language when `language` is `"multi"` |
 
 Per-key fields:
 
@@ -527,7 +604,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots/validate-config \
       "key": "voice",
       "severity": "error",
       "code": "incompatible",
-      "message": "'anushka' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v2. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
+      "message": "'anushka' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v2; set tts_model to it. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
       "did_you_mean": ["janus"],
       "allowed": ["agathe", "agustina", "alvaro", "ama", "amalthea", "andromeda"]
     }
@@ -617,6 +694,203 @@ A failed check is still `200`, with `channel_verified: false` and a reason such 
 | --- | --- |
 | `403` | Key missing `bots:write`, or `Only owners/admins can verify deployments` for a JWT caller |
 | `404` | `Bot not found` |
+
+## POST `/api/v1/bots/{bot_id}/mcp-servers/probe`
+
+Connects to each MCP server saved in the bot's `config.mcp_servers`, lists its tools, and reports whether it answered. Read-only: nothing is stored. Requires `bots:read`.
+
+| Field | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `ids` | `array of string \| null` | No | Probe only the servers with these `id`s. At most 10. Omit the body (or send `null`) to probe every saved server |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/mcp-servers/probe \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"ids": ["crm"]}'
+```
+
+```json
+{
+  "servers": [
+    {
+      "id": "crm",
+      "host": "mcp.example.com",
+      "ok": true,
+      "tool_count": 3,
+      "tools": ["find_contact", "create_lead", "log_call"],
+      "error": null
+    }
+  ]
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `id` | The server's `id` from `config.mcp_servers` |
+| `host` | Hostname only. The full URL and any header value you stored are never returned |
+| `ok` | `true` when the server answered `tools/list` |
+| `tool_count` / `tools` | How many tools it advertised, and their names (the list is capped at 40) |
+| `error` | On failure, the class of error only (for example `ConnectError` or `TimeoutException`), otherwise `null` |
+
+An unreachable server is still `200`, with `ok: false`. An `id` that is not saved on the bot is simply absent from `servers`.
+
+| Status | Cause |
+| --- | --- |
+| `403` | Key missing `bots:read` |
+| `404` | `Bot not found` |
+| `422` | More than 10 `ids` |
+
+---
+
+# Versions
+
+Stage edits to an agent's `system_prompt` and `config` as a **draft**, publish them atomically, and roll back to any earlier published version. The bot row is always what serves live traffic: a draft changes nothing about what the agent says until you commit it.
+
+- **Version 1 is created lazily.** The first time you create a draft on a bot, a committed `Baseline` version holding the current live prompt and config is created first, so your first commit has something to roll back to. A bot that has never been versioned lists `[]`.
+- **One open draft per bot.** A second `POST` returns `409` naming the existing draft.
+- **Committed versions are immutable.** Rollback never rewrites history: it appends a **new** committed version carrying the old snapshot and publishes it.
+- **History is capped at 50 committed versions per bot.** After each commit or rollback the oldest committed versions beyond that are deleted; a draft is never pruned.
+- Writes made outside versioning — `PUT /api/v1/bots/{bot_id}`, `PATCH .../config`, `PUT .../prompt` — still change the live agent directly and do not create a version.
+
+The version object:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `id` | `uuid` | Version row id |
+| `tenant_id`, `bot_id` | `uuid` | Owner and agent |
+| `version_number` | `integer` | 1, 2, 3… per bot. Every path below addresses a version by this number |
+| `label` | `string \| null` | Your name for the version |
+| `system_prompt` | `string` | The prompt snapshot |
+| `config` | `object \| null` | The config snapshot, credential-redacted exactly like the bot's own `config` |
+| `status` | `string` | `draft` or `committed` |
+| `created_by`, `committed_by` | `uuid \| null` | Dashboard user who created / committed it; `null` when done with an API key |
+| `commit_message` | `string \| null` | Set on commit; `Rollback to vN` on a rollback version |
+| `created_at`, `updated_at`, `committed_at` | `datetime` | `committed_at` is `null` on a draft |
+
+## GET `/api/v1/bots/{bot_id}/versions`
+
+Every version of the bot, newest first. Requires `bots:read`.
+
+```bash
+curl https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/versions \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+[
+  {
+    "id": "0f6c2a51-3d1e-4b7a-9c55-1f2e3d4c5b6a",
+    "tenant_id": "a0b1c2d3-4455-6677-8899-aabbccddeeff",
+    "bot_id": "b1f2c3d4-5678-90ab-cdef-1234567890ab",
+    "version_number": 2,
+    "label": "Shorter greeting",
+    "system_prompt": "You are a concise support agent for Acme.",
+    "config": { "greeting": "Hi, Acme here." },
+    "status": "draft",
+    "created_by": null,
+    "committed_by": null,
+    "commit_message": null,
+    "created_at": "2026-09-20T10:00:00Z",
+    "updated_at": "2026-09-20T10:02:00Z",
+    "committed_at": null
+  },
+  {
+    "id": "8b1d7e40-6a2c-4f13-a8e9-2c3d4e5f6a7b",
+    "tenant_id": "a0b1c2d3-4455-6677-8899-aabbccddeeff",
+    "bot_id": "b1f2c3d4-5678-90ab-cdef-1234567890ab",
+    "version_number": 1,
+    "label": "Baseline",
+    "system_prompt": "You are a friendly support agent for Acme.",
+    "config": { "greeting": "Hi, thanks for calling Acme. How can I help?" },
+    "status": "committed",
+    "created_by": null,
+    "committed_by": null,
+    "commit_message": "Baseline snapshot of the live agent",
+    "created_at": "2026-09-20T10:00:00Z",
+    "updated_at": "2026-09-20T10:00:00Z",
+    "committed_at": "2026-09-20T10:00:00Z"
+  }
+]
+```
+
+`404` `Bot not found`.
+
+## GET `/api/v1/bots/{bot_id}/versions/{version_number}`
+
+One version. Requires `bots:read`. `404` `Bot not found` or `Version not found`.
+
+## POST `/api/v1/bots/{bot_id}/versions`
+
+Stages a draft. Every field defaults to the bot's **current live** value, so an empty body `{}` snapshots what is live and lets you edit it. Returns `201` with the draft. Requires `bots:write`.
+
+| Field | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `label` | `string \| null` | No | 1-255 chars |
+| `system_prompt` | `string \| null` | No | Max 20000 chars. Defaults to the live prompt |
+| `config` | `object \| null` | No | The **whole** config for this version (not a merge). Defaults to the live config. The same sub-keys as `POST /api/v1/bots` are validated |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/versions \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"label": "Shorter greeting", "system_prompt": "You are a concise support agent for Acme."}'
+```
+
+<Callout type="warn">
+  A `config` you send replaces the live config wholesale **when committed**, and the live config's credential fields (for example `access_token`) are not readable back through the API. Omit `config` to inherit the stored config, credentials included, rather than rebuilding it from a redacted read.
+</Callout>
+
+| Status | Cause |
+| --- | --- |
+| `404` | `Bot not found` |
+| `409` | `A draft already exists (vN) — edit or commit it first` |
+| `422` | A field outside its bounds, or a malformed validated `config` sub-key |
+
+## PATCH `/api/v1/bots/{bot_id}/versions/{version_number}`
+
+Edits the open draft. Omitted fields are unchanged; `config`, when sent, replaces the draft's config. Same field table as create. Requires `bots:write`.
+
+| Status | Cause |
+| --- | --- |
+| `404` | `Bot not found` or `Version not found` |
+| `409` | `Committed versions are immutable — roll back to it instead` |
+
+## POST `/api/v1/bots/{bot_id}/versions/{version_number}/commit`
+
+Publishes the draft: copies its `system_prompt` and `config` onto the live agent and marks the version `committed`, in one transaction — a call in progress reads either the whole old agent or the whole new one. Requires `bots:write`.
+
+| Field | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `commit_message` | `string \| null` | No | Max 2000 chars |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/versions/2/commit \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"commit_message": "Tighter greeting after call review"}'
+```
+
+Returns the committed version.
+
+| Status | Cause |
+| --- | --- |
+| `404` | `Bot not found` or `Version not found` |
+| `409` | `Version is already committed` |
+
+## POST `/api/v1/bots/{bot_id}/versions/{version_number}/rollback`
+
+Rolls back by moving forward: appends a new committed version carrying version `version_number`'s snapshot, with `commit_message` `Rollback to vN`, and publishes it. The target version is untouched. No request body. Returns `201` with the new version. Requires `bots:write`.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/versions/1/rollback \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+| Status | Cause |
+| --- | --- |
+| `404` | `Bot not found` or `Version not found` |
+| `409` | `Only a committed version can be rolled back to — commit the draft instead` |
 
 ---
 
@@ -724,3 +998,139 @@ curl -X DELETE https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-12
 ```
 
 `403` without `knowledge:write`; `404` `Knowledge entry not found` when the entry is not on that bot in your tenant.
+
+# Agent documents
+
+Files an agent can send to a customer on WhatsApp when asked, such as a trip itinerary, a brochure or a price list. Turn on the `send_document` tool on the agent (see [Voice agent tools](/docs/voice-agent-tools)); the agent passes the document's name and the file arrives in the chat. Free-form files deliver only inside WhatsApp's 24-hour customer-service window, so outside it the agent sends an approved template first.
+
+## GET `/api/v1/bots/{bot_id}/documents`
+
+Lists the agent's documents, oldest first. Requires `bots:read`.
+
+```bash
+curl https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/documents \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+[
+  {
+    "id": "d3a4b5c6-7e8f-4a90-b1c2-d3e4f5a6b7c8",
+    "name": "itinerary",
+    "filename": "Goa-5-day-itinerary.pdf",
+    "content_type": "application/pdf",
+    "byte_size": 238114,
+    "created_at": "2026-10-09T10:15:00Z"
+  }
+]
+```
+
+`403` without `bots:read`; `404` `Bot not found`.
+
+## POST `/api/v1/bots/{bot_id}/documents`
+
+Uploads a file as `multipart/form-data`. Returns `201`. Requires `bots:write`.
+
+| Part | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `file` | file | Yes | PDF, JPEG or PNG, checked by the file's contents rather than its extension or `Content-Type`. Max **20 MB** (20,971,520 bytes) |
+| `name` | `string` | No | Up to 64 chars. The name the agent picks the file by, stored lower-case with punctuation turned into spaces (`Trip Itinerary!` becomes `trip itinerary`). Defaults to the filename without its extension |
+
+An agent holds up to **20** documents, and each name is unique per agent.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/documents \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -F "file=@Goa-5-day-itinerary.pdf" \
+  -F "name=itinerary"
+```
+
+```json
+{
+  "id": "d3a4b5c6-7e8f-4a90-b1c2-d3e4f5a6b7c8",
+  "name": "itinerary",
+  "filename": "Goa-5-day-itinerary.pdf",
+  "content_type": "application/pdf",
+  "byte_size": 238114,
+  "created_at": "2026-10-09T10:15:00Z"
+}
+```
+
+`filename` is what the customer sees on WhatsApp.
+
+| Status | Cause |
+| --- | --- |
+| `400` | `File exceeds 20MB limit`; `Unsupported file. Use PDF, JPEG or PNG.`; `Give the document a name, e.g. itinerary`; `This agent already has a document named '<name>'`; or `An agent can hold up to 20 documents` |
+| `403` | Key missing `bots:write` |
+| `404` | `Bot not found` |
+| `502` | `The file could not be stored, try again` |
+| `503` | `File storage is not configured` |
+
+## DELETE `/api/v1/bots/{bot_id}/documents/{document_id}`
+
+Removes the document and its file. Returns `204` with an empty body. Requires `bots:write`. Deleting the agent removes its documents too.
+
+```bash
+curl -X DELETE https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/documents/d3a4b5c6-7e8f-4a90-b1c2-d3e4f5a6b7c8 \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+`403` without `bots:write`; `404` `Document not found` when the document is not on that agent in your tenant.
+
+# Callback calls
+
+Calls a WhatsApp customer asked the agent for, arranged by its `request_callback` tool ([WhatsApp callback calls](#whatsapp-callback-calls)).
+
+## GET `/api/v1/bots/{bot_id}/callbacks`
+
+Lists the agent's callbacks, newest first. Requires `bots:read`.
+
+| Query | Type | Default | Constraints |
+| --- | --- | --- | --- |
+| `limit` | `integer` | `50` | 1-200 |
+
+```bash
+curl "https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/callbacks?limit=20" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+[
+  {
+    "id": "e4f5a6b7-c8d9-4e0f-a1b2-c3d4e5f6a7b8",
+    "to_e164": "+919812345678",
+    "status": "pending",
+    "due_at": "2026-10-09T11:30:00Z",
+    "attempts": 0,
+    "reason": "Wants to discuss the Goa package",
+    "error": null,
+    "telephony_call_id": null,
+    "call_status": null,
+    "created_at": "2026-10-09T08:02:11Z"
+  }
+]
+```
+
+| Field | Notes |
+| --- | --- |
+| `status` | `pending` (waiting for `due_at`), `dialing`, `placed`, `failed` or `cancelled` |
+| `attempts` | Times a call was tried |
+| `error` | Why it failed, was cancelled, or is being retried |
+| `telephony_call_id`, `call_status` | The placed call and its status (`initiated`, `ringing`, `in_progress`, `completed`, `failed`, `no_answer`, `busy`) |
+
+`403` without `bots:read`; `404` `Bot not found`.
+
+## POST `/api/v1/bots/{bot_id}/callbacks/{callback_id}/cancel`
+
+Cancels a callback that has not started dialing and returns it. Requires `bots:write`. Cancelling one that is already cancelled returns it unchanged.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234567890ab/callbacks/e4f5a6b7-c8d9-4e0f-a1b2-c3d4e5f6a7b8/cancel \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+| Status | Cause |
+| --- | --- |
+| `403` | Key missing `bots:write` |
+| `404` | `Callback not found` |
+| `409` | `Only a callback that hasn't started dialing can be cancelled` |

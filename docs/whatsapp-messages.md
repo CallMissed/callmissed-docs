@@ -39,9 +39,11 @@ Sends are persisted into the matching conversation thread, so anything you send 
 
 ## Before WhatsApp is called
 
-Two gates run on every send, before any request reaches Meta.
+Three gates run on every send, before any request reaches Meta.
 
 **Tenant scope.** The sending number is resolved against your workspace. A number you do not own returns `404`, identically to one that does not exist.
+
+**Opt-outs.** A number on your [do-not-contact list](/docs/voice-campaigns#do-not-call-list) for WhatsApp is refused with `409` and the error `recipient_opted_out`; nothing is sent and nothing is charged. See [Opt-outs](#opt-outs).
 
 **Credit check.** The charge for a WhatsApp message lands after Meta delivers it, so a send you cannot pay for cannot be undone. Sends are therefore priced up front, against the same rate card the delivery charge uses, and refused with `402` when the balance will not cover them. Nothing is sent and nothing is charged.
 
@@ -51,7 +53,7 @@ Two gates run on every send, before any request reaches Meta.
 }
 ```
 
-Template sends are priced from the recipient's region and the template's category, which differ by more than tenfold across markets, so the quoted figure is specific to the message you tried to send. Reactions are not credit-gated, because they are not billed.
+Each delivered paid template costs a flat **0.12 credits (₹0.12)**, the same in every country and every template category. That is CallMissed's fee; Meta's own per-message charge is billed by Meta to your WhatsApp Business Account through the payment method you added in WhatsApp Manager. Messages Meta does not bill, such as replies inside the 24-hour customer service window, cost nothing. Reactions are not credit-gated, because they are not billed.
 
 ## Send a text message
 
@@ -64,6 +66,7 @@ Template sends are priced from the recipient's region and the template's categor
 | `to` | string, 5 to 20 chars | Yes | Recipient in E.164, for example `+919000000000` |
 | `text` | string, 1 to 65536 chars | Yes | Message body. WhatsApp caps a single message at 4096 characters, so a longer body is split across several messages and every id comes back in `wamids` |
 | `preview_url` | boolean | No | Render a link preview for the first URL. Default `false` |
+| `context_message_id` | string, max 128 | No | A `wamid` to quote. The message is sent as a reply to it |
 
 :::tabs
 ```bash [cURL]
@@ -123,9 +126,25 @@ const { wamid } = await res.json();
 | `402` | Not enough credits, or a workspace budget cap would be exceeded. Nothing was sent |
 | `403` | API key is missing `whatsapp:send` |
 | `404` | The sending number is not on your workspace |
-| `409` | The number is disconnected, or is not registered on the WhatsApp Business Platform |
+| `409` | The number is disconnected, or is not registered on the WhatsApp Business Platform, or the recipient opted out (`recipient_opted_out`) |
 | `422` | The 24-hour window is closed, the display name is not approved yet, or WhatsApp rejected the payload |
 | `429` | Per-user-pair send rate limit. Retry with backoff |
+
+## Opt-outs
+
+Opt-outs are recorded for you, on the account's [do-not-contact list](/docs/voice-campaigns#do-not-call-list):
+
+- **STOP.** When a customer sends `STOP`, their number is added for WhatsApp. When they send `START`, their `whatsapp` and `whatsapp_marketing` entries are removed. An `all` entry stays: only you can remove it.
+- **Stopped marketing.** When WhatsApp reports that the person stopped marketing messages from you, their number is added for WhatsApp marketing only.
+
+What an opted-out number can still receive:
+
+| On the list for | Templates | Free-form messages |
+|---|---|---|
+| `whatsapp` or `all` | Refused | Refused, unless the customer has messaged you since opting out |
+| `whatsapp_marketing` | `MARKETING` templates refused; utility and authentication templates sent | Sent |
+
+A refused send returns `409` with `recipient_opted_out`. The same list applies to messages your agents send, campaigns, and automations, so an opted-out customer is not messaged by any of them. To add or check numbers yourself, use the [do-not-contact endpoints](/docs/voice-campaigns#do-not-call-list) with `channel: "whatsapp"`.
 
 ## Send a template message
 
@@ -352,7 +371,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/interactive \
 ```
 :::
 
-Returns the common send response. The customer's tap arrives back on your webhook as an inbound message with `type: "interactive"` or `type: "button"`. A completed flow arrives as an interactive reply carrying your `flow_token` alongside the screen data the customer submitted, so use `flow_token` to tie the submission back to the order, booking or ticket you sent it for.
+Returns the common send response. The customer's tap arrives on your webhook as a `message.received` event with `type: "interactive"` or `type: "button"`. For these types the event's `text` is `null`: the selected button or row id, and a completed flow's `flow_token` and screen data, are not included in the event today.
 
 **Failures**
 
