@@ -68,7 +68,7 @@ A request that fails schema validation returns `422` with `detail` as a list of 
 | `budget_exceeded` | 402 | This key's own budget is spent. Raise it on the key |
 | `payment_method_required` | 402 | The account has no verified payment method. Add a card or UPI Autopay on the billing page of the console, then retry |
 | `permission_denied` | 403 | The key lacks the service permission (`llm`, `stt`, `tts`, `image`, `search`) |
-| `model_not_available` | 403 | The model needs a paid plan |
+| `model_not_available` | 403 | The model needs a paid plan (the Claude models need Pro or higher) |
 | `model_not_allowed` | 403 | The model is outside the key's allowed-models list |
 | `search_provider_not_allowed` | 403 | The key's allowed search providers exclude the one requested |
 | `domain_not_allowed` | 403 | The request origin is not in the key's domain allowlist |
