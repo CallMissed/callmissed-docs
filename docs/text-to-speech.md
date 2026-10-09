@@ -112,7 +112,7 @@ Errors use the OpenAI envelope: `{"error": {"message", "type", "code"}}`.
 | `404` | `model_not_found` | `model` is not a known TTS model ID |
 | `422` | `invalid_request` | Missing or empty `input`, `input` over the model's character limit (see `input` above), or a field with the wrong type or out of range (`speed`, `speech_sample_rate`, `temperature`, `instructions`) |
 | `429` | `quota_exceeded` | Plan usage limit reached |
-| `502` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to synthesize. The response includes a `request_id` |
+| `503` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to synthesize. The response includes a `request_id` |
 
 ## Making speech sound human
 

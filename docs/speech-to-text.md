@@ -161,8 +161,8 @@ Errors use the OpenAI envelope: `{"error": {"message", "type", "code"}}`.
 | `413` | `file_too_large` | The file is larger than 25 MB, or than the model accepts (see `file` above) |
 | `429` | `quota_exceeded` | Plan usage limit reached |
 | `429` | `rate_limit_exceeded` | Transcription is rate limited right now. Retry with backoff |
-| `502` | `service_unavailable` | Transcription is temporarily unavailable. Retry shortly. `/v1/audio/speech` uses the same code |
-| `502` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to transcribe the file. The response includes a `request_id` |
+| `503` | `service_unavailable` | Transcription is temporarily unavailable. Retry shortly. `/v1/audio/speech` uses the same code |
+| `503` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to transcribe the file. The response includes a `request_id` |
 
 `/v1/audio/translations` returns the same errors.
 
