@@ -20,6 +20,7 @@ Use it to build an internal cost dashboard, attribute spend to a customer via `s
 | `GET /v1/usage/summary` | Rolled-up totals, per-service and per-model breakdowns, a daily series |
 | `GET /v1/usage/logs` | Individual request records, newest first |
 | `GET /v1/usage/logs.csv` | The same records as a CSV download |
+| `GET /v1/credits/balance` | Your current credit balance |
 
 ## Authentication
 
@@ -59,12 +60,14 @@ curl "https://api.callmissed.com/v1/usage/summary?days=7" \
     "total_cost_usd": 41.87,
     "total_input_tokens": 9120334,
     "total_output_tokens": 1844920,
+    "total_cache_read_tokens": 4210000,
+    "total_cache_creation_tokens": 120500,
     "total_audio_seconds": 6120.5,
     "avg_latency_ms": 812.4
   },
   "by_service": [
-    { "service": "llm", "requests": 15980, "cost_usd": 38.11, "input_tokens": 9120334, "output_tokens": 1844920 },
-    { "service": "tts", "requests": 1422, "cost_usd": 2.44, "input_tokens": 0, "output_tokens": 0 }
+    { "service": "llm", "requests": 15980, "cost_usd": 38.11, "input_tokens": 9120334, "output_tokens": 1844920, "cache_read_tokens": 4210000, "cache_creation_tokens": 120500 },
+    { "service": "tts", "requests": 1422, "cost_usd": 2.44, "input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0, "cache_creation_tokens": 0 }
   ],
   "by_model": [
     { "model": "kimi-k2.6", "requests": 9120, "cost_usd": 12.30 }
@@ -78,7 +81,11 @@ curl "https://api.callmissed.com/v1/usage/summary?days=7" \
 | Field | Type | Notes |
 | --- | --- | --- |
 | `totals.success_rate` | `number` | Fraction in `0..1`, not a percentage |
-| `totals.total_cost_usd` | `number` | What **you** were charged, in USD |
+| `totals.total_cost_usd` | `number` | What **you** were charged, in US$ at the published rate (1 credit = ₹1, US$1 = ₹96, so credits = US$ × 96). Every `cost_usd` in this response uses the same unit |
+| `totals.total_input_tokens` | `integer` | LLM prompt tokens that were **not** served from the prompt cache |
+| `totals.total_cache_read_tokens` | `integer` | Prompt tokens served from the prompt cache, billed at the cache-read rate |
+| `totals.total_cache_creation_tokens` | `integer` | Prompt tokens written to the prompt cache, billed at the cache-write rate |
+| `by_service[].cache_read_tokens`, `by_service[].cache_creation_tokens` | `integer` | The same cache split for one service |
 | `by_model` | `array` | Top 10 models by request volume |
 | `series[].date` | `string` | `YYYY-MM-DD`, one row per day in the window |
 
@@ -125,6 +132,8 @@ curl "https://api.callmissed.com/v1/usage/logs?days=1&service=llm&status=error&l
       "latency_ms": 41,
       "input_tokens": 0,
       "output_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_creation_tokens": 0,
       "audio_seconds": 0.0,
       "cost_usd": 0.0,
       "request_id": "req_01J…",
@@ -137,11 +146,29 @@ curl "https://api.callmissed.com/v1/usage/logs?days=1&service=llm&status=error&l
 }
 ```
 
-`cost_usd` is your price. Failed requests are recorded with `cost_usd: 0.0` — an error is never billed.
+For LLM rows, `input_tokens` is the part of the prompt that was not cached;
+`cache_read_tokens` (served from the prompt cache) and `cache_creation_tokens`
+(written to it) are counted separately, so the whole prompt is the sum of the
+three. Rows recorded before cache tracking was added show `0` for both cache fields.
+
+`cost_usd` is your price for the call, in US$ at the published rate (1 credit = ₹1, US$1 = ₹96), the same unit as `/v1/usage/summary`. Failed requests are recorded with `cost_usd: 0.0` — an error is never billed.
 
 ### Attributing spend
 
-Send `X-Session-Id` and `X-Trace-Id` headers on your inference calls, then filter here by `session_id` or `trace_id` to attribute spend to one of your own customers, tenants or workflows.
+On `POST /v1/messages`, put `trace_id` and/or `session_id` (each at most 64 characters) inside the `metadata` object, then filter here by `session_id` or `trace_id` to attribute spend to one of your own customers, tenants or workflows. Other `metadata` keys (up to 16, string/number/boolean values) are stored with the row and exported in the CSV's `metadata_json` column.
+
+**This needs request logging on the key that makes the call.** `trace_id`, `session_id` and the rest of `metadata` are stored only when **Request logging** is turned on for that API key, and logging is off by default on a new key. On a key with logging off the request is still metered and billed, but the row keeps `trace_id`, `session_id` and `metadata_json` empty (as it does `model`, `latency_ms`, `request_id` and `error_message`), so filtering by `session_id` or `trace_id` will not find it. Request logging is a console setting: turn it on when you create the key, or later from the key's edit dialog under **Developer → API keys** in the [console](https://console.callmissed.com/developer/keys). It cannot be changed with an API key, and it applies only to requests made after you turn it on. See [Logging](/docs/keys#logging).
+
+```json
+{
+  "model": "kimi-k2.6",
+  "max_tokens": 512,
+  "metadata": { "session_id": "checkout-flow", "trace_id": "tr_8812", "feature": "summary" },
+  "messages": [{ "role": "user", "content": "Summarise this order history." }]
+}
+```
+
+On `/v1/chat/completions` and `/v1/responses` the `metadata`, `trace_id` and `session_id` fields are accepted and validated but are **not yet recorded** on the usage row, so those rows show `null` for both ids. Attribute that traffic with a separate API key per customer and filter by `api_key_id`.
 
 ## GET `/v1/usage/logs.csv`
 
@@ -156,10 +183,25 @@ curl "https://api.callmissed.com/v1/usage/logs.csv?days=30&service=llm" \
 Returns `text/csv` with `Content-Disposition: attachment; filename="usage-YYYYMMDD.csv"`. Header row:
 
 ```
-id,created_at,service,endpoint,method,model,status_code,latency_ms,input_tokens,output_tokens,audio_seconds,cost_usd,request_id,api_key_id,error_message[,trace_id][,session_id][,metadata_json]
+id,created_at,service,endpoint,method,model,status_code,latency_ms,input_tokens,output_tokens,cache_read_tokens,cache_creation_tokens,audio_seconds,cost_usd,request_id,api_key_id,error_message[,trace_id][,session_id][,metadata_json]
 ```
 
-`error_message` is truncated to 500 characters. Text cells are escaped so a spreadsheet cannot interpret a value as a formula.
+`cost_usd` is in US$, as on `/logs`. `error_message` is truncated to 500 characters. Text cells are escaped so a spreadsheet cannot interpret a value as a formula.
+
+## GET `/v1/credits/balance`
+
+Your account's current credit balance. Any valid `cm_` key can call it — no scope or service permission is needed.
+
+```bash
+curl https://api.callmissed.com/v1/credits/balance \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+{ "balance": 1843.25 }
+```
+
+`balance` is in credits (1 credit = ₹1). Errors use the OpenAI envelope, e.g. `401 invalid_api_key`.
 
 ## Errors
 
