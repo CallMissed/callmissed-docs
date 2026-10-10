@@ -175,7 +175,7 @@ One important limit: **`sending: true` only resumes a domain you paused yourself
 | 404 | `{"detail": "Domain not found"}` | The domain id is not yours |
 | 409 | string `detail` | `PATCH sending=true` on a domain paused automatically for deliverability reasons or never verified, or `sending=false` on a domain that is not verified |
 | 422 | schema array `detail` | An unsupported field in a `PATCH` body |
-| 502 | `reason` nested under `detail` | `provider_unavailable` (older deployments may return `acs_unavailable`; match both): domain provisioning or verification is temporarily unavailable, retry the domain call |
+| 503 | `reason` nested under `detail` | `provider_unavailable` (older deployments may return `acs_unavailable`; match both): domain provisioning or verification is temporarily unavailable, retry the domain call |
 | 503 | string `detail` | `"Domain onboarding is not configured"` |
 
 Every shape is spelled out on [Limits, Quotas & Errors](/docs/email-limits#response-shapes).
@@ -274,7 +274,7 @@ Registering is **idempotent**: it is a create-or-update, so re-registering an ex
 |--------|------|---------|
 | 400 | string `detail` | The domain is not verified yet |
 | 422 | string `detail` | `username` is not a bare local part (it contains `@` or `/`, or is empty) |
-| 502 | string `detail` | The sender list could not be read, or the sender could not be registered or removed. Note this `502` is a plain string, not the `{error, reason}` shape the domain create/verify routes use |
+| 503 | string `detail` | The sender list could not be read, or the sender could not be registered or removed. Note this `503` is a plain string, not the `{error, reason}` shape the domain create/verify routes use |
 
 ### Reply-To
 

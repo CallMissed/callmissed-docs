@@ -314,9 +314,9 @@ Errors return the Anthropic format (different from the OpenAI endpoints):
 | `not_found_error` | 404 | Model not found |
 | `request_too_large` | 413 | Request body too large |
 | `rate_limit_error` | 429 | Plan limit or API key rate limit exceeded |
-| `api_error` | 500 / 502 / 503 | Upstream model failure, or the model is under maintenance (the message names an alternative) |
+| `api_error` | 500 / 503 | Upstream model failure, or the model is under maintenance (the message names an alternative) |
 | `overloaded_error` | 503 / 529 | Model temporarily unavailable. Retry with backoff |
-| `timeout_error` | 504 | Upstream model timed out |
+| `timeout_error` | 503 | Upstream model timed out |
 
 **Rate limit headers** are returned in Anthropic format:
 
@@ -352,4 +352,5 @@ This endpoint is designed to work with the Anthropic SDK out of the box. Key dif
 - **Tools** are supported — `tools` and `tool_choice` work as documented, and `tool_use`/`tool_result` content blocks are preserved. Send each `tool_use.id` back exactly as you received it: on some models it carries state the next turn needs.
 - **Vision** is supported on models whose `supports_vision` flag is `true`. Image content sent to text-only models is rejected with a `400 invalid_request_error` before the upstream call, so your credits are safe.
 - **Message Batches API** (`/v1/messages/batches`) is not implemented — use the regular `/v1/messages` endpoint.
+- **Claude models** (`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`, Pro plan and up) return their reasoning as standard `thinking` and `redacted_thinking` content blocks. Pass those blocks back unchanged in later turns, especially alongside `tool_result` blocks. `temperature`, `top_p` and `top_k` are ignored for these models, `tool_choice` forcing runs as `auto` on `claude-opus-5-5` and `claude-sonnet-5-5`, and the conversation must end with a `user` message (a trailing assistant prefill turn is dropped).
 - **Billing** uses CallMissed credits, not Anthropic billing.
