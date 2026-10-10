@@ -312,7 +312,7 @@ At most 12 tools are proposed, de-duplicated and validated against the registry.
 | `402` | `Not enough credits to draft an agent. Top up to continue.` | Checked **before** any model runs — costs nothing |
 | `402` | `Monthly budget cap reached` | Your account's monthly budget cap is spent. Also checked before any model runs |
 | `422` | `Could not draft an agent: …` | The model returned an unusable draft. **This attempt is still billed** — the work was done |
-| `502` | `The agent drafting service is unavailable.` | Retry |
+| `503` | `The agent drafting service is unavailable.` | Retry |
 
 Cost appears in [usage logs](/docs/usage-api) as `service: "llm"`.
 

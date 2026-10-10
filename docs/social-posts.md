@@ -238,5 +238,5 @@ either. A failed post costs nothing.
 | 422 | `invalid_request_error` | Bad `topic`, `platform` or `hashtag_count` (0–30); `n` other than 1; a malformed or oversized `reference_images` / `reference_pdf`; or references sent with an `image_model` that has no edit surface. |
 | 429 | `quota_exceeded` | Monthly plan cap hit for the LLM or image service. |
 | 429 | `too_many_concurrent_requests` | Too many in-flight requests on this key. Retry shortly. |
-| 502 | `upstream_error` | The caption or the image failed. No credits charged — safe to retry. |
+| 503 | `upstream_error` | The caption or the image failed. No credits charged — safe to retry. |
 | 503 | `service_unavailable` | Image service temporarily unavailable. No credits charged. |

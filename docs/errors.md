@@ -55,8 +55,8 @@ A request that fails schema validation returns `422` with `detail` as a list of 
 | `413` | Payload Too Large | Upload over the endpoint's size cap |
 | `422` | Unprocessable Entity | Schema validation failed (bad enum, out-of-range number, missing field) |
 | `429` | Too Many Requests | Per-key rate limit, monthly plan cap or budget cap, or too many requests in flight |
-| `500` / `502` | Server Error | Unexpected failure, or the model failed upstream. Safe to retry |
-| `503` | Service Unavailable | The model or service is temporarily unavailable or under maintenance |
+| `500` | Server Error | Unexpected failure. Safe to retry |
+| `503` | Service Unavailable | The model or service failed upstream, timed out, or is temporarily unavailable or under maintenance. Carries `Retry-After`. Safe to retry |
 
 ## Error codes on the inference endpoints
 
@@ -68,7 +68,7 @@ A request that fails schema validation returns `422` with `detail` as a list of 
 | `budget_exceeded` | 402 | This key's own budget is spent. Raise it on the key |
 | `payment_method_required` | 402 | The account has no verified payment method. Add a card or UPI Autopay on the billing page of the console, then retry |
 | `permission_denied` | 403 | The key lacks the service permission (`llm`, `stt`, `tts`, `image`, `search`) |
-| `model_not_available` | 403 | The model needs a paid plan |
+| `model_not_available` | 403 | The model needs a paid plan (the Claude models need Pro or higher) |
 | `model_not_allowed` | 403 | The model is outside the key's allowed-models list |
 | `search_provider_not_allowed` | 403 | The key's allowed search providers exclude the one requested |
 | `domain_not_allowed` | 403 | The request origin is not in the key's domain allowlist |
@@ -79,7 +79,7 @@ A request that fails schema validation returns `422` with `detail` as a list of 
 | `rate_limit_exceeded` | 429 | Over the key's requests-per-minute limit |
 | `quota_exceeded` | 429 | The plan's monthly call cap for this service, or your monthly budget cap, is reached. `Retry-After` gives the seconds until the 1st |
 | `too_many_concurrent_requests` | 429 | Too many requests from this key are still in flight. Retry after a few seconds |
-| `upstream_error` / `provider_error` | 502 / 503 | The model failed to answer. Retry with backoff, or switch model |
+| `upstream_error` / `provider_error` | 503 | The model failed to answer. Retry with backoff, or switch model |
 | `model_under_maintenance` | 503 | The model is temporarily out of service |
 
 ## Notice header
@@ -89,5 +89,5 @@ While an account is inside its grace period for adding a payment method, success
 ## Retrying
 
 - On **429** with `Retry-After`, wait at least that many seconds. Without the header, back off exponentially with jitter. A `quota_exceeded` 429 lasts until the 1st of next month, so upgrade or raise the cap rather than wait.
-- On **500, 502 and 503**, retry once or twice with jittered backoff. Send an [`Idempotency-Key`](/docs/idempotency) on inference `POST`s so a retry never runs or bills a call twice.
+- On **500 and 503**, retry once or twice with jittered backoff. Send an [`Idempotency-Key`](/docs/idempotency) on inference `POST`s so a retry never runs or bills a call twice.
 - On **401, 402 and 403**, do **not** retry. Fix the key, credits, permission or scope first.
