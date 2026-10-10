@@ -260,7 +260,7 @@ Returns `204`. Only a `DRAFT` Flow can be deleted. WhatsApp's refusal for any ot
 | `404` | `WhatsApp account not found`, or `Flow not found` on that WABA |
 | `409` | The WABA is disconnected, or has no usable token. Reconnect it |
 | `422` | WhatsApp refused the request for the Flow's current status (for example, editing or deleting a published Flow) |
-| `502` | WhatsApp did not respond correctly. Retry |
+| `503` | WhatsApp did not respond correctly. Retry |
 
 Managing Flows does not consume credits.
 
@@ -401,7 +401,7 @@ One submission by its CallMissed id. `404 Flow response not found`.
 | `404` | Flow or response not in your tenant |
 | `409` | No connected WhatsApp number or Business Account for your tenant |
 | `422` | Blank name, no categories, an unknown category, or a `flow_json` over 10 MB |
-| `502` | WhatsApp accepted the call but returned no flow id |
+| `503` | WhatsApp accepted the call but returned no flow id |
 
 Errors originating at WhatsApp keep their status code and message, so a validation failure reads the same as it would against the Cloud API directly.
 

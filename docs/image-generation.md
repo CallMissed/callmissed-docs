@@ -248,5 +248,5 @@ curl "https://api.callmissed.com/v1/images/history?limit=20" \
 | 422 | — | Validation failed: prompt length, `n`, `seed`, a malformed or oversized reference, or references sent to a model without an edit surface. |
 | 429 | `quota_exceeded` | Monthly plan cap hit. Upgrade tier. |
 | 429 | `rate_limit_exceeded` / `too_many_concurrent_requests` | Too many requests on this key. Retry with backoff. |
-| 502 | `upstream_error` | The image provider failed. No credits debited — safe to retry. |
+| 503 | `upstream_error` | The image provider failed. No credits debited — safe to retry. |
 | 503 | `model_under_maintenance` | The model is temporarily unavailable; the message names an alternative. |
