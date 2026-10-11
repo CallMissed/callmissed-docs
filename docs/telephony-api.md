@@ -539,7 +539,7 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/click-to-call \
 | `409` | No `agent_number` and no operator phone configured, or no active number to call from |
 | `422` | Neither `destination` nor `contact_id` given, or a number is not valid E.164 |
 | `429` | Too many calls in progress (a bridge uses two of the 10 concurrent lines) |
-| `504` | Nobody answered your phone, so the contact was not dialled |
+| `503` | Nobody answered your phone, so the contact was not dialled |
 
 ## 9. Voicemail drop
 

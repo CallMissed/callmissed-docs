@@ -52,11 +52,11 @@ curl https://api.callmissed.com/api/v1/models/access
 
 Each entry includes `id`, `name`, `description`, `category`, `owned_by`, `context_window`, `max_output_tokens` (only where the model documents an output limit), `pricing` (US$), `free`, `supports_streaming`, `supports_tools`, `supports_reasoning`, `supports_vision`, `zero_data_retention`, `hosted_in_india`, `voice_capable` (valid for `POST /v1/voice/sessions`), `voice_agent_only`, and `speed_tier`. A model that is temporarily unavailable also carries `status: "maintenance"` and a `status_message` naming the alternative. Embedding models add `dimensions`; TTS models add their voice list. The response is `{object: "list", total, data}`.
 
-The OpenAI-compatible listing at `GET /v1/models` (requires `Authorization: Bearer cm_*`) returns the same capability fields plus `context_length` (an alias of `context_window` for OpenAI-style clients), but a **shorter list**: it hides models that are only valid for voice sessions (`nova-sonic*`, `gpt-realtime*`, `deepgram-voice-*`). Use `GET /api/v1/models` for the full catalog. The Anthropic-shape listing at `GET /anthropic/v1/models` returns the same set inside Anthropic's `{data, has_more, first_id, last_id}` envelope.
+The OpenAI-compatible listing at `GET /v1/models` (requires `Authorization: Bearer cm_*`) returns the same capability fields plus `context_length` (an alias of `context_window` for OpenAI-style clients), but a **shorter list**: it hides models that are only valid for voice sessions (`gpt-realtime*`, `gpt-live-1`, `deepgram-voice-*`). Use `GET /api/v1/models` for the full catalog. The Anthropic-shape listing at `GET /anthropic/v1/models` returns the same set inside Anthropic's `{data, has_more, first_id, last_id}` envelope.
 
 ## Free Plan Models
 
-The free tier includes **27 models** across five categories. Use `GET /api/v1/models?free=true` to list them, or see the [Model Access by Plan](/docs/model-access) page for the full breakdown.
+The free tier includes **26 models** across five categories. Use `GET /api/v1/models?free=true` to list them, or see the [Model Access by Plan](/docs/model-access) page for the full breakdown.
 
 ### LLM (11 models)
 | Model ID | Description |
@@ -89,11 +89,10 @@ The free tier includes **27 models** across five categories. Use `GET /api/v1/mo
 | `aura-2-es` | Aura 2 — 10 Spanish voices, low-latency streaming |
 | `melotts` | MeloTTS — en + fr, cheapest TTS available |
 
-### Image (6 models)
+### Image (5 models)
 | Model ID | Description |
 |----------|-------------|
 | `flux-2-klein-9b` | Flux 2 Klein — highest quality |
-| `flux-2-dev` | Flux 2 Dev — flagship fidelity |
 | `lucid-origin` | Lucid Origin — cinematic |
 | `phoenix-1.0` | Phoenix — photorealistic |
 | `sdxl-lightning` | SDXL Lightning — fast |
@@ -107,7 +106,9 @@ The free tier includes **27 models** across five categories. Use `GET /api/v1/mo
 
 A free-plan key calling a paid model gets `403 model_not_available` — it is not billed, it is refused. Upgrade to Starter or above first.
 
-All other models — including `kimi-k2.5-fast`, `glm-5.3`, `gemma-4-31b`, the `gemini-*` chat models, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `gpt-6-*`, `gpt-6.1-sol`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `gpt-live-1`, `nova-sonic*`, first-party STT/TTS), the other speech models (`gnani-*`, `ink-*`, `sonic-3.6`), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`, `gemini-3.1-flash-lite-image`) — require Starter, Pro, or Enterprise.
+The Claude models (`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`) are the exception: they need the Pro plan or higher. A free or Starter key gets `403 model_not_available` with the message `Model '<id>' requires the Pro plan or higher. Upgrade at https://console.callmissed.com/org/plans`.
+
+All other models — including `kimi-k2.5-fast`, `glm-5.3`, `gemma-4-31b`, the `gemini-*` chat models, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `gpt-6-*`, `gpt-6.1-sol`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `gpt-live-1`, first-party STT/TTS), the other speech models (`gnani-*`, `ink-*`, `sonic-3.6`), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`, `gemini-3.1-flash-lite-image`) — require Starter, Pro, or Enterprise.
 
 ### Pricing
 
@@ -124,8 +125,9 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 | `gpt-6-sol` | $2.083 | $10.42 |
 | `gpt-6-luna` | $0.1042 | $0.5208 |
 | `gpt-6.1-sol` | $2.083 | $10.42 |
-| `nova-sonic-2` | $4.167 | $15.63 |
-| `nova-sonic` | $4.688 | $17.71 |
+| `claude-opus-5-5` *(Pro plan and up)* | $4.167 | $20.83 |
+| `claude-sonnet-5-5` *(Pro plan and up)* | $2.083 | $10.42 |
+| `claude-haiku-5-5` *(Pro plan and up)* | $0.1042 ($0.5208 for prompts over 100K tokens) | $0.5208 ($2.604 for prompts over 100K tokens) |
 | `gpt-realtime` | $4.167 | $16.67 |
 | `gpt-realtime-mini` | $0.625 | $2.5 |
 | `gpt-realtime-2` | $4.167 | $25 |
@@ -362,11 +364,12 @@ Credit-covered first-party models. Use the bare model ID in API requests — e.g
 | `gpt-6-sol` | LLM | GPT-6 frontier reasoning, 1.05M context, vision + tools |
 | `gpt-6-luna` | LLM | GPT-6 efficient, high-volume, 1.05M context |
 | `gpt-6.1-sol` | LLM | GPT-6.1 near-frontier for complex coding and professional work, 1.05M context, vision + tools |
+| `claude-opus-5-5` | LLM | Anthropic Claude Opus 5.5 for long-running agentic coding and knowledge work, 1M context, vision + tools (Pro plan and up) |
+| `claude-sonnet-5-5` | LLM | Anthropic Claude Sonnet 5.5, the best combination of speed and intelligence, 1M context, vision + tools (Pro plan and up) |
+| `claude-haiku-5-5` | LLM | Anthropic Claude Haiku 5.5 for high-volume, latency-sensitive work, 1M context, vision + tools (Pro plan and up) |
 | `grok-4.3` | LLM | xAI Grok, 200K context |
 | `DeepSeek-V4-Pro` | LLM | Flagship DeepSeek reasoning, 1M context, tools (text-only) |
 | `DeepSeek-V4-Flash` | LLM | Fast DeepSeek reasoning, 1M context, tools |
-| `nova-sonic-2` | Realtime voice | Amazon Nova 2 speech-to-speech voice model — under maintenance, use `gpt-realtime-2.1-mini` |
-| `nova-sonic` | Realtime voice | First-generation Amazon speech-to-speech voice model — retired upstream 2026-09-14, use `gpt-realtime-2.1-mini` |
 | `gpt-realtime` | Realtime voice | OpenAI flagship speech-to-speech (10 concurrent), live |
 | `gpt-realtime-mini` | Realtime voice | Lowest-cost realtime, ~3× cheaper than gpt-realtime, live |
 | `gpt-realtime-2` | Realtime voice | Newest realtime with stronger tool calling, live |
@@ -384,9 +387,9 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **138** models (67 LLM · 45 STT · 9 TTS · 15 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **138** models (68 LLM · 45 STT · 9 TTS · 14 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
-### LLM (43 models)
+### LLM (44 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
@@ -409,6 +412,9 @@ A curated, representative slice of the **138** models (67 LLM · 45 STT · 9 TTS
 | `gpt-6-sol` | Frontier reasoning for enterprise agents, coding and complex knowledge work. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $10.42 out per 1M |
 | `gpt-6-luna` | Efficient GPT-6 for high-volume, cost-sensitive workloads. Vision, reasoning, tools. | 1.05M | No | $0.1042 in / $0.5208 out per 1M |
 | `gpt-6.1-sol` | Near-Astra performance for complex coding, computer use and professional work at a lower cost. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $10.42 out per 1M |
+| `claude-opus-5-5` | Anthropic Claude Opus 5.5 for long-running agentic coding and knowledge work. 128K max output. Vision, reasoning, tools. Pro plan and up. | 1M | No | $4.167 in / $20.83 out per 1M ($0.2083 cached input) |
+| `claude-sonnet-5-5` | Anthropic Claude Sonnet 5.5, the best combination of speed and intelligence. 128K max output. Vision, reasoning, tools. Pro plan and up. | 1M | No | $2.083 in / $10.42 out per 1M ($0.1042 cached input) |
+| `claude-haiku-5-5` | Anthropic Claude Haiku 5.5 for high-volume, latency-sensitive tasks such as classification, extraction and routing. 128K max output. Vision, reasoning, tools. Pro plan and up. | 1M | No | $0.1042 in / $0.5208 out per 1M ($0.01042 cached input); prompts over 100K tokens (cached tokens included) bill $0.5208 / $2.604 ($0.05208 cached) |
 | `grok-4.3` | xAI Grok 4.3. Reasoning + vision (images of at least 512 pixels in total; smaller returns `400`). Reasoning tokens bill as output. | 200K | No | $3.646 in / $15.63 out per 1M |
 | `DeepSeek-V4-Pro` | Flagship DeepSeek reasoning. Tools. Text-only. | 1M | No | $1.375 in / $4.125 out per 1M |
 | `DeepSeek-V4-Flash` | Fast, affordable DeepSeek reasoning. Tools. | 1M | No | $0.4583 in / $1.375 out per 1M |
@@ -424,8 +430,6 @@ A curated, representative slice of the **138** models (67 LLM · 45 STT · 9 TTS
 | `gemma-4-26b-a4b-it` | 26B MoE (4B active). Efficient instruct model. Vision. | 256K | Yes | $0.4167 in / $1.667 out per 1M |
 | `gemma-4-31b` | Gemma 4 31B instruct. Fast with thinking off, vision, tools. | 128K | No | $0.6146 in / $1.542 out per 1M |
 | `mistral-small-3.1` | 24B instruct. Strong tool use, fast. Vision. | 128K | Yes | $0.4896 in / $0.7917 out per 1M |
-| `nova-sonic-2` *(maintenance)* | Amazon Nova 2 Sonic. Native speech-to-speech voice model — STT, reasoning, and TTS in one; 16 voices across 8 languages including Hindi + en-IN. | 1M | No | $4.167 in / $15.63 out per 1M • $0.06667/min |
-| `nova-sonic` *(maintenance)* | Amazon Nova Sonic 1.0. Native speech-to-speech voice model with 11 voices across English, Spanish, French, Italian, and German. | 32K | No | $4.688 in / $17.71 out per 1M • $0.07396/min |
 | `gpt-realtime` | OpenAI flagship realtime speech-to-speech model — STT + reasoning + function calling + TTS in one. 10 concurrent. | 32K | No | $4.167 in / $16.67 out per 1M • $0.3906/min |
 | `gpt-realtime-mini` | Lowest-cost realtime — same single-model shape as gpt-realtime, ~3× cheaper. 20 concurrent. | 32K | No | $0.625 in / $2.5 out per 1M • $0.1229/min |
 | `gpt-realtime-2` | Newest realtime with stronger tool calling. 32K input, 4K output. | 32K | No | $4.167 in / $25 out per 1M • $0.3906/min |
@@ -462,12 +466,11 @@ A curated, representative slice of the **138** models (67 LLM · 45 STT · 9 TTS
 | `melotts` | Lightweight English + French TTS. Cheapest available. | 1 per language | Yes | $0.05208 / 10K chars |
 | `gpt-4o-mini-tts` | Steerable — takes an `instructions` field to direct tone. | 6 | No | $0.2083 / 10K chars |
 
-### Image Generation (15 models)
+### Image Generation (14 models)
 
 | Model ID | Description | Free | Pricing |
 |----------|-------------|------|---------|
 | `flux-2-klein-9b` | Flux 2 Klein. 1024×1024 default. | Yes | $0.1042 / image |
-| `flux-2-dev` | Flux 2 Dev. Higher fidelity, 50-step inference. | Yes | $0.125 / image |
 | `flux-2-pro` | Flux 2 Pro. Flagship BFL fidelity. | No | $0.1042 / image |
 | `flux-1.1-pro` | Flux 1.1 Pro. Fast, production-grade. | No | $0.05208 / image |
 | `gpt-image-2.5-sunburst` | Most capable generation + editing. Inpainting, quality tiers to `max`. | No | $0.2604 / image |
