@@ -291,9 +291,7 @@ These are the statuses you will actually hit across the Social API:
 | `409` | Either the account is **ambiguous** (several connected, none marked default — name one with `?account=` or set a default), or the resolved account is **disconnected** / its token is unavailable, or the upstream state is ambiguous (e.g. a possible duplicate). |
 | `422` | The body failed validation — a bad post type, an unreachable media URL, a caption over the limit, or an out-of-range schedule. |
 | `429` | Meta is rate-limiting this account. Wait a few minutes and retry. |
-| `502` | The upstream call failed. |
-| `503` | The channel is temporarily unavailable. |
-| `504` | An ambiguous upstream timeout — the action **may or may not** have completed. Check the account before retrying rather than assuming it failed. (An ambiguous Instagram **publish** reports this as `409` instead.) |
+| `503` | The upstream call failed, or the channel is temporarily unavailable. When the reason is an ambiguous upstream timeout, the action **may or may not** have completed: check the account before retrying rather than assuming it failed. (An ambiguous Instagram **publish** reports `409` instead.) |
 
 Two details worth designing around:
 

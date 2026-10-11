@@ -18,7 +18,7 @@ Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, fi
 
 ## Overview
 
-138 models, one OpenAI-compatible API. Same auth, same request shape — change
+141 models, one OpenAI-compatible API. Same auth, same request shape — change
 the `model` field and nothing else.
 
 | Group | What it is |
@@ -107,6 +107,8 @@ The free tier includes **27 models** across five categories. Use `GET /api/v1/mo
 
 A free-plan key calling a paid model gets `403 model_not_available` — it is not billed, it is refused. Upgrade to Starter or above first.
 
+The Claude models (`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`) are the exception: they need the Pro plan or higher. A free or Starter key gets `403 model_not_available` with the message `Model '<id>' requires the Pro plan or higher. Upgrade at https://console.callmissed.com/org/plans`.
+
 All other models — including `kimi-k2.5-fast`, `glm-5.3`, `gemma-4-31b`, the `gemini-*` chat models, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `gpt-6-*`, `gpt-6.1-sol`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `gpt-live-1`, `nova-sonic*`, first-party STT/TTS), the other speech models (`gnani-*`, `ink-*`, `sonic-3.6`), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`, `gemini-3.1-flash-lite-image`) — require Starter, Pro, or Enterprise.
 
 ### Pricing
@@ -124,6 +126,9 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 | `gpt-6-sol` | $2.083 | $10.42 |
 | `gpt-6-luna` | $0.1042 | $0.5208 |
 | `gpt-6.1-sol` | $2.083 | $10.42 |
+| `claude-opus-5-5` *(Pro plan and up)* | $4.167 | $20.83 |
+| `claude-sonnet-5-5` *(Pro plan and up)* | $2.083 | $10.42 |
+| `claude-haiku-5-5` *(Pro plan and up)* | $0.1042 ($0.5208 for prompts over 100K tokens) | $0.5208 ($2.604 for prompts over 100K tokens) |
 | `nova-sonic-2` | $4.167 | $15.63 |
 | `nova-sonic` | $4.688 | $17.71 |
 | `gpt-realtime` | $4.167 | $16.67 |
@@ -333,7 +338,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 ## Models on Demand
 
-`GET /api/v1/models` lists everything in the catalogue today: **138** model IDs.
+`GET /api/v1/models` lists everything in the catalogue today: **141** model IDs.
 Models marked `status: "maintenance"` return `503` until they are back.
 
 Beyond that we deploy **300+ further models on demand** on CallMissed
@@ -362,6 +367,9 @@ Credit-covered first-party models. Use the bare model ID in API requests — e.g
 | `gpt-6-sol` | LLM | GPT-6 frontier reasoning, 1.05M context, vision + tools |
 | `gpt-6-luna` | LLM | GPT-6 efficient, high-volume, 1.05M context |
 | `gpt-6.1-sol` | LLM | GPT-6.1 near-frontier for complex coding and professional work, 1.05M context, vision + tools |
+| `claude-opus-5-5` | LLM | Anthropic Claude Opus 5.5 for long-running agentic coding and knowledge work, 1M context, vision + tools (Pro plan and up) |
+| `claude-sonnet-5-5` | LLM | Anthropic Claude Sonnet 5.5, the best combination of speed and intelligence, 1M context, vision + tools (Pro plan and up) |
+| `claude-haiku-5-5` | LLM | Anthropic Claude Haiku 5.5 for high-volume, latency-sensitive work, 1M context, vision + tools (Pro plan and up) |
 | `grok-4.3` | LLM | xAI Grok, 200K context |
 | `DeepSeek-V4-Pro` | LLM | Flagship DeepSeek reasoning, 1M context, tools (text-only) |
 | `DeepSeek-V4-Flash` | LLM | Fast DeepSeek reasoning, 1M context, tools |
@@ -384,9 +392,9 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **138** models (67 LLM · 45 STT · 9 TTS · 15 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **141** models (70 LLM · 45 STT · 9 TTS · 15 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
-### LLM (43 models)
+### LLM (46 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
@@ -409,6 +417,9 @@ A curated, representative slice of the **138** models (67 LLM · 45 STT · 9 TTS
 | `gpt-6-sol` | Frontier reasoning for enterprise agents, coding and complex knowledge work. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $10.42 out per 1M |
 | `gpt-6-luna` | Efficient GPT-6 for high-volume, cost-sensitive workloads. Vision, reasoning, tools. | 1.05M | No | $0.1042 in / $0.5208 out per 1M |
 | `gpt-6.1-sol` | Near-Astra performance for complex coding, computer use and professional work at a lower cost. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $10.42 out per 1M |
+| `claude-opus-5-5` | Anthropic Claude Opus 5.5 for long-running agentic coding and knowledge work. 128K max output. Vision, reasoning, tools. Pro plan and up. | 1M | No | $4.167 in / $20.83 out per 1M ($0.2083 cached input) |
+| `claude-sonnet-5-5` | Anthropic Claude Sonnet 5.5, the best combination of speed and intelligence. 128K max output. Vision, reasoning, tools. Pro plan and up. | 1M | No | $2.083 in / $10.42 out per 1M ($0.1042 cached input) |
+| `claude-haiku-5-5` | Anthropic Claude Haiku 5.5 for high-volume, latency-sensitive tasks such as classification, extraction and routing. 128K max output. Vision, reasoning, tools. Pro plan and up. | 1M | No | $0.1042 in / $0.5208 out per 1M ($0.01042 cached input); prompts over 100K tokens (cached tokens included) bill $0.5208 / $2.604 ($0.05208 cached) |
 | `grok-4.3` | xAI Grok 4.3. Reasoning + vision (images of at least 512 pixels in total; smaller returns `400`). Reasoning tokens bill as output. | 200K | No | $3.646 in / $15.63 out per 1M |
 | `DeepSeek-V4-Pro` | Flagship DeepSeek reasoning. Tools. Text-only. | 1M | No | $1.375 in / $4.125 out per 1M |
 | `DeepSeek-V4-Flash` | Fast, affordable DeepSeek reasoning. Tools. | 1M | No | $0.4583 in / $1.375 out per 1M |
