@@ -147,7 +147,7 @@ Send to many recipient sets in one call. Add `messageVersions`, an array where e
 - **Limits** (exceeding any → `422`): ≤99 recipients per version, ≤2000 recipients across the batch (deduped), ≤1000 versions, ≤100 KB per-version `params`, ≤1000 KB `params` across the batch. The 50-recipient single-send cap does **not** apply here; the batch union cap replaces it.
 - **A recipient is delivered by exactly one version, the first.** Versions are processed in array order, and each version delivers only the recipients no earlier version already claimed. If `ada@example.com` appears in version 1 **and** version 2, she receives **version 1's** subject, body and params, and version 2 simply does not send to her at all. This is a delivery outcome, not only a billing rule: repeating an address across versions silently drops the later content. Keep each version's recipient set disjoint.
 - **Billing.** The **deduped union** of recipients across all versions is billed **once** at 30 credits (₹30) per 1,000; a recipient in two versions is billed once, matching the delivery rule above. Suppression, quota, rate and monthly-cap checks are likewise evaluated once, over the union.
-- **A partial failure still returns `202`.** The response `status` is `sent` when **any** version was accepted for delivery; only an all-versions-failed batch returns `502 relay_failed`. `messageIds` carries one id per version in array order **whether or not that version was accepted**, so the response alone cannot tell you which versions failed. To find out, list the sends and read each row's `status`.
+- **A partial failure still returns `202`.** The response `status` is `sent` when **any** version was accepted for delivery; only an all-versions-failed batch returns `503 relay_failed`. `messageIds` carries one id per version in array order **whether or not that version was accepted**, so the response alone cannot tell you which versions failed. To find out, list the sends and read each row's `status`.
 
 A batch returns `202` with `messageIds` (one per version, in order) and a `batchId` grouping the batch's sends; `id` / `messageId` are the first version, and `suppressed` lists the union's suppressed addresses. Look up each send with `GET /api/v1/email/sends`. See [Delivery Log & Usage](/docs/email-logs).
 
@@ -222,6 +222,6 @@ await fetch("https://api.callmissed.com/api/v1/email/send", {
 | 422 | *(schema array `detail`)* | A `scheduledAt` in the past or beyond the 72-hour horizon, over-limit `params`, or a broken batch cross-version rule |
 | 422 | `too_many_recipients` | Over the union limit on a batch |
 | 404 | *(string `detail`)* | `DELETE /scheduled/{identifier}` found nothing pending to cancel |
-| 502 | `relay_failed` | Every version of a batch failed. Flat shape, carries `id` |
+| 503 | `relay_failed` | Every version of a batch failed. Flat shape, carries `id` |
 
 Shapes and the full reason table: [Limits, Quotas & Errors](/docs/email-limits).

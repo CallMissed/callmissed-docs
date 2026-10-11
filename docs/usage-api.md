@@ -100,7 +100,7 @@ Individual request records, newest first.
 | `days` | `integer` | No | `1 <= days <= 90`, default `7`. Ignored when `start` or `end` is present |
 | `start` | `datetime` | No | ISO-8601 UTC |
 | `end` | `datetime` | No | ISO-8601 UTC |
-| `service` | `string` | No | One of `llm`, `stt`, `tts`, `image`, `search`, `embedding`, `bot`, `whatsapp_message`, `whatsapp_call`, `telephony_call` |
+| `service` | `string` | No | One of `llm`, `stt`, `tts`, `image`, `search`, `embedding`, `bot`, `whatsapp_message`, `whatsapp_call`, `telephony_call`, `voice_tier_call` (the flat per-minute charge for a call on a priced voice tier, billed instead of the per-component `stt`/`llm`/`tts` rows) |
 | `model` | `string` | No | At most 255 characters. Exact model id |
 | `api_key_id` | `UUID` | No | Restrict to one key |
 | `status` | `string` | No | `ok` or `error` (`error` means a status code of 400 or above) |

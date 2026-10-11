@@ -168,7 +168,7 @@ Every template route that reaches WhatsApp maps its error to a short, stable mes
 | `404` | The WABA is not on your workspace (`WhatsApp account not found`), or the template no longer exists on WhatsApp |
 | `409` | A template with this name and language already exists, the WABA is disconnected, the WABA has no active phone number, or the template is paused for low quality |
 | `422` | Any other WhatsApp rejection: `WhatsApp rejected this template request. Check the details and try again.` |
-| `502` | WhatsApp itself failed. Retry |
+| `503` | WhatsApp itself failed. Retry |
 
 ### Authentication templates
 

@@ -80,7 +80,7 @@ Send a JSON body.
 | `voice` | string | No | Voice ID — default `shubh` for `bulbul:v3`, `skylar` for `sonic-3.6` (see [Voices](/docs/tts-voices)). An unrecognized voice falls back to the model's default, except on `gpt-4o-mini-tts`, which returns `400` and lists its 13 voices |
 | `language` | string | No | Language code (e.g. `hi-IN`, `ta-IN`; `sonic-3.6` takes base codes like `en`, `hi`). `bulbul:v3` defaults to `en-IN` |
 | `speed` | number | No | Speech speed, default 1.0. Must be 0.25–4.0, then each model clamps to its own range: `bulbul:v3` 0.5–2.0, `gpt-4o-mini-tts` 0.25–4.0, `deepgram-aura-2`/`-1` 0.7–1.5, `sonic-3.6` 0.6–1.5, `gnani-timbre-v2.0` 0.85–1.15. Ignored by `aura-2-en`, `aura-2-es`, `melotts` |
-| `speech_sample_rate` | integer | No | Default 8000. An integer from 8000 to 48000. `bulbul:v3` accepts only 8000, 16000, 22050, 24000, 32000, 44100 or 48000 (anything else is a `400`); Deepgram PCM output snaps to the nearest of 8000, 16000, 24000, 32000 or 48000 |
+| `speech_sample_rate` | integer | No | Output sample rate in Hz, an integer from 8000 to 48000. Leave it out to get each model's own default: `bulbul:v3` 22050, `sonic-3.6` 44100, `gnani-timbre-v2.0` 48000, `deepgram-aura-2` / `deepgram-aura-1` 24000 (8000 for `mulaw` / `alaw`). Send 8000 for phone audio. `bulbul:v3` accepts only 8000, 16000, 22050, 24000, 32000, 44100 or 48000 (anything else is a `400`); Deepgram PCM output snaps to the nearest of 8000, 16000, 24000, 32000 or 48000, and its `mp3` / `opus` / `aac` output has a fixed rate. Ignored by `gpt-4o-mini-tts`, `aura-2-en`, `aura-2-es`, `melotts` |
 | `response_format` | string | No | Default `mp3` — see [Audio Formats](#audio-formats) |
 | `temperature` | number | No | Expressiveness, 0.01–2.0. `bulbul:v3` only — higher is more expressive, lower is more consistent. Defaults to 0.9 (warmer than the model's flat default) |
 | `instructions` | string | No | Natural-language delivery direction — tone, emotion, accent, pacing. `gpt-4o-mini-tts` only. Max 2000 chars. Example: `"Speak slowly and warmly, like you're reassuring someone."` |
@@ -112,7 +112,7 @@ Errors use the OpenAI envelope: `{"error": {"message", "type", "code"}}`.
 | `404` | `model_not_found` | `model` is not a known TTS model ID |
 | `422` | `invalid_request` | Missing or empty `input`, `input` over the model's character limit (see `input` above), or a field with the wrong type or out of range (`speed`, `speech_sample_rate`, `temperature`, `instructions`) |
 | `429` | `quota_exceeded` | Plan usage limit reached |
-| `502` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to synthesize. The response includes a `request_id` |
+| `503` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to synthesize. The response includes a `request_id` |
 
 ## Making speech sound human
 

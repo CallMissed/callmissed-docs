@@ -45,6 +45,8 @@ A campaign is always in exactly one status, and only certain moves are allowed. 
 
 `insufficient_balance` is set for you when the account runs out of credits mid-campaign; you cannot post it. Top up, then move back to `running`.
 
+When the dialer stops a running campaign on its own (no number to call from, the agent or number was removed, or a [TRAI readiness](#trai-readiness-for-ai-calls-india) check failed), it moves the campaign to `paused` and the campaign's `status_reason` says why. `status_reason` is only set while the campaign is `paused` or `insufficient_balance`, and is cleared when you move it back to `scheduled` or `running`. A campaign you paused yourself has `status_reason: null`.
+
 A brand-new campaign is a `draft`, and `draft` cannot jump straight to `running` — go `draft` → `scheduled` → `running`. Contacts can only be added while the campaign is `draft`, `scheduled` or `paused`.
 
 ## Create a campaign
@@ -191,16 +193,18 @@ curl -X POST https://api.callmissed.com/api/v1/voice-campaigns/6d1e.../contacts 
 ```
 
 ```json
-{ "inserted": 2, "skipped_invalid": 0, "total_now": 2 }
+{ "inserted": 2, "skipped_invalid": 0, "skipped_duplicate": 0, "total_now": 2 }
 ```
 
-A row with no usable digits is counted in `skipped_invalid` rather than failing the whole batch. This endpoint does **not** deduplicate — posting the same number twice queues two calls. Adding to a campaign that is `running`, `completed` or `cancelled` returns `409`.
+A row with no usable digits is counted in `skipped_invalid` rather than failing the whole batch. Numbers are deduplicated on their last 10 digits, against the contacts already on the campaign and within the request, so `+919000000001`, `919000000001` and `9000000001` are one person; repeats are counted in `skipped_duplicate` and are not called twice. Adding to a campaign that is `running`, `completed` or `cancelled` returns `409`.
+
+On a campaign whose `timezone` is `Asia/Kolkata` (the default), an Indian mobile written without a leading `+` is saved in international format: `9000000001`, `09000000001` and `919000000001` all become `+919000000001`. A number that starts with `+` is saved as you sent it. In any other timezone, send numbers with their `+` country code.
 
 ### Upload a CSV
 
 `POST /{campaign_id}/contacts/import` · scope `campaigns:write` · `multipart/form-data`
 
-Each row is upserted into your CRM contacts **and** attached to the campaign, deduplicated against the numbers already on it — so re-uploading the same file never queues a second call to the same person.
+Each row is upserted into your CRM contacts **and** attached to the campaign, deduplicated on the last 10 digits against the numbers already on it and earlier in the file — so re-uploading the same file never queues a second call to the same person. Phone numbers are saved the same way as in [Add people to the list](#add-people-to-the-list).
 
 | Form field | Type | Notes |
 |-------|------|-------|
@@ -365,9 +369,7 @@ curl -X POST https://api.callmissed.com/api/v1/voice-campaigns/dnc \
 
 Idempotent: a number already on the list for that channel is counted in `skipped`, not rejected.
 
-`DELETE /dnc/{entry_id}` · scope `campaigns:write` · `204`
-
-Takes a number back off the list. Do this only when the person has asked to hear from you again.
+Taking a number back off the list un-does somebody's opt-out, so it is done by an owner or admin in the [console](https://console.callmissed.com), not with an API key.
 
 ## Errors
 

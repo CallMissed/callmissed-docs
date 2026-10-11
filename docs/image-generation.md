@@ -84,7 +84,7 @@ curl -X POST https://api.callmissed.com/v1/images/generations \
 | `negative_prompt` | string | — | Concepts to avoid (e.g. "lowres, blurry"). At most 4000 characters. `lucid-origin` does not support it and returns `400`. |
 | `seed` | integer | random | Reproducibility, `0`–`2147483647`. Same seed + prompt + model → same image. |
 | `steps` | integer | auto | Denoising steps, 1–50. Higher = slower + more detail. |
-| `reference_images` | string[] | — | Up to 16 base64 PNG/JPEG images (bare base64 or a `data:` URL), each at most 10 MB decoded. The image is produced as an **edit** of these references — e.g. to place your real logo. Requires a `gpt-image-*` model. |
+| `reference_images` | string[] | — | Up to 16 base64 PNG/JPEG images (bare base64 or a `data:` URL), each at most 10 MB decoded. The image is produced as an **edit** of these references — e.g. to place your real logo. Requires a `gpt-image-*` model, `nano-banana-2` or `gemini-3.1-flash-lite-image` (those two take at most 14 images, 7 MB each, 14 MB in total). |
 | `reference_pdf` | string | — | One base64 PDF, at most 10 MB decoded. Its extracted text is added to the prompt as brand context. Requires a `gpt-image-*` model. |
 | `user` | string | — | Your end user's id, for your own records. |
 
@@ -101,7 +101,7 @@ curl -X POST https://api.callmissed.com/v1/images/generations \
 
 `url` is a short-lived signed link — download or re-host it promptly. It is omitted when the image could not be stored, so always fall back to `b64_json`.
 
-`reference_images` and `reference_pdf` work only with `gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2` and `gpt-image-1.5`. With any other model the request fails `422` before any credits are reserved, rather than quietly ignoring your references.
+`reference_images` work only with `gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-2` and `gemini-3.1-flash-lite-image`. The two Google models take at most 14 reference images, each at most 7 MB decoded and 14 MB in total. With any other model, or over those limits, the request fails `422` before any credits are reserved, rather than quietly ignoring your references.
 
 ## Models
 
@@ -169,6 +169,13 @@ Flat per-image price, converted to credits at 1 credit = ₹1 ≈ US$0.0104 (US$
 | `gemini-3.1-flash-lite-image` | $0.035 | 3.36 |
 
 Prices are for a standard-resolution (1K) image.
+
+Reference images add a per-reference charge to **each** generated image on the two
+Google models, which are billed for every reference as input: `nano-banana-2`
+$0.0005833 (0.056 credits) and `gemini-3.1-flash-lite-image` $0.0002917
+(0.028 credits) per reference image. For example, `nano-banana-2` with 3
+references and `n: 2` costs 2 × (6.7 + 3 × 0.056) = 13.736 credits. References
+cost nothing extra on the `gpt-image-*` models.
 
 Credits for the request are reserved before generation and refunded in full if it fails, so a failed generation costs nothing.
 
@@ -248,5 +255,5 @@ curl "https://api.callmissed.com/v1/images/history?limit=20" \
 | 422 | — | Validation failed: prompt length, `n`, `seed`, a malformed or oversized reference, or references sent to a model without an edit surface. |
 | 429 | `quota_exceeded` | Monthly plan cap hit. Upgrade tier. |
 | 429 | `rate_limit_exceeded` / `too_many_concurrent_requests` | Too many requests on this key. Retry with backoff. |
-| 502 | `upstream_error` | The image provider failed. No credits debited — safe to retry. |
+| 503 | `upstream_error` | The image provider failed. No credits debited — safe to retry. |
 | 503 | `model_under_maintenance` | The model is temporarily unavailable; the message names an alternative. |

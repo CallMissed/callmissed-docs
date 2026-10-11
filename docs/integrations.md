@@ -41,7 +41,7 @@ Connecting a **sign-in (OAuth) provider** (Google Calendar & Gmail, Google Sheet
 | `woocommerce` | API key | `{ "site_url", "consumer_key", "consumer_secret" }`: a read-only WooCommerce REST API key | Normalised store URL |
 | `razorpay` | API key | `{ "key_id", "key_secret", "webhook_secret" }`. `key_id` must look like `rzp_live_…` or `rzp_test_…`; `webhook_secret` at least 8 characters. See [Payment requests](/docs/payment-requests) | The `key_id` |
 | `shopify` | Access token, or OAuth in the console | `{ "shop_domain", "access_token" }` (custom-app Admin API token); optional `api_secret_key` | The shop's `myshopify.com` domain |
-| `manual` | API key | Any of `{ "bearer_token", "api_key", "headers" }`, at least one. Used by the `http_request` tool's `connection_id` | (none) |
+| `manual` | API key | Any of `{ "bearer_token", "api_key", "headers" }`, at least one, plus `allowed_hosts` (list of up to 20 bare hostnames, e.g. `["api.example.com"]`) naming the only hosts the credential may be sent to. Used by the `http_request` tool's `connection_id`; a connection without `allowed_hosts` never has its credential attached | (none) |
 | `google_calendar` | OAuth in the console only | — | The Google account email |
 | `google_sheets` | OAuth in the console only | — | The Google account email |
 
