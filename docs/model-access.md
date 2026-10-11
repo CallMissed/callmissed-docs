@@ -39,12 +39,12 @@ GET /api/v1/models/access
         "image": ["flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm"],
         "embedding": ["text-embedding-3-small", "text-embedding-3-large"]
       },
-      "restriction": "Only the models listed here are callable on the free plan. Other models require Starter or higher."
+      "restriction": "Only the models listed here are callable on the free plan. Other models require a paid plan; Claude models require Pro or higher."
     },
     "starter": {
       "models": ["...every model in the catalog"],
       "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
-      "restriction": "All models callable. Per-service monthly call limits apply…"
+      "restriction": "All models callable except Claude models, which need Pro or higher. Per-service monthly call limits apply…"
     },
     "pro": {
       "models": ["..."],
@@ -110,7 +110,7 @@ The free tier includes **27 models**:
 
 `restriction` is a human-readable note — branch on `models` / `by_category`, not on this text.
 
-Every other model — `kimi-k2.5-fast`, `glm-5.3`, `gemma-4-31b`, the `gemini-*` chat models, the first-party OpenAI / xAI / DeepSeek IDs, the realtime voice models, the Deepgram direct line, the other paid speech models, and the paid image models — requires Starter, Pro, or Enterprise.
+Every other model — `kimi-k2.5-fast`, `glm-5.3`, `gemma-4-31b`, the `gemini-*` chat models, the first-party OpenAI / xAI / DeepSeek IDs, the realtime voice models, the Deepgram direct line, the other paid speech models, and the paid image models — requires Starter, Pro, or Enterprise, except the Claude models, which need Pro or higher.
 
 ## Error Handling
 

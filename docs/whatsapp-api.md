@@ -134,7 +134,7 @@ Errors returned by Meta are translated. These are the mappings you will actually
 | `413` | Media file exceeds 100 MB | No, shrink the file |
 | `422` | 24-hour window closed, display name not yet approved by Meta, no call permission from the user, or a generic WhatsApp rejection | No, follow the instruction in `detail` |
 | `429` | Per-user-pair send rate limit, or too many registration attempts in a short window | Yes, with backoff |
-| `502` | WhatsApp returned a server error | Yes |
+| `503` | WhatsApp returned a server error | Yes |
 | `503` | The WhatsApp integration is not configured on this server | No, contact support |
 
 ## Accounts
@@ -197,7 +197,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/accounts/1a2b3c4d-5e6f-7
   -H "Authorization: Bearer cm_your_api_key"
 ```
 
-Returns the updated account object. `404` if the account is not on your workspace, `400` if no number on it has a stored token (reconnect one), `422` if Meta rejected the read, `502` if Meta failed.
+Returns the updated account object. `404` if the account is not on your workspace, `400` if no number on it has a stored token (reconnect one), `422` if Meta rejected the read, `503` if Meta failed.
 
 ### Delete an account
 
@@ -297,7 +297,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/phone_numbers/9c2b7e30-1
   -H "Authorization: Bearer cm_your_api_key"
 ```
 
-Returns the updated phone-number object. `400` if the number has no stored token (reconnect it), `422` if Meta rejected the read, `502` if Meta failed.
+Returns the updated phone-number object. `400` if the number has no stored token (reconnect it), `422` if Meta rejected the read, `503` if Meta failed.
 
 ### Link or unlink a bot
 

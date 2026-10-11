@@ -120,4 +120,4 @@ Errors use the OpenAI envelope: `{"error": {"message", "type", "code"}}`.
 | `403` | `permission_denied` | The key does not have the `stt` permission, or a feature is not available on your plan |
 | `404` | `model_not_found` | `model` is not an accepted model name |
 | `429` | `quota_exceeded` | Plan usage limit reached |
-| `502` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The analysis failed. The response includes a `request_id` |
+| `503` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The analysis failed. The response includes a `request_id` |
