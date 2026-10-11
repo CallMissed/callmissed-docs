@@ -95,6 +95,7 @@ Behaviour per model, as the gateway applies it. Each model's accepted values com
 | --- | --- | --- | --- | --- | --- | --- |
 | `gpt-6-sol`, `gpt-6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-6.1-sol` | ↓ `"low"` | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
+| `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` | ↓ `"low"` | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5.5` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5-mini` | ↓ `"minimal"` | ✅ | ✅ | ✅ | ↓ `"high"` | ✅ |
@@ -128,6 +129,7 @@ Notes worth reading before you rely on a value:
 - On `gpt-6-sol` and `gpt-6-luna`, `temperature` and `top_p` are applied only when `reasoning_effort` is `"none"`; with any other effort they are dropped, because the model accepts only the default sampling while it reasons.
 - On the GPT-5.6 and GPT-6 models, a request that includes `tools` always runs with `reasoning_effort: "none"`, whatever you send — those models cannot combine function tools with reasoning on Chat Completions.
 - `gpt-6.1-sol` always reasons: it accepts `low`/`medium`/`high`/`xhigh` (default `medium`) and cannot switch thinking off, so `"none"` and `"minimal"` are sent as `"low"` and `"max"` is sent as `"xhigh"`.
+- `claude-opus-5-5`, `claude-sonnet-5-5` and `claude-haiku-5-5` (Pro plan and up) accept `low`, `medium`, `high`, `xhigh` and `max`; `"none"` and `"minimal"` are accepted and run as `"low"`. Defaults when you omit it: `medium` on `claude-opus-5-5` and `claude-haiku-5-5`, `high` on `claude-sonnet-5-5`. `temperature`, `top_p` and `top_k` are ignored on these models. Tools can be combined with reasoning (see [function calling](/docs/chat-function-calling)).
 
 Concrete numbers on `kimi-k2.6` answering "What is 2+2?":
 
