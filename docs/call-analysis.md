@@ -94,7 +94,7 @@ The note is written by the conversation agent's configured `model`, or `gpt-oss-
 | `400` | The conversation has no messages yet |
 | `402` | `Insufficient credits`, or `Monthly budget cap reached` |
 | `404` | Conversation not found |
-| `502` | The model failed or returned an unusable note — retry |
+| `503` | The model failed or returned an unusable note — retry |
 
 ### PATCH `/api/v1/calls/{conversation_id}/notes`
 
@@ -136,7 +136,7 @@ Connect HubSpot under **Integrations** in the console first.
 | `400` | Unknown CRM provider |
 | `404` | Conversation not found, or no notes generated yet |
 | `409` | `salesforce`, `zoho` or `pipedrive` (not available yet), or HubSpot is not connected / needs reconnecting |
-| `502` | HubSpot rejected the push |
+| `503` | HubSpot rejected the push |
 
 ---
 
@@ -243,7 +243,7 @@ curl -X POST https://api.callmissed.com/api/v1/calls/c0ffee00-1111-2222-3333-444
 | `402` | Credit balance is zero |
 | `404` | Conversation or scorecard not found |
 | `409` | The conversation has no transcript yet |
-| `502` | The model returned an unreadable response (still billed — retry) |
+| `503` | The model returned an unreadable response (still billed — retry) |
 | `503` | Scoring is temporarily unavailable — retry |
 
 ### GET `/api/v1/calls/{conversation_id}/score`

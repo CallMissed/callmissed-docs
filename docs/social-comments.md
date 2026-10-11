@@ -169,8 +169,7 @@ is never returned):
 | `409` | The account is disconnected, or its access token is unavailable. |
 | `422` | Meta rejected the call — the comment or post may no longer exist. |
 | `429` | Meta is rate-limiting the account. Wait and retry. |
-| `502` | The upstream call failed. |
-| `504` | Meta did not answer in time; the action may not have applied. Check, then retry. |
+| `503` | The upstream call failed, or Meta did not answer in time. After a timeout the action may not have applied. Check, then retry. |
 
 Every endpoint on this page also exists in the legacy account-id-in-path form
 (`GET /api/v1/facebook/{page_uuid}/posts/{post_id}/comments` and siblings), which

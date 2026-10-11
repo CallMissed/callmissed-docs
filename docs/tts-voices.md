@@ -77,7 +77,7 @@ Query params (both listing endpoints): `q` (search, max 200 chars), `language` (
 
 `handle` is set only for the featured aliases below (otherwise `null`); pass either the `id` or the handle as `voice` on `POST /v1/audio/speech`. `preview` is `null` when a voice has no sample. When `has_more` is `true`, pass the last voice's `id` as `starting_after` to fetch the next page.
 
-If the upstream library is briefly unreachable, the first page answers `200` with the featured aliases below and an extra `"degraded": true` field instead of failing, so a voice picker still renders and every returned voice remains usable for synthesis. The field is **absent** on a normal response — treat its presence as "this is the short list, retry later for the full library". A request carrying `starting_after` is not degraded: pagination returns `502` so you keep the page you already have.
+If the upstream library is briefly unreachable, the first page answers `200` with the featured aliases below and an extra `"degraded": true` field instead of failing, so a voice picker still renders and every returned voice remains usable for synthesis. The field is **absent** on a normal response — treat its presence as "this is the short list, retry later for the full library". A request carrying `starting_after` is not degraded: pagination returns `503` so you keep the page you already have.
 
 Featured aliases (stable handles, also valid UUIDs in the library):
 
