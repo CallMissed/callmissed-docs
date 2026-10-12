@@ -44,7 +44,7 @@ curl https://api.callmissed.com/api/v1/email/domains \
 
 Error bodies come in **four** shapes. They are not interchangeable, and a client that always reads `reason` from the same place breaks, most obviously on `relay_failed`, where `reason` sits at the top level rather than under `detail`.
 
-**1. Send rejection: `reason` nested under `detail`.** Everything the send pipeline refuses (every row in the table below except `relay_failed`), plus `403 email_not_enabled`, `422 scheduled_batch_unsupported`, `503 sending_unavailable`, and the `502` from the domain routes:
+**1. Send rejection: `reason` nested under `detail`.** Everything the send pipeline refuses (every row in the table below except `relay_failed`), plus `403 email_not_enabled`, `422 scheduled_batch_unsupported`, `503 sending_unavailable`, and the `503` from the domain routes:
 
 ```json
 {
@@ -55,7 +55,7 @@ Error bodies come in **four** shapes. They are not interchangeable, and a client
 }
 ```
 
-**2. `502 relay_failed`: flat, and it carries an `id`.** This one is **not** wrapped in `detail`. The send row already exists, so the `id` comes back for you to look up with `GET /api/v1/email/sends`:
+**2. `503 relay_failed`: flat, and it carries an `id`.** This one is **not** wrapped in `detail`. The send row already exists, so the `id` comes back for you to look up with `GET /api/v1/email/sends`:
 
 ```json
 {
@@ -65,7 +65,7 @@ Error bodies come in **four** shapes. They are not interchangeable, and a client
 }
 ```
 
-**3. Auth, not-found and conflict: `detail` is a plain string with no `reason` at all.** Covers `401`, the read-only-key `403`, every `404` (domain, template, inbound message, suppression, scheduled send), `409` (duplicate template name, address already claimed), the `400` on a duplicate domain, the `400`s and `422`s on the sender and inbound-address routes, the `502`s from the sender routes, and the `503`s raised when email is not configured:
+**3. Auth, not-found and conflict: `detail` is a plain string with no `reason` at all.** Covers `401`, the read-only-key `403`, every `404` (domain, template, inbound message, suppression, scheduled send), `409` (duplicate template name, address already claimed), the `400` on a duplicate domain, the `400`s and `422`s on the sender and inbound-address routes, the `503`s from the sender routes, and the `503`s raised when email is not configured:
 
 ```json
 { "detail": "A valid API key is required" }
@@ -181,8 +181,8 @@ if (r.status !== 202) {
 | 429 | `rate_limited` | Per-minute request rate for your plan exceeded |
 | 429 | `monthly_cap_exceeded` | Monthly recipient volume for your plan exceeded |
 | 429 | `quota_exceeded` | The domain's daily send quota is exhausted |
-| 502 | `relay_failed` | The message could not be accepted for delivery. Uses the flat shape above |
-| 502 | `provider_unavailable` (older deployments: `acs_unavailable`) | Domain provisioning or verification is temporarily unavailable, retry the domain call. Both strings mean the same thing; match both |
+| 503 | `relay_failed` | The message could not be accepted for delivery. Uses the flat shape above |
+| 503 | `provider_unavailable` (older deployments: `acs_unavailable`) | Domain provisioning or verification is temporarily unavailable, retry the domain call. Both strings mean the same thing; match both |
 | 503 | `sender_propagating` | The `from` address has now been registered as a sender for the domain, but the mail service has not finished propagating it. Retry the send shortly; no further setup is needed. See [Sender Addresses](/docs/email-domains#sender-addresses) |
 | 503 | `sending_unavailable` | Sending is temporarily unavailable |
 

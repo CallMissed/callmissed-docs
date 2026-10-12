@@ -19,7 +19,7 @@ The full walkthrough lives in **[Bring Your Own Telephony → Twilio](/docs/brin
 
 You will need:
 
-- A **Twilio account** (a trial account works for testing).
+- An **upgraded Twilio account**. Twilio only enables SIP trunking after you upgrade, so a free trial account is refused when you connect.
 - A **voice-capable number** in the [Twilio Console](https://console.twilio.com/) (**Phone Numbers → Manage → Buy a number**, with the *Voice* capability).
 - A CallMissed account with the **owner** or **admin** role.
 
