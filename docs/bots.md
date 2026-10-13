@@ -1063,7 +1063,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234
 | `400` | `File exceeds 20MB limit`; `Unsupported file. Use PDF, JPEG or PNG.`; `Give the document a name, e.g. itinerary`; `This agent already has a document named '<name>'`; or `An agent can hold up to 20 documents` |
 | `403` | Key missing `bots:write` |
 | `404` | `Bot not found` |
-| `502` | `The file could not be stored, try again` |
+| `503` | `The file could not be stored, try again` |
 | `503` | `File storage is not configured` |
 
 ## DELETE `/api/v1/bots/{bot_id}/documents/{document_id}`

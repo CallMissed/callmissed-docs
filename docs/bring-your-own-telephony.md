@@ -269,7 +269,7 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/provider-connections/{c
   -d '{"numbers": ["+14155550123", "+14155550124"]}'
 ```
 
-`numbers` takes 1–50 `+E.164` entries; duplicates are collapsed. The response is the imported numbers, in the same shape as `GET /numbers` on the [Telephony API](/docs/telephony-api), with no rental charge. `409` if the connection is not active or a number is already in use (your own clashes are named; a number held elsewhere is only counted). A number that cannot be attached to the trunk at your provider is still imported and works for outbound calls; attach it on the provider's side for inbound.
+`numbers` takes 1–50 `+E.164` entries; duplicates are collapsed. The response is the imported numbers, in the same shape as `GET /numbers` on the [Telephony API](/docs/telephony-api), with no rental charge. `409` if the connection is not active or a number is already in use (your own clashes are named; a number held elsewhere is only counted). A number that cannot be attached to the trunk at your provider is still imported; attach it on the provider's side for inbound. Outbound calls from an imported number are placed over this connection's own outbound trunk, so your provider carries and bills the call leg and CallMissed bills only the AI voice agent. An outbound call from a number whose connection is not active, or has no outbound trunk, is refused with `409`.
 
 ### Restrict inbound calls on a Custom SIP connection
 

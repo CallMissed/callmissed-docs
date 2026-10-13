@@ -308,4 +308,4 @@ curl -X POST https://api.callmissed.com/api/v1/conversations/c0ffee00-1111-2222-
 | `400` | `No messages in this conversation yet — nothing to draft from.` |
 | `403` | Key missing `conversations:write` |
 | `404` | `Conversation not found` |
-| `502` | `AI draft failed; please retry.` or `AI returned an empty draft — please retry.` |
+| `503` | `AI draft failed; please retry.` or `AI returned an empty draft — please retry.` |
