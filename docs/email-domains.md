@@ -78,6 +78,7 @@ The add response returns `domain` (a `DomainOut`), `dns_records` (the exact set 
 
 | Record | Required | Purpose |
 |--------|----------|---------|
+| `TXT` (account ownership) | Yes, until the domain is verified | Published at `_callmissed-verify.your-domain` with a value starting `callmissed-domain-verification=`. Proves the domain belongs to **your** account |
 | `TXT` (ownership) | Yes | A one-off token proving you control the domain |
 | `TXT` (SPF) | Yes | Authorises our sending infrastructure to send for the domain |
 | `CNAME` (DKIM) | Yes | Delegates the DKIM signing key for the domain to us |
@@ -88,7 +89,7 @@ DKIM is **delegated by `CNAME`**, not published as a `TXT` key. The exact host a
 
 **No DMARC record is generated.** DMARC is worth publishing and we recommend it, but you author `_dmarc.your-domain` yourself. It is not in the returned set and not part of verification.
 
-Verification covers **four** checks (domain ownership, SPF, DKIM and DKIM2) and a domain may send only once **all four** report verified. `POST /domains/{id}/verify` returns the refreshed `domain`, `verified` (a single boolean over all four) and a `checks` array with one entry per check, so a partial pass tells you exactly which record has not propagated yet. Each check is a `CheckOut` carrying `name`, `status`, `detail`, and `found` (the values actually seen in DNS, empty when the check is served by the mail service rather than a DNS scan). Propagation is not instant; call verify again until `verified` is `true`.
+Verification covers **five** checks (account ownership, domain ownership, SPF, DKIM and DKIM2) and a domain may send only once **all five** report verified. The account-ownership check appears in `checks` as `ownership`; a domain verified before this check existed keeps working without it. `POST /domains/{id}/verify` returns the refreshed `domain`, `verified` (a single boolean over all checks) and a `checks` array with one entry per check, so a partial pass tells you exactly which record has not propagated yet. Each check is a `CheckOut` carrying `name`, `status`, `detail`, and `found` (the values actually seen in DNS, empty when the check is served by the mail service rather than a DNS scan). Propagation is not instant; call verify again until `verified` is `true`.
 
 A newly verified domain starts on a warm-up quota that rises automatically as it sends clean volume. See [Limits & Quotas](/docs/email-limits).
 
@@ -174,8 +175,9 @@ One important limit: **`sending: true` only resumes a domain you paused yourself
 | 403 | string `detail` | The API key is read-only and this route writes |
 | 404 | `{"detail": "Domain not found"}` | The domain id is not yours |
 | 409 | string `detail` | `PATCH sending=true` on a domain paused automatically for deliverability reasons or never verified, or `sending=false` on a domain that is not verified |
+| 409 | string `detail` | Add or verify a domain that is already verified on another account: `"This domain is verified on another account. Remove it there first, or contact support if you own it."` |
 | 422 | schema array `detail` | An unsupported field in a `PATCH` body |
-| 502 | `reason` nested under `detail` | `provider_unavailable` (older deployments may return `acs_unavailable`; match both): domain provisioning or verification is temporarily unavailable, retry the domain call |
+| 503 | `reason` nested under `detail` | `provider_unavailable` (older deployments may return `acs_unavailable`; match both): domain provisioning or verification is temporarily unavailable, retry the domain call |
 | 503 | string `detail` | `"Domain onboarding is not configured"` |
 
 Every shape is spelled out on [Limits, Quotas & Errors](/docs/email-limits#response-shapes).
@@ -274,7 +276,7 @@ Registering is **idempotent**: it is a create-or-update, so re-registering an ex
 |--------|------|---------|
 | 400 | string `detail` | The domain is not verified yet |
 | 422 | string `detail` | `username` is not a bare local part (it contains `@` or `/`, or is empty) |
-| 502 | string `detail` | The sender list could not be read, or the sender could not be registered or removed. Note this `502` is a plain string, not the `{error, reason}` shape the domain create/verify routes use |
+| 503 | string `detail` | The sender list could not be read, or the sender could not be registered or removed. Note this `503` is a plain string, not the `{error, reason}` shape the domain create/verify routes use |
 
 ### Reply-To
 

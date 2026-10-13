@@ -98,6 +98,8 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 | `webhook_url` | string | — | Max 2048 chars; must be a public `http`/`https` URL (`400` otherwise). Stored with the session. Session events are delivered to your registered [webhook endpoints](#webhook-events), not to this URL |
 | `metadata` | object | — | Arbitrary JSON stored with the session |
 
+A key whose `allowed_models` list excludes a model you name in `llm_model`, `stt_model` or `tts_model` is refused with `403`, the same rule as the LLM gateway. Models you leave out (server defaults) are not checked against the list.
+
 ## Connect the client
 
 Use `ws_url` + `token` returned by create. **Do not** try to open a WebSocket to the CallMissed API — use the `livekit-client` SDK:
@@ -292,6 +294,7 @@ Every WhatsApp template the agent sent during the call or its follow-up, to whic
 | Limit | Value | Behavior on exceed |
 |-------|-------|--------------------|
 | Session create rate | 10 / minute / workspace | HTTP 429 |
+| Model outside the key's `allowed_models` | any `llm_model`, `stt_model` or `tts_model` you name | HTTP 403 |
 | API key spend cap / per-key rate limit | as set on the key | HTTP 402 / HTTP 429 |
 | Concurrent active sessions (free) | 1 | HTTP 429 |
 | Concurrent active sessions (starter) | 5 | HTTP 429 |

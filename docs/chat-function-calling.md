@@ -50,6 +50,13 @@ Set `parallel_tool_calls: true` to allow the model to call multiple tools in one
 
 Up to 128 tools per request. Every model with `supports_tools: true` in [`GET /v1/models`](/docs/models#models-api) accepts them. On the GPT-5.6 and GPT-6 models, a request that sends `tools` runs with reasoning switched off (`reasoning_effort` is sent as `"none"`), because those models cannot combine function tools with reasoning on this endpoint. A request with `tools` never uses the `models` fallback list.
 
+### Claude models
+
+`claude-opus-5-5`, `claude-sonnet-5-5` and `claude-haiku-5-5` (Pro plan and up) accept `tools` with reasoning on. Two things differ from the other models:
+
+- `tool_choice: "required"` or a named function is honoured on `claude-haiku-5-5`. On `claude-opus-5-5` and `claude-sonnet-5-5` it runs as `"auto"`, because those models do not support forced tool use.
+- When a Claude response contains tool calls on `/v1/chat/completions`, the first tool call carries an extra `anthropic_thinking` field holding the model's full turn, including its signed reasoning. Send the assistant message back **unchanged**, including that field, in your next request so the model keeps its reasoning across tool calls. On [`/v1/messages`](/docs/anthropic-api) the same reasoning comes back as standard `thinking` / `redacted_thinking` content blocks; pass them back unchanged.
+
 ## Handling Response
 
 When the model calls a tool, `finish_reason` is `"tool_calls"` and `message.content` is `null`:

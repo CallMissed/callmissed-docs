@@ -590,6 +590,12 @@ the rest with `LatencyReport`.
 | `agent.context.messages` | 100 entries, 60,000 characters |
 | Fallback entries per array | 3 after the primary |
 | Concurrent sessions | Per plan |
+| Models named in `Settings` | Must be inside the key's `allowed_models` list |
+
+A model you name in `Settings` that the key's `allowed_models` list excludes fails
+`Settings` with `INVALID_SETTINGS` ("not allowed for this API key"); the same
+model named in a live update is refused with an `INVALID_UPDATE` warning and the
+session keeps the model it was running. Models you leave out are not checked.
 
 JSON control messages are small; one far larger than any legitimate update is
 dropped with a `MESSAGE_TOO_LARGE` warning. A `Settings` message whose prompt is
