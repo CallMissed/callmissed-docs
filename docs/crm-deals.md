@@ -165,7 +165,7 @@ Newest first.
 | `title` | `string` | Yes | 1–255 characters, not blank |
 | `pipeline_id` | `UUID` | Yes | Must be your pipeline |
 | `stage_id` | `UUID` | No | Must belong to that pipeline. Omit to start at the lowest-position stage |
-| `value` | `number` | No | `0 <= value <= 1e12` |
+| `value` | `number` | No | `0 <= value <= 999999999999.99` |
 | `currency` | `string` | No | Exactly 3 letters, default `INR` |
 | `contact_id` | `UUID` | No | |
 | `company_id` | `UUID` | No | |

@@ -214,7 +214,7 @@ curl -X PATCH https://api.callmissed.com/api/v1/agent-memories/7c9e6679-7425-40d
 | `403` | The key lacks `bots:write`, or the JWT is neither owner nor admin |
 | `404` | No memory with this id in this workspace |
 | `422` | Neither field was sent, `fact` is empty or longer than 160,000 characters, or `memory_type` is not `fact` or `rule` |
-| `502` | The corrected text could not be re-indexed. The memory is unchanged |
+| `503` | The corrected text could not be re-indexed. The memory is unchanged |
 
 Either change keeps the memory's `created_at`, so it stays where it was in the order: correcting a typo never moves a memory into or out of its window. Corrected text is re-indexed in the same step; if that fails, nothing changes.
 
