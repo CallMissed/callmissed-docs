@@ -179,9 +179,13 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/product_list \
 
 When a customer builds a cart from your WhatsApp catalog and sends it, the order is recorded against your workspace. These endpoints read those orders and their line items.
 
-> **Not populated yet.** Inbound cart orders are not written to this store today, so both read endpoints currently return an empty result. The request and response shapes below are stable; use them once order capture is live.
+Orders are created by the customer's action on WhatsApp. There is no create endpoint. Each cart the customer sends becomes one order:
 
-Orders are created by the customer's action on WhatsApp. There is no create endpoint.
+- It starts with status `pending` and no `reference_id`. You set the reference when you first send an order status.
+- It is linked to the customer's contact and conversation, and the cart message also appears in that conversation.
+- `subtotal` is the sum of each item's `quantity` times `item_price`, in the cart's `currency`. `note` is the text the customer sent with the cart.
+- A cart that WhatsApp delivers more than once is stored once.
+- A cart whose items use more than one currency, or that is missing a catalog, product, quantity or price, is not stored as an order. The message still appears in the conversation.
 
 ### Authentication
 

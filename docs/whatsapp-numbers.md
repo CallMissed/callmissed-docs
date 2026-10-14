@@ -33,7 +33,7 @@ Every path below takes CallMissed's ids, never Meta's: `{account_id}` is the `id
 | `422` | The body failed validation, or WhatsApp rejected the request. The `detail` is a short, actionable sentence |
 | `429` | WhatsApp's rate limit for this number or action was reached. Wait, then retry |
 | `500` | The stored credentials for the number could not be read. Reconnect the number |
-| `502` | WhatsApp failed. Retry; contact support if it persists |
+| `503` | WhatsApp failed. Retry; contact support if it persists |
 
 WhatsApp's raw error text and numeric codes are never echoed back. Each failure carries one of our own sentences in `detail`.
 
@@ -95,7 +95,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/accounts/1a2b3c4d-5e6f-7
   -H "Authorization: Bearer cm_your_api_key"
 ```
 
-Returns the account health object above. `409` if no number on the account has a usable business token (reconnect one), `502` if every read failed.
+Returns the account health object above. `409` if no number on the account has a usable business token (reconnect one), `503` if every read failed.
 
 It needs `whatsapp:write` rather than `whatsapp:read` because it spends the account's WhatsApp rate-limit budget and updates stored state.
 

@@ -152,8 +152,25 @@ Up to 3 voices to speak through, in order, if the agent's own voice stops workin
 
 - English text gets English words; Hindi text in Devanagari gets Hindi words in Devanagari ("एक लाख पचास हज़ार रुपये").
 - Links, email addresses and digits joined to letters (`24x7`, `4G`) are left as written. The saved transcript keeps the original digits.
-- Off by default. It has no effect on `sonic-3.6`, `bulbul:v3` and `gnani-timbre-v2.0`, which already read numbers aloud themselves, or on `bulbul:v2` with `tts_preprocessing` on.
+- Off by default. It has no effect on `sonic-3.6`, `bulbul:v3` and `gnani-timbre-v3.0`, which already read numbers aloud themselves.
 - `sonic-3.6` is given the agent's regional language (for example `en-IN` or `hi-IN`, not just `en` or `hi`), so it reads amounts and dates the way that region does.
+
+### Expressive audio tags on Gnani Timbre v3
+
+When an agent speaks with `gnani-timbre-v3.0`, the agent adds a few [audio tags](/docs/text-to-speech#gnani-timbre-v3-audio-tags) to its own replies: pauses, a sigh, an exhale, a laugh or giggle, or an excited tone. It uses them sparingly, and never when the call is about money owed, a complaint, health or bad news. Other voices never receive tags, and you do not need to write them into your prompt.
+
+You control this per agent, in its `config` (with [`PATCH /api/v1/bots/{bot_id}/config`](/docs/bots)) or on the console's **Speech** page:
+
+| Key | Type | Default | What it does |
+|-----|------|---------|--------------|
+| `tts_audio_tags` | boolean | `true` | `false` turns the sounds off: the agent writes plain replies and any tag is removed before it is spoken. |
+| `tts_audio_tag_set` | array of tag names | `["pauses", "sigh", "exhales", "laugh", "giggle", "excited"]` | The sounds the agent may use, from the 13 tags above. Only these are taught to the agent, and any other tag is removed before it is spoken. `[]` means none. |
+| `tts_audio_tag_frequency` | string | `"normal"` | How often a sound may be used: `"rare"` (at most one reply in five, one sound), `"normal"` (one reply in three, up to two sounds) or `"often"` (any reply, up to three sounds). Enforced on every reply: a sound over the limit is removed and its words are kept. |
+| `tts_speed` | number | `1.0` | Speaking pace, `0.85`–`1.15`. |
+
+```json
+{ "values": { "tts_audio_tag_set": ["pauses", "sigh"], "tts_audio_tag_frequency": "rare", "tts_speed": 0.95 } }
+```
 
 ## Turn-taking and speech-to-speech tuning
 

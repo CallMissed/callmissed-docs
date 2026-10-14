@@ -95,6 +95,7 @@ Behaviour per model, as the gateway applies it. Each model's accepted values com
 | --- | --- | --- | --- | --- | --- | --- |
 | `gpt-6-sol`, `gpt-6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-6.1-sol` | ↓ `"low"` | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
+| `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` | ↓ `"low"` | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5.5` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5-mini` | ↓ `"minimal"` | ✅ | ✅ | ✅ | ↓ `"high"` | ✅ |
@@ -110,6 +111,7 @@ Behaviour per model, as the gateway applies it. Each model's accepted values com
 | `glm-5.2` | ✅ off | ↓ `"high"` | ↓ `"high"` | ✅ | ↓ `"max"` | ✅ off |
 | `sarvam-105b`, `sarvam-105b-conversations` | ✅ off | ✅ | ⊘ default | ✅ | ↓ `"max"` | ✅ off |
 | `glm-5.3` | ↓ `"low"` | ✅ | ↓ `"high"` | ✅ | ↓ `"max"` | ↓ `"low"` |
+| `deepseek-v4.1-flash` | ↓ `"low"` | ✅ | ↓ `"high"` | ✅ | ↓ `"max"` | ↓ `"low"` |
 | `gemma-4-31b` | ✅ off | ✅ | ✅ | ✅ | ↓ `"high"` | ↓ `"none"` |
 | `kimi-k2.7-code`, `mistral-small-3.1` | ⊘ | ⊘ | ⊘ | ⊘ | ⊘ | ⊘ |
 
@@ -121,6 +123,7 @@ Notes worth reading before you rely on a value:
 - `glm-5.2` accepts `"max"` (its default), `"high"` and off. `"low"` and `"medium"` run as `"high"`, and `"xhigh"` as `"max"`. `DeepSeek-V4-Pro` and `DeepSeek-V4-Flash` accept `"max"`, `"high"` (default), `"low"` and `"none"`. `kimi-k2.6` has two levels, `"high"` (default) and `"none"`, so every other value runs as `"high"`. Send `"max"` directly where the model has it.
 - `nemotron-3-super` takes no `reasoning_effort` field upstream. `"low"`, `"none"` and `"minimal"` switch it to its low-effort reasoning mode. Higher values leave its default reasoning on. It has no full off switch through this API.
 - `sarvam-105b` and `sarvam-105b-conversations` switch thinking fully off for `"none"` and `"minimal"`. Their levels are `"low"`, `"high"` and `"max"`; `"medium"` is not one of them, so it is dropped and the model runs at its own default. When you omit `max_tokens` on a Sarvam model we send 4,096 (16,384 for `glm-5.3`), because thinking tokens count toward the limit and the upstream default of 2,048 cut answers short.
+- `deepseek-v4.1-flash` always reasons and defaults to its highest level, `"max"`. Its levels are `"low"`, `"high"` and `"max"`, mapped as in the table. Reasoning tokens share the `max_tokens` budget, so raise `max_tokens` or lower the effort if answers come back short.
 - `glm-5.3` always reasons and defaults to its highest level, `"max"`. Send `"low"` when latency matters: in our tests it cut time to first word from about 3.5s to about 0.9s. `gemma-4-31b` does not think unless asked. Any of `"low"`, `"medium"` or `"high"` switches thinking on (in our tests it did not track the level), and `"none"` or `"minimal"` keep it off at about 0.25s to first word.
 - `kimi-k2.7-code`, `mistral-small-3.1`, `gpt-4o`, `gpt-4.1` and `grok-4.3` take no reasoning control through this API. Every value is dropped and the request still returns 200. `kimi-k2.7-code` always thinks and returns its trace in `reasoning_content`.
 - The `gemini-*` models map `reasoning_effort` onto their own thinking levels. They have no full off switch: `"none"` gives the lowest level the model accepts.
@@ -128,6 +131,7 @@ Notes worth reading before you rely on a value:
 - On `gpt-6-sol` and `gpt-6-luna`, `temperature` and `top_p` are applied only when `reasoning_effort` is `"none"`; with any other effort they are dropped, because the model accepts only the default sampling while it reasons.
 - On the GPT-5.6 and GPT-6 models, a request that includes `tools` always runs with `reasoning_effort: "none"`, whatever you send — those models cannot combine function tools with reasoning on Chat Completions.
 - `gpt-6.1-sol` always reasons: it accepts `low`/`medium`/`high`/`xhigh` (default `medium`) and cannot switch thinking off, so `"none"` and `"minimal"` are sent as `"low"` and `"max"` is sent as `"xhigh"`.
+- `claude-opus-5-5`, `claude-sonnet-5-5` and `claude-haiku-5-5` (Pro plan and up) accept `low`, `medium`, `high`, `xhigh` and `max`; `"none"` and `"minimal"` are accepted and run as `"low"`. Defaults when you omit it: `medium` on `claude-opus-5-5` and `claude-haiku-5-5`, `high` on `claude-sonnet-5-5`. `temperature`, `top_p` and `top_k` are ignored on these models. Tools can be combined with reasoning (see [function calling](/docs/chat-function-calling)).
 
 Concrete numbers on `kimi-k2.6` answering "What is 2+2?":
 
