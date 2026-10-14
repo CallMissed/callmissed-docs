@@ -11,9 +11,9 @@ Convert text to natural-sounding speech — Indic, English and multilingual TTS 
 
 ## Overview
 
-The Text to Speech API converts text into audio with any of **9 TTS models**. The default, `bulbul:v3`, has 37 voices across 11 Indian languages.
+The Text to Speech API converts text into audio with any of **10 TTS models**. The default, `bulbul:v3`, has 37 voices across 11 Indian languages. `bulbul:v4-flash` is a lower-latency, lower-cost alternative with 222 persona voices across 9 Indian languages and Hinglish.
 
-Four models are on the **free tier**: `bulbul:v3`, `aura-2-en`, `aura-2-es` and `melotts`.
+Five models are on the **free tier**: `bulbul:v3`, `bulbul:v4-flash`, `aura-2-en`, `aura-2-es` and `melotts`.
 
 **Endpoint:** `POST /v1/audio/speech`
 
@@ -75,14 +75,14 @@ Send a JSON body.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `input` | string | Yes | Text to synthesize, up to 4096 characters. Some models accept less: `bulbul:v3` 2500, `bulbul:v2` 1500, `deepgram-aura-2` / `deepgram-aura-1` 2000 |
-| `model` | string | No | Default `bulbul:v3`. One of `bulbul:v3`, `sonic-3.6`, `gnani-timbre-v2.0`, `deepgram-aura-2`, `deepgram-aura-1`, `aura-2-en`, `aura-2-es`, `gpt-4o-mini-tts`, `melotts` — see [Models](/docs/models) |
-| `voice` | string | No | Voice ID — default `shubh` for `bulbul:v3`, `skylar` for `sonic-3.6` (see [Voices](/docs/tts-voices)). An unrecognized voice falls back to the model's default, except on `gpt-4o-mini-tts`, which returns `400` and lists its 13 voices |
-| `language` | string | No | Language code (e.g. `hi-IN`, `ta-IN`; `sonic-3.6` takes base codes like `en`, `hi`). `bulbul:v3` defaults to `en-IN` |
-| `speed` | number | No | Speech speed, default 1.0. Must be 0.25–4.0, then each model clamps to its own range: `bulbul:v3` 0.5–2.0, `gpt-4o-mini-tts` 0.25–4.0, `deepgram-aura-2`/`-1` 0.7–1.5, `sonic-3.6` 0.6–1.5, `gnani-timbre-v2.0` 0.85–1.15. Ignored by `aura-2-en`, `aura-2-es`, `melotts` |
-| `speech_sample_rate` | integer | No | Default 8000. An integer from 8000 to 48000. `bulbul:v3` accepts only 8000, 16000, 22050, 24000, 32000, 44100 or 48000 (anything else is a `400`); Deepgram PCM output snaps to the nearest of 8000, 16000, 24000, 32000 or 48000 |
+| `input` | string | Yes | Text to synthesize, up to 4096 characters. Some models accept less: `bulbul:v3` 2500, `bulbul:v4-flash` 2500, `bulbul:v2` 1500, `deepgram-aura-2` / `deepgram-aura-1` 2000 |
+| `model` | string | No | Default `bulbul:v3`. One of `bulbul:v3`, `bulbul:v4-flash`, `sonic-3.6`, `gnani-timbre-v2.0`, `deepgram-aura-2`, `deepgram-aura-1`, `aura-2-en`, `aura-2-es`, `gpt-4o-mini-tts`, `melotts` — see [Models](/docs/models) |
+| `voice` | string | No | Voice ID — default `shubh` for `bulbul:v3`, `shubh_enhi_ads` for `bulbul:v4-flash` (v3 names such as `shubh` are not valid there), `skylar` for `sonic-3.6` (see [Voices](/docs/tts-voices)). An unrecognized voice falls back to the model's default, except on `gpt-4o-mini-tts`, which returns `400` and lists its 13 voices |
+| `language` | string | No | Language code (e.g. `hi-IN`, `ta-IN`; `sonic-3.6` takes base codes like `en`, `hi`). `bulbul:v3` defaults to `en-IN`. `bulbul:v4-flash` covers `hi-IN`, `en-IN`, `bn-IN`, `gu-IN`, `kn-IN`, `mr-IN`, `pa-IN`, `ta-IN` and `te-IN`; `ml-IN` and `od-IN` are not available on it and return `400` (use `bulbul:v3`) |
+| `speed` | number | No | Speech speed, default 1.0. Must be 0.25–4.0, then each model clamps to its own range: `bulbul:v3` and `bulbul:v4-flash` 0.5–2.0, `gpt-4o-mini-tts` 0.25–4.0, `deepgram-aura-2`/`-1` 0.7–1.5, `sonic-3.6` 0.6–1.5, `gnani-timbre-v2.0` 0.85–1.15. Ignored by `aura-2-en`, `aura-2-es`, `melotts` |
+| `speech_sample_rate` | integer | No | Output sample rate in Hz, an integer from 8000 to 48000. Leave it out to get each model's own default: `bulbul:v3` and `bulbul:v4-flash` 22050, `sonic-3.6` 44100, `gnani-timbre-v2.0` 48000, `deepgram-aura-2` / `deepgram-aura-1` 24000 (8000 for `mulaw` / `alaw`). Headerless `pcm` carries no rate, so it defaults to 8000 on every model. Send 8000 for phone audio. `bulbul:v3` accepts only 8000, 16000, 22050, 24000, 32000, 44100 or 48000 and `bulbul:v4-flash` only 8000, 16000, 22050 or 24000 (anything else is a `400`); Deepgram PCM output snaps to the nearest of 8000, 16000, 24000, 32000 or 48000, and its `mp3` / `opus` / `aac` output has a fixed rate. Ignored by `gpt-4o-mini-tts`, `aura-2-en`, `aura-2-es`, `melotts` |
 | `response_format` | string | No | Default `mp3` — see [Audio Formats](#audio-formats) |
-| `temperature` | number | No | Expressiveness, 0.01–2.0. `bulbul:v3` only — higher is more expressive, lower is more consistent. Defaults to 0.9 (warmer than the model's flat default) |
+| `temperature` | number | No | Expressiveness. `bulbul:v3` and `bulbul:v4-flash` only — higher is more expressive, lower is more consistent. The model's range is 0.01–1.0; values up to 2.0 are accepted and applied as 1.0, above 2.0 is a 422. Ignored by `bulbul:v2` and other models. Defaults to 0.9 (warmer than the model's flat default) |
 | `instructions` | string | No | Natural-language delivery direction — tone, emotion, accent, pacing. `gpt-4o-mini-tts` only. Max 2000 chars. Example: `"Speak slowly and warmly, like you're reassuring someone."` |
 | `humanize` | boolean | No | Default `true`. Shapes your text for natural speech before synthesis — strips markdown and emoji, speaks URLs and emails as words, groups long digit runs into readable chunks. Set `false` to synthesize your text byte-for-byte |
 | `stream` | boolean | No | `deepgram-aura-2` / `deepgram-aura-1` only — stream audio as it's generated (lower time-to-first-byte) |
@@ -91,9 +91,11 @@ Send a JSON body.
 
 `response_format` accepts `mp3`, `opus`, `aac`, `flac`, `wav` or `pcm`, but not every model can produce every format. The `Content-Type` response header always describes the audio actually returned, so read it rather than assuming the format you asked for.
 
+`pcm` is headerless 16-bit PCM (`audio/pcm`; `sonic-3.6` and `gnani-timbre-v2.0` also accept the name `raw`), and headerless G.711 is labelled `audio/mulaw` / `audio/alaw`. Audio that arrives in a WAV container is labelled `audio/wav`, as buffered `mulaw` / `alaw` from `deepgram-aura-*` do; use `stream: true` for headerless G.711.
+
 | Model | Formats honoured | Otherwise returns |
 |-------|------------------|-------------------|
-| `bulbul:v3` | — | Always WAV |
+| `bulbul:v3`, `bulbul:v4-flash` | `mp3`, `aac`, `flac`, `wav`, `pcm`, when `response_format` is sent | WAV (including for `opus`, `mulaw`, `alaw`, and when `response_format` is left out) |
 | `aura-2-en`, `aura-2-es`, `melotts` | — | Always MP3 |
 | `gpt-4o-mini-tts` | `mp3`, `opus`, `aac`, `flac`, `wav`, `pcm` | MP3 |
 | `deepgram-aura-2`, `deepgram-aura-1` | `mp3`, `opus`, `aac`, `flac`, `wav`, `pcm`, plus `mulaw` / `alaw` | WAV |
@@ -112,7 +114,7 @@ Errors use the OpenAI envelope: `{"error": {"message", "type", "code"}}`.
 | `404` | `model_not_found` | `model` is not a known TTS model ID |
 | `422` | `invalid_request` | Missing or empty `input`, `input` over the model's character limit (see `input` above), or a field with the wrong type or out of range (`speed`, `speech_sample_rate`, `temperature`, `instructions`) |
 | `429` | `quota_exceeded` | Plan usage limit reached |
-| `502` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to synthesize. The response includes a `request_id` |
+| `503` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to synthesize. The response includes a `request_id` |
 
 ## Making speech sound human
 
@@ -127,7 +129,7 @@ Naturalness comes from three places, in order of impact:
 curl -X POST https://api.callmissed.com/v1/audio/speech \
   -H "Authorization: Bearer cm_your_key" \
   -H "Content-Type: application/json" \
-  -d '{"model": "bulbul:v3", "input": "Bilkul, main abhi check karta hoon.", "voice": "shubh", "temperature": 1.1}' \
+  -d '{"model": "bulbul:v3", "input": "Bilkul, main abhi check karta hoon.", "voice": "shubh", "temperature": 1.0}' \
   --output speech.mp3
 
 # gpt-4o-mini-tts — direct the performance in plain language
@@ -152,7 +154,7 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 |------|-----|
 | Most natural conversational speech | `sonic-3.6` — 44 languages, native-quality Hindi, sub-90ms first audio |
 | Direct the emotion in words | `gpt-4o-mini-tts` with `instructions` |
-| Indian languages, warm delivery | `bulbul:v3` with `temperature` 0.9–1.2 |
+| Indian languages, warm delivery | `bulbul:v3` with `temperature` 0.9–1.0 |
 | Pauses and hesitation in text | `deepgram-aura-2` (90 voices, many tagged expressive/cheerful) |
 | Lowest cost | `melotts` — no expressive controls; rely on `humanize` |
 
@@ -161,6 +163,8 @@ curl -X POST https://api.callmissed.com/v1/audio/speech \
 For `deepgram-aura-2` and `deepgram-aura-1`, set `"stream": true` to receive audio frames as they're synthesized, as a chunked HTTP response. Ideal for real-time playback where you want the first audio bytes as fast as possible.
 
 Streaming supports **raw encodings only** — `response_format` must be `linear16` (or `pcm`/`wav`), `mulaw`, or `alaw`. Compressed formats (`mp3`, `opus`, `aac`, `flac`) cannot be streamed; if you request one with `stream:true`, the full audio is returned in one buffered response instead.
+
+Streamed audio is headerless and its `Content-Type` carries the sample rate, for example `audio/l16;rate=24000` for `linear16` / `pcm` / `wav` (Deepgram's label; the samples are 16-bit **little-endian**, not the network byte order RFC 2586 assumes for L16), or `audio/mulaw;rate=8000` / `audio/alaw;rate=8000`.
 
 ```bash [cURL]
 curl -N -X POST https://api.callmissed.com/v1/audio/speech \

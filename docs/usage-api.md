@@ -100,7 +100,7 @@ Individual request records, newest first.
 | `days` | `integer` | No | `1 <= days <= 90`, default `7`. Ignored when `start` or `end` is present |
 | `start` | `datetime` | No | ISO-8601 UTC |
 | `end` | `datetime` | No | ISO-8601 UTC |
-| `service` | `string` | No | One of `llm`, `stt`, `tts`, `image`, `search`, `embedding`, `bot`, `whatsapp_message`, `whatsapp_call`, `telephony_call` |
+| `service` | `string` | No | One of `llm`, `stt`, `tts`, `image`, `search`, `embedding`, `bot`, `whatsapp_message`, `whatsapp_call`, `telephony_call`, `voice_tier_call` (the flat per-minute charge for a call on a priced voice tier, billed instead of the per-component `stt`/`llm`/`tts` rows) |
 | `model` | `string` | No | At most 255 characters. Exact model id |
 | `api_key_id` | `UUID` | No | Restrict to one key |
 | `status` | `string` | No | `ok` or `error` (`error` means a status code of 400 or above) |
@@ -169,6 +169,8 @@ On `POST /v1/messages`, put `trace_id` and/or `session_id` (each at most 64 char
 ```
 
 On `/v1/chat/completions` and `/v1/responses` the `metadata`, `trace_id` and `session_id` fields are accepted and validated but are **not yet recorded** on the usage row, so those rows show `null` for both ids. Attribute that traffic with a separate API key per customer and filter by `api_key_id`.
+
+Text-to-speech rows (`POST /v1/audio/speech`) record the audio settings in `metadata` (the CSV's `metadata_json` column): `response_format` as you sent it, `speech_sample_rate` as you sent it (`null` when omitted), and `sample_rate_sent`, the rate passed to the model (`null` when the model's own default applied or the model takes no rate). Like the rest of `metadata`, they are stored only when request logging is on for the key.
 
 ## GET `/v1/usage/logs.csv`
 

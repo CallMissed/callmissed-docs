@@ -478,7 +478,7 @@ curl "https://api.callmissed.com/api/v1/bots/config-schema?bot_type=inbound_call
       "summary": "The model that speaks the agent's replies.",
       "default": "bulbul:v3",
       "if_omitted": "Falls back to the Indic-tuned default voice, which sounds wrong on an English line.",
-      "allowed_values": ["aura-2-en", "aura-2-es", "bulbul:v2", "bulbul:v3", "deepgram-aura-1", "deepgram-aura-2", "gnani-timbre-v2.0", "gpt-4o-mini-tts", "melotts", "sonic-3.6"],
+      "allowed_values": ["aura-2-en", "aura-2-es", "bulbul:v2", "bulbul:v3", "bulbul:v4-flash", "deepgram-aura-1", "deepgram-aura-2", "gnani-timbre-v2.0", "gpt-4o-mini-tts", "melotts", "sonic-3.6"],
       "values_depend_on": null,
       "bounds": null,
       "validated_on_write": false
@@ -1063,7 +1063,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234
 | `400` | `File exceeds 20MB limit`; `Unsupported file. Use PDF, JPEG or PNG.`; `Give the document a name, e.g. itinerary`; `This agent already has a document named '<name>'`; or `An agent can hold up to 20 documents` |
 | `403` | Key missing `bots:write` |
 | `404` | `Bot not found` |
-| `502` | `The file could not be stored, try again` |
+| `503` | `The file could not be stored, try again` |
 | `503` | `File storage is not configured` |
 
 ## DELETE `/api/v1/bots/{bot_id}/documents/{document_id}`

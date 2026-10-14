@@ -31,20 +31,20 @@ GET /api/v1/models/access
 {
   "plans": {
     "free": {
-      "models": ["sarvam-105b", "sarvam-105b-conversations", "kimi-k2.5", "kimi-k2.6", "kimi-k2.7-code", "glm-4.7-flash", "glm-5.2", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1", "saaras:v3", "saaras:v4", "whisper-large-v3-turbo", "nova-3", "bulbul:v3", "aura-2-en", "aura-2-es", "melotts", "flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm", "text-embedding-3-small", "text-embedding-3-large"],
+      "models": ["sarvam-105b", "sarvam-105b-conversations", "kimi-k2.5", "kimi-k2.6", "kimi-k2.7-code", "glm-4.7-flash", "glm-5.2", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1", "saaras:v3", "saaras:v4", "whisper-large-v3-turbo", "nova-3", "bulbul:v3", "bulbul:v4-flash", "aura-2-en", "aura-2-es", "melotts", "flux-2-klein-9b", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm", "text-embedding-3-small", "text-embedding-3-large"],
       "by_category": {
         "llm": ["sarvam-105b", "sarvam-105b-conversations", "kimi-k2.5", "kimi-k2.6", "kimi-k2.7-code", "glm-4.7-flash", "glm-5.2", "gpt-oss-120b", "nemotron-3-super", "gemma-4-26b-a4b-it", "mistral-small-3.1"],
         "stt": ["saaras:v3", "saaras:v4", "whisper-large-v3-turbo", "nova-3"],
-        "tts": ["bulbul:v3", "aura-2-en", "aura-2-es", "melotts"],
-        "image": ["flux-2-klein-9b", "flux-2-dev", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm"],
+        "tts": ["bulbul:v3", "bulbul:v4-flash", "aura-2-en", "aura-2-es", "melotts"],
+        "image": ["flux-2-klein-9b", "lucid-origin", "phoenix-1.0", "sdxl-lightning", "dreamshaper-8-lcm"],
         "embedding": ["text-embedding-3-small", "text-embedding-3-large"]
       },
-      "restriction": "Only the models listed here are callable on the free plan. Other models require Starter or higher."
+      "restriction": "Only the models listed here are callable on the free plan. Other models require a paid plan; Claude models require Pro or higher."
     },
     "starter": {
       "models": ["...every model in the catalog"],
       "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
-      "restriction": "All models callable. Per-service monthly call limits apply…"
+      "restriction": "All models callable except Claude models, which need Pro or higher. Per-service monthly call limits apply…"
     },
     "pro": {
       "models": ["..."],
@@ -104,13 +104,13 @@ The free tier includes **27 models**:
 |----------|--------|
 | LLM (11) | `sarvam-105b`, `sarvam-105b-conversations`, `kimi-k2.5`, `kimi-k2.6`, `kimi-k2.7-code`, `glm-4.7-flash`, `glm-5.2`, `gpt-oss-120b`, `nemotron-3-super`, `gemma-4-26b-a4b-it`, `mistral-small-3.1` |
 | STT (4) | `saaras:v3`, `saaras:v4`, `whisper-large-v3-turbo`, `nova-3` |
-| TTS (4) | `bulbul:v3`, `aura-2-en`, `aura-2-es`, `melotts` |
-| Image (6) | `flux-2-klein-9b`, `flux-2-dev`, `lucid-origin`, `phoenix-1.0`, `sdxl-lightning`, `dreamshaper-8-lcm` |
+| TTS (5) | `bulbul:v3`, `bulbul:v4-flash`, `aura-2-en`, `aura-2-es`, `melotts` |
+| Image (5) | `flux-2-klein-9b`, `lucid-origin`, `phoenix-1.0`, `sdxl-lightning`, `dreamshaper-8-lcm` |
 | Embedding (2) | `text-embedding-3-small`, `text-embedding-3-large` |
 
 `restriction` is a human-readable note — branch on `models` / `by_category`, not on this text.
 
-Every other model — `kimi-k2.5-fast`, `glm-5.3`, `gemma-4-31b`, the `gemini-*` chat models, the first-party OpenAI / xAI / DeepSeek IDs, the realtime voice models, the Deepgram direct line, the other paid speech models, and the paid image models — requires Starter, Pro, or Enterprise.
+Every other model — `kimi-k2.5-fast`, `glm-5.3`, `deepseek-v4.1-flash`, `gemma-4-31b`, the `gemini-*` chat models, the first-party OpenAI / xAI / DeepSeek IDs, the realtime voice models, the Deepgram direct line, the other paid speech models, and the paid image models — requires Starter, Pro, or Enterprise, except the Claude models, which need Pro or higher.
 
 ## Error Handling
 

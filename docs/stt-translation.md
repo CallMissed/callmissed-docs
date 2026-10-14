@@ -83,7 +83,7 @@ curl -X POST https://api.callmissed.com/v1/audio/translations \
 | `temperature` | float | No | 0–2. Accepted for OpenAI SDK compatibility; currently not forwarded to the model |
 | `prompt` | string | No | Accepted for OpenAI SDK compatibility; currently not forwarded to the model |
 
-Errors match [Speech to Text](/docs/speech-to-text#errors): `400` empty file, `402` insufficient credits, `403` missing `stt` permission or model not on your plan, `404` unknown model, `422` invalid form field, `429` plan limit, `502` model failure.
+Errors match [Speech to Text](/docs/speech-to-text#errors): `400` empty file, `402` insufficient credits, `403` missing `stt` permission or model not on your plan, `404` unknown model, `422` invalid form field, `429` plan limit, `503` model failure.
 
 ## Response Formats
 

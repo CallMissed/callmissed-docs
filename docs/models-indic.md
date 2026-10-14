@@ -87,3 +87,15 @@ Five output modes on one model — standard transcription, English translation, 
 - **Endpoint:** `POST /v1/audio/speech`
 
 Default voice: `shubh`. See the [Voices](/docs/tts-voices) page for the full list.
+
+### bulbul:v4-flash
+
+- **Voices:** 222 persona voices
+- **Languages:** 9 (`hi-IN`, `en-IN`, `bn-IN`, `gu-IN`, `kn-IN`, `mr-IN`, `pa-IN`, `ta-IN`, `te-IN`) plus Hinglish; no Malayalam or Odia
+- **Max input:** 2,500 characters per request
+- **Audio codecs:** WAV, MP3, FLAC, AAC, PCM
+- **Pace:** 0.5–2.0 (maps to `speed` parameter)
+- **Sample rates:** 8000, 16000, 22050, 24000 Hz
+- **Endpoint:** `POST /v1/audio/speech`
+
+Default voice: `shubh_enhi_ads`. Voice IDs follow `<name>_<language>_<style>`; `bulbul:v3` names such as `shubh` are not valid here. See the [Voices](/docs/tts-voices) page for the full list.

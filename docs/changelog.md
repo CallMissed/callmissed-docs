@@ -11,6 +11,30 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## October 2026
 
+### New models: DeepSeek V4.1 Flash and Bulbul V4 Flash
+
+- **`deepseek-v4.1-flash`** — a 1M-token reasoning model with tool calling and text-only input. It always reasons: `reasoning_effort` takes `"low"`, `"high"` or `"max"` (the default). Pricing per 1M tokens is $0.427 in / $1.771 out ($0.0104 cached input). Paid plans only.
+- **`bulbul:v4-flash`** — low-latency Indic text to speech with 222 persona voices (`<name>_<language>_<style>`, default `shubh_enhi_ads`) across 9 Indian languages and Hinglish, at $0.2083 per 10K characters. It is on the free tier. Input is capped at 2,500 characters. `ml-IN` and `od-IN` are not available on it; use `bulbul:v3`.
+- The catalogue is now 140 models and the free tier is 27.
+
+### flux-2-dev removed
+
+- `flux-2-dev` has been removed: every request to it was failing upstream. `POST /v1/images/generations` with `"model": "flux-2-dev"` now returns `404` with code `model_not_found`. Use `flux-2-klein-9b`, which is also free. `nano-banana-2` and `flux-1.1-pro` now fall back to `flux-2-klein-9b`. The free tier is 26 models (5 image). Past images and usage records are unchanged.
+
+### Nova Sonic models removed
+
+- `nova-sonic-2` and `nova-sonic` have been removed from the catalog. `GET /api/v1/models` no longer lists them, and a voice session that names either returns `422`. Use `gpt-realtime-2.1-mini` for speech-to-speech. An agent still configured with either model keeps answering calls on the standard STT, LLM and TTS pipeline; past usage and session cost records are unchanged.
+
+### Upstream failures now return 503 with Retry-After
+
+- Failures of a model or channel behind the API, and gateway timeouts, now return `503` (with a `Retry-After` header) instead of `502` or `504`. Our CDN replaces an origin `502` or `504` with its own HTML error page, so your client never saw the JSON error body or its reason code. Reason codes and retry advice are unchanged: only the status moved. A timeout that may have applied the action (for example a social action or a Facebook publish) is still ambiguous, so check before retrying. See [Errors](/docs/errors).
+
+### New models: Claude Opus 5.5, Sonnet 5.5 and Haiku 5.5
+
+- **`claude-opus-5-5`**, **`claude-sonnet-5-5`** and **`claude-haiku-5-5`** — Anthropic's Claude 5.5 family, available on the Pro plan and higher (free and Starter keys get `403 model_not_available`). 1M context, 128K max output, text + image input, reasoning and tool calling.
+- **Pricing per 1M tokens** — Opus $4.167 in / $20.83 out ($0.2083 cached input); Sonnet $2.083 in / $10.42 out ($0.1042 cached); Haiku $0.1042 in / $0.5208 out ($0.01042 cached), rising to $0.5208 / $2.604 ($0.05208 cached) for prompts over 100K tokens.
+- **`reasoning_effort`** — accepts `low`, `medium`, `high`, `xhigh` and `max`; `none` and `minimal` run as `low`. `temperature`, `top_p` and `top_k` are ignored. See [API speed](/docs/api-speed) and [function calling](/docs/chat-function-calling) for the `anthropic_thinking` field to send back with tool calls.
+
 ### Nova Sonic models under maintenance
 
 - `nova-sonic-2` and `nova-sonic` are under maintenance: `POST /v1/voice/sessions` returns `503` with a message naming the alternative, and `GET /api/v1/models` shows `status: "maintenance"`. Use `gpt-realtime-2.1-mini` for speech-to-speech. An agent still configured with either model keeps answering calls on the standard STT, LLM and TTS pipeline.
@@ -28,9 +52,9 @@ Latest updates, new features, and improvements to the CallMissed API.
 - **Models** — `gpt-4.1` serves a 300,000-token context window. The realtime `gpt-realtime-2*` models take 32,000 input and 4,096 output tokens. `nova-sonic` was retired upstream on 2026-09-14 and returns `503`; use `nova-sonic-2`.
 - **Images and speech** — image sizes outside a model's range, and `negative_prompt` on `lucid-origin`, return `400`. `gpt-4o-mini-tts` has 13 voices and rejects an unknown voice with `400`. `gpt-4o-transcribe-diarize` returns speaker `segments` with `response_format` `verbose_json` or `diarized_json`; it is no longer accepted as a voice-session `stt_model` (`422`), because live transcription cannot label speakers. grok-4.3 reasoning tokens now count as output tokens, and its images must have at least 512 pixels.
 
-### Email domains — neutral `502` reason
+### Email domains — neutral `503` reason
 
-- The `502` returned by the email domain routes when provisioning or verification is temporarily unavailable now carries `reason: "provider_unavailable"`. Deployments still being upgraded may return the older `acs_unavailable` for the same condition; status, body shape and retry advice are identical, so match both strings. See [Email limits](/docs/email-limits).
+- The `503` returned by the email domain routes when provisioning or verification is temporarily unavailable now carries `reason: "provider_unavailable"`. Deployments still being upgraded may return the older `acs_unavailable` for the same condition; status, body shape and retry advice are identical, so match both strings. See [Email limits](/docs/email-limits).
 
 ### Voice session webhooks
 
@@ -39,7 +63,7 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ### Speech-to-text error codes
 
-- `/v1/audio/transcriptions` and `/v1/audio/translations` now return `400 invalid_request` for a problem with the request (unsupported audio, a streaming-only or unknown model), `429 rate_limit_exceeded` when rate limited, and `502 service_unavailable` when transcription is temporarily unavailable, the same code `/v1/audio/speech` uses. See [Speech-to-Text](/docs/speech-to-text#errors).
+- `/v1/audio/transcriptions` and `/v1/audio/translations` now return `400 invalid_request` for a problem with the request (unsupported audio, a streaming-only or unknown model), `429 rate_limit_exceeded` when rate limited, and `503 service_unavailable` when transcription is temporarily unavailable, the same code `/v1/audio/speech` uses. See [Speech-to-Text](/docs/speech-to-text#errors).
 
 ### Batch API, zero data retention, per-end-user budgets and prompt caching
 
