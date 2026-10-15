@@ -41,7 +41,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 
 :::cards
 /docs/sdks | SDKs & Libraries | package | Install the OpenAI SDK in your language
-/docs/models | Model Catalog | boxes | 138 models — LLM, STT, TTS, realtime voice, image, embeddings
+/docs/models | Model Catalog | boxes | 139 models — LLM, STT, TTS, realtime voice, image, embeddings
 :::
 
 ## Get started
@@ -147,7 +147,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 ```python [Python]
 with open("audio.wav", "rb") as f:
     response = client.audio.transcriptions.create(
-        model="saaras:v3",
+        model="saaras:v4",
         file=f
     )
 print(response.text)
@@ -156,7 +156,7 @@ print(response.text)
 import fs from "fs";
 
 const response = await client.audio.transcriptions.create({
-  model: "saaras:v3",
+  model: "saaras:v4",
   file: fs.createReadStream("audio.wav"),
 });
 
@@ -166,7 +166,7 @@ console.log(response.text);
 curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
   -H "Authorization: Bearer cm_your_key" \
   -F file=@audio.wav \
-  -F model=saaras:v3
+  -F model=saaras:v4
 ```
 :::
 

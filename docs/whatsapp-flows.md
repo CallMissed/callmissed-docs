@@ -41,7 +41,7 @@ create (DRAFT) ──▶ publish (PUBLISHED) ──▶ send ──▶ read respo
 2. **Iterate** while it is a draft: replace the Flow JSON and open the preview link (WhatsApp Flow API).
 3. **Publish** it. One way, and after publishing the screen document is frozen. A change means a new Flow.
 4. **Send** it with [`POST /api/v1/whatsapp/messages/interactive`](/docs/whatsapp-messages#send-an-interactive-message) using `interactive_type: "flow"` and WhatsApp's Flow id. That is the billed, window-aware send path for every interactive message.
-5. **Read** the submissions with the [Flow records API](#responses) (not populated yet, see that section).
+5. **Read** the submissions with the [Flow records API](#responses).
 6. **Deprecate** a published Flow you no longer want sent. A published Flow cannot be deleted.
 
 ## Authentication
@@ -260,7 +260,7 @@ Returns `204`. Only a `DRAFT` Flow can be deleted. WhatsApp's refusal for any ot
 | `404` | `WhatsApp account not found`, or `Flow not found` on that WABA |
 | `409` | The WABA is disconnected, or has no usable token. Reconnect it |
 | `422` | WhatsApp refused the request for the Flow's current status (for example, editing or deleting a published Flow) |
-| `502` | WhatsApp did not respond correctly. Retry |
+| `503` | WhatsApp did not respond correctly. Retry |
 
 Managing Flows does not consume credits.
 
@@ -353,9 +353,9 @@ WhatsApp refuses to delete a `PUBLISHED` Flow and its refusal is passed through.
 
 ## Responses
 
-These endpoints are designed to hold each customer's submission, correlated by the `flow_token` you set when sending and idempotent per WhatsApp message id.
+When a customer completes a Flow, the submission is stored here: one record per WhatsApp message id (a redelivered message is not stored twice), correlated by the `flow_token` you set when sending.
 
-> **Not populated yet.** Submissions are not written to this store today, so both endpoints currently return an empty result. Until capture is live, the submitted screen data is not available through the API.
+WhatsApp's completion message does not carry the Flow id, so `flow_id` is `null` on captured submissions and filtering by `flow_id` does not match them. Filter by `flow_token` or `contact_id` instead. The `message.received` webhook event for a submission has `type: "interactive"` and a `message_id` equal to the record's `wa_message_id`, but not the screen data: read that here.
 
 ### GET `/api/v1/commerce/flows/responses`
 
@@ -374,18 +374,18 @@ Newest first.
   {
     "id": "r9c8…",
     "tenant_id": "a0b1…",
-    "flow_id": "1122334455667788",
+    "flow_id": null,
     "flow_token": "booking-4471",
     "wa_message_id": "wamid.HBg…",
     "contact_id": "4411…",
     "conversation_id": "c0ff…",
-    "response": { "date": "2026-08-22", "slot": "10:30", "branch": "Kothrud" },
+    "response": { "flow_token": "booking-4471", "date": "2026-08-22", "slot": "10:30", "branch": "Kothrud" },
     "created_at": "2026-08-17T07:41:00Z"
   }
 ]
 ```
 
-`response` is the screen data the customer submitted, exactly as your `flow_json` defined the field names.
+`response` is the screen data the customer submitted, exactly as your `flow_json` defined the field names, plus the `flow_token`.
 
 Filtering by your own `flow_token` is the reliable way to tie a submission back to the order, booking or ticket you sent it for — set it to something meaningful when you send.
 
@@ -401,7 +401,7 @@ One submission by its CallMissed id. `404 Flow response not found`.
 | `404` | Flow or response not in your tenant |
 | `409` | No connected WhatsApp number or Business Account for your tenant |
 | `422` | Blank name, no categories, an unknown category, or a `flow_json` over 10 MB |
-| `502` | WhatsApp accepted the call but returned no flow id |
+| `503` | WhatsApp accepted the call but returned no flow id |
 
 Errors originating at WhatsApp keep their status code and message, so a validation failure reads the same as it would against the Cloud API directly.
 

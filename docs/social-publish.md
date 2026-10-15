@@ -197,7 +197,7 @@ reported; any of the three can be `null` when Meta omits it.
 | Facebook reel (`/reels`) | 10 minutes – 29 days |
 | Instagram | No native scheduling — publish at the time you want to post |
 
-A Facebook `504` on publish is **ambiguous** — the post may or may not have gone
+A Facebook `503` timeout on publish is **ambiguous** — the post may or may not have gone
 live. Check the Page before retrying; the API never auto-retries a publish. The
 Instagram equivalent is a `409` saying the post may or may not have been created —
 handle it the same way. A Facebook `409` on publish can also mean Meta rejected a
