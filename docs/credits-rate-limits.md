@@ -33,8 +33,8 @@ monthly call caps, not the per-call credit cost.
 | Service | Unit | Worked example |
 |---------|------|----------------|
 | LLM | per 1M input + 1M output tokens | `kimi-k2.5` at $0.8438 in / $4.219 out: 500 in + 200 output tokens = $0.001266 = **0.1215 credits** |
-| Speech to text | per audio hour | `saaras:v3` at $0.3125/hr: a 4-minute call = **2 credits** |
-| Text to speech | per 10,000 characters | `bulbul:v3` at $0.3125/10K: a 400-character reply = **1.2 credits** |
+| Speech to text | per audio hour | `saaras:v4` at $0.3125/hr: a 4-minute call = **2 credits** |
+| Text to speech | per 10,000 characters | `bulbul:v3` at $0.3125/10K (`bulbul:v4-flash` is $0.2083/10K): a 400-character reply = **1.2 credits** |
 | Image generation | per image | `flux-2-klein-9b` at $0.1042: one image = **10 credits** |
 | Web search | flat | **1 credit** per search, whichever provider serves it |
 

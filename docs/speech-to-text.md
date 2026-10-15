@@ -1,23 +1,23 @@
 ---
 title: "Speech to Text"
-description: "Transcribe audio to text across 45 STT models — Indic-first saaras, Cartesia Ink, and Deepgram Nova."
+description: "Transcribe audio to text across 44 STT models — Indic-first saaras, Cartesia Ink, and Deepgram Nova."
 slug: "speech-to-text"
 breadcrumb: "Speech"
 ---
 
 # Speech to Text
 
-Transcribe audio to text across 45 STT models — Indic-first saaras, Cartesia Ink, and Deepgram Nova.
+Transcribe audio to text across 44 STT models — Indic-first saaras, Cartesia Ink, and Deepgram Nova.
 
 :::cards
 /docs/stt-realtime | Real-time STT | play | Stream audio for live transcription
 /docs/stt-translation | Translation | settings | Transcribe and translate in one call
-/docs/models-indic | Indic Models | mic | saaras:v3 and other Indic STT models
+/docs/models-indic | Indic Models | mic | saaras:v4 and other Indic STT models
 :::
 
 ## Overview
 
-Transcribe an audio file into text with any of **45 speech-to-text models**. The default, `saaras:v3`, covers 22 Indian languages plus English with automatic language detection — but the `model` field takes any file-transcription STT id, so you can pick per request.
+Transcribe an audio file into text with any of **44 speech-to-text models**. The default, `saaras:v4`, covers 22 Indian languages plus English with automatic language detection — but the `model` field takes any file-transcription STT id, so you can pick per request.
 
 **Endpoint:** `POST /v1/audio/transcriptions`
 
@@ -25,12 +25,12 @@ Transcribe an audio file into text with any of **45 speech-to-text models**. The
 
 | If you need | Use | Why |
 |---|---|---|
-| Indian languages, or code-mixed Hinglish | `saaras:v3` or `saaras:v4` | Purpose-built for Indic phonetics; v4 adds 24 languages and serves all five modes |
+| Indian languages, or code-mixed Hinglish | `saaras:v4` | Purpose-built for Indic phonetics; 23 languages, all five output modes |
 | The widest language coverage | `ink-whisper` | 100 languages, and cheaper per hour than the Indic models |
 | English call-centre audio | `deepgram-nova-3`, or `nova-3` on the free tier | Strong on accented and noisy telephony English |
 | Turn detection built into the model | `ink-2` or `deepgram-flux-general-en` | Voice sessions only — see the note below |
 
-Four models are on the **free tier**: `saaras:v3`, `saaras:v4`, `nova-3` and
+Three models are on the **free tier**: `saaras:v4`, `nova-3` and
 `whisper-large-v3-turbo`.
 
 :::note
@@ -46,11 +46,11 @@ spelling of the same model will bill you. Full per-model pricing:
 :::flow
 icon:app | Your app | Upload an audio file (WAV/MP3) to `POST /v1/audio/transcriptions`
 icon:gateway | CallMissed gateway | Validate the key, resolve `model`, detect language (or use `language`), apply `mode`
-icon:stt | Your chosen model | Run speech recognition — defaults to `saaras:v3` if `model` is omitted
+icon:stt | Your chosen model | Run speech recognition — defaults to `saaras:v4` if `model` is omitted
 icon:done | Your app | Receive `text` (plus `duration` in `verbose_json`)
 :::
 
-> **Tip:** Leave `model` unset to get `saaras:v3`, and leave `language` unset to let it auto-detect. Set `mode=translate` to get English text out of any supported language in a single call.
+> **Tip:** Leave `model` unset to get `saaras:v4`, and leave `language` unset to let it auto-detect. Set `mode=translate` to get English text out of any supported language in a single call.
 
 :::warning
 **Streaming-only models cannot transcribe files.** `ink-2` and the Deepgram Flux
@@ -73,7 +73,7 @@ client = OpenAI(
 
 with open("audio.wav", "rb") as f:
     response = client.audio.transcriptions.create(
-        model="saaras:v3",
+        model="saaras:v4",
         file=f
     )
 
@@ -89,7 +89,7 @@ const client = new OpenAI({
 });
 
 const response = await client.audio.transcriptions.create({
-  model: "saaras:v3",
+  model: "saaras:v4",
   file: fs.createReadStream("audio.wav"),
 });
 
@@ -99,7 +99,7 @@ console.log(response.text);
 curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
   -H "Authorization: Bearer cm_your_key" \
   -F file=@audio.wav \
-  -F model=saaras:v3
+  -F model=saaras:v4
 ```
 :::
 
@@ -109,9 +109,9 @@ Send as `multipart/form-data`.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `file` | file | Yes | Audio file (WAV, MP3, etc.), up to 25 MB. An empty file returns `400`. Some models accept less per request: `saaras:v3` and `saaras:v4` take at most 30 seconds of audio, `gnani-prisma-v2.5` at most 60 seconds, and `whisper`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` and `gpt-4o-transcribe-diarize` at most 25,000,000 bytes |
-| `model` | string | No | Default `saaras:v3`. Any file-transcription STT model ID from [Models](/docs/models). `ink-2` and the Flux models are **not** valid here — see [Cartesia Ink models](#cartesia-ink-models) |
-| `language` | string | No | Language code; auto-detected if omitted. For `saaras:v3` / `saaras:v4` use a locale such as `hi-IN` or `ta-IN` — a code the model does not support falls back to auto-detection |
+| `file` | file | Yes | Audio file (WAV, MP3, etc.), up to 25 MB. An empty file returns `400`. Some models accept less per request: `saaras:v4` takes at most 30 seconds of audio, `gnani-prisma-v2.5` at most 60 seconds, and `whisper`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` and `gpt-4o-transcribe-diarize` at most 25,000,000 bytes |
+| `model` | string | No | Default `saaras:v4`. Any file-transcription STT model ID from [Models](/docs/models). `ink-2` and the Flux models are **not** valid here — see [Cartesia Ink models](#cartesia-ink-models) |
+| `language` | string | No | Language code; auto-detected if omitted. For `saaras:v4` use a locale such as `hi-IN` or `ta-IN` — a code the model does not support falls back to auto-detection |
 | `mode` | string | No | Output mode — see below. Default `transcribe`; any other value returns `422` |
 | `response_format` | string | No | `json` (default), `text`, `verbose_json`, or `diarized_json`. Any other value is answered as `json` |
 | `temperature` | number | No | 0–2. Accepted for OpenAI SDK compatibility; currently not forwarded to the model |
@@ -161,8 +161,8 @@ Errors use the OpenAI envelope: `{"error": {"message", "type", "code"}}`.
 | `413` | `file_too_large` | The file is larger than 25 MB, or than the model accepts (see `file` above) |
 | `429` | `quota_exceeded` | Plan usage limit reached |
 | `429` | `rate_limit_exceeded` | Transcription is rate limited right now. Retry with backoff |
-| `502` | `service_unavailable` | Transcription is temporarily unavailable. Retry shortly. `/v1/audio/speech` uses the same code |
-| `502` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to transcribe the file. The response includes a `request_id` |
+| `503` | `service_unavailable` | Transcription is temporarily unavailable. Retry shortly. `/v1/audio/speech` uses the same code |
+| `503` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to transcribe the file. The response includes a `request_id` |
 
 `/v1/audio/translations` returns the same errors.
 
@@ -176,11 +176,11 @@ Errors use the OpenAI envelope: `{"error": {"message", "type", "code"}}`.
 | `translit` | Transliteration to Latin script |
 | `codemix` | Code-mixed output (Indic + English) |
 
-`mode` is applied by `saaras:v3` and `saaras:v4`. `whisper-large-v3-turbo` also
+`mode` is applied by `saaras:v4`. `whisper-large-v3-turbo` also
 honours `translate`. Every other model ignores `mode` and returns a plain
 transcript.
 
-`saaras:v4` serves all five modes on one model across 24 languages, and is free-tier like `saaras:v3`:
+`saaras:v4` serves all five modes on one model across 23 languages, and is on the free tier:
 
 ```bash
 curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
@@ -247,7 +247,7 @@ Select it on a [voice session](/docs/voice-agent) or the
 `es`. Sending it any other language (Tamil, for example) does **not** raise an
 upstream error — it silently produces poor output. Our agent logs a warning and
 transcribes as `en`. For other languages use `ink-whisper` (100 languages) or an
-Indic model such as `saaras:v3` / `saaras:v4`.
+Indic model such as `saaras:v4`.
 
 ## Deepgram feature parameters
 
