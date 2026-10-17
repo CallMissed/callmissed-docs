@@ -220,7 +220,7 @@ resp = client.chat.completions.create(
 )
 ```
 
-Vision-capable models: `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
+Vision-capable models: `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`, `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
 `gpt-5.5`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `gemini-3.8-flash`,
 `gemini-3.7-flash`, `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3.5-flash-lite`,
 `gemini-3.1-pro-preview`, `gemini-3.1-flash-lite`, `gemma-4-31b`, `gemma-4-26b-a4b-it`,
@@ -278,7 +278,8 @@ Snapshot — `GET /v1/models` is authoritative:
 | Model | context_window |
 |-------|----------------|
 | `gpt-5.5`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna`, `gpt-6.1-sol` | 1,050,000 |
-| `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash`, `glm-5.3` | 1,048,576 |
+| `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` | 1,000,000 |
+| `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash`, `glm-5.3`, `deepseek-v4.1-flash` | 1,048,576 |
 | `gpt-4.1` | 300,000 |
 | `gpt-5-mini` | 400,000 |
 | `kimi-k2.6`, `kimi-k2.7-code`, `glm-5.2` | 262,144 |
@@ -304,7 +305,7 @@ automatically — there is nothing to turn on. Cached prompt tokens are billed a
 the model's cached-input rate where one is published (see [Models](/docs/models));
 a model with no cached rate bills them at its normal input rate. Tokens written
 to the cache are billed at the input rate, except on models that publish a
-separate cache-write rate (such as `gpt-6.1-sol`).
+separate cache-write rate (such as `gpt-6.1-sol`, `claude-opus-5-5`, `claude-sonnet-5-5` and `claude-haiku-5-5`).
 
 Every response reports the cached share of the prompt:
 
@@ -417,12 +418,12 @@ All errors return the OpenAI-compatible envelope:
 | `400` | `max_tokens_too_small` | `max_tokens` below 3 on `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna` or `gpt-6.1-sol`, or below 16 on `gpt-6.1-sol` when `tools` are sent |
 | `400` | `max_tokens_too_large` | `max_tokens` above the model's `max_output_tokens` (for example 65,536 on the `gemini-*` models, 16,384 on `gpt-4o`, 32,768 on `gpt-4.1`, 128,000 on the GPT-5 and GPT-6 models) |
 | `401` | `invalid_api_key` / `api_key_expired` | Missing, malformed or revoked key / expired key |
-| `402` | `insufficient_credits` | Balance exhausted (`X-Credits-Balance` carries the balance) |
+| `402` | `insufficient_credits` | Balance exhausted, or already held by your other in-flight requests: each request holds its estimated cost (input plus `max_tokens`, or up to 4,096 output tokens when unset) until it finishes, then is charged its real cost. `X-Credits-Balance` carries the balance |
 | `402` | `budget_exceeded` | The key's own budget cap was reached |
 | `402` | `end_user_budget_exceeded` | The `user` id has used its monthly budget |
 | `403` | `permission_denied` | The key lacks the `llm` permission |
 | `403` | `account_inactive` | The account is suspended or closed |
-| `403` | `model_not_available` | A free-plan key calling a paid model |
+| `403` | `model_not_available` | A free-plan key calling a paid model, or a free or Starter key calling a Claude model (Pro plan and up) |
 | `403` | `model_not_allowed` | The key's `allowed_models` list excludes the model |
 | `404` | `model_not_found` | Unknown model id |
 | `422` | — | Request body failed validation (a field out of range, a missing `messages`). Body is `{"detail": [{loc, msg, type}]}` |

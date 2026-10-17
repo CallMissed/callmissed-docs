@@ -31,7 +31,7 @@ thread's last inbound message:
 | Time since last inbound | What happens |
 |---|---|
 | Within 24 hours | The reply sends normally. |
-| 24 hours – 7 days | The reply sends as a **human-agent** tagged message. This uses Meta's Human Agent feature, which needs its own App Review approval — until that's granted, Meta may still reject the tagged send (surfaced as `502`). |
+| 24 hours – 7 days | The reply sends as a **human-agent** tagged message. This uses Meta's Human Agent feature, which needs its own App Review approval — until that's granted, Meta may still reject the tagged send (surfaced as `503`). |
 | Over 7 days | The reply is refused locally with `400`. The customer must message again to reopen the window. |
 
 ## List inbox threads
@@ -156,7 +156,7 @@ Facebook returns a single `message_id` (which can be `null` if Meta omitted it):
 Text only — there is no attachment, template or quick-reply parameter on these
 endpoints. A send fails with `409` when no thread exists for the recipient (the
 window was never opened), `400` when the window has closed, `404` when the account
-is not one of yours, and `502` when the upstream send fails.
+is not one of yours, and `503` when the upstream send fails.
 
 ## Messaging analytics
 

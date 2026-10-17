@@ -82,7 +82,7 @@ CallMissed exchanges the code for a business token, saves the account and number
     "account_id": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
     "bot_id": "0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
     "phone_number_id": "1234567890",
-    "display_phone_number": "+91 80802 47309",
+    "display_phone_number": "+91 9309963483",
     "verified_name": "Acme Coffee",
     "code_verification_status": "VERIFIED",
     "quality_rating": "GREEN",

@@ -121,7 +121,7 @@ Zentrunk splits the two directions, so CallMissed creates **both** an inbound tr
 
 ## Import your numbers
 
-Your Plivo voice numbers are listed for import. Note the format difference: **Plivo returns numbers in E.164 without a leading `+`** (for example `918080247309`, not `+918080247309`). CallMissed normalises them to `+E.164` on import, so they appear the same way as every other number in the dashboard.
+Your Plivo voice numbers are listed for import. Note the format difference: **Plivo returns numbers in E.164 without a leading `+`** (for example `919309963483`, not `+919309963483`). CallMissed normalises them to `+E.164` on import, so they appear the same way as every other number in the dashboard.
 
 Finally, attach each imported number to the inbound trunk in the Plivo Console. Plivo binds a number to a trunk on their side, so this last step is done in their console, not ours.
 :::
@@ -269,7 +269,7 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/provider-connections/{c
   -d '{"numbers": ["+14155550123", "+14155550124"]}'
 ```
 
-`numbers` takes 1–50 `+E.164` entries; duplicates are collapsed. The response is the imported numbers, in the same shape as `GET /numbers` on the [Telephony API](/docs/telephony-api), with no rental charge. `409` if the connection is not active or a number is already in use (your own clashes are named; a number held elsewhere is only counted). A number that cannot be attached to the trunk at your provider is still imported and works for outbound calls; attach it on the provider's side for inbound.
+`numbers` takes 1–50 `+E.164` entries; duplicates are collapsed. The response is the imported numbers, in the same shape as `GET /numbers` on the [Telephony API](/docs/telephony-api), with no rental charge. `409` if the connection is not active or a number is already in use (your own clashes are named; a number held elsewhere is only counted). A number that cannot be attached to the trunk at your provider is still imported; attach it on the provider's side for inbound. Outbound calls from an imported number are placed over this connection's own outbound trunk, so your provider carries and bills the call leg and CallMissed bills only the AI voice agent. An outbound call from a number whose connection is not active, or has no outbound trunk, is refused with `409`.
 
 ### Restrict inbound calls on a Custom SIP connection
 

@@ -86,7 +86,7 @@ role.
     "greeting": "Hi, how can I help?",
     "language": "en-IN",
     "llm": { "model": "gpt-oss-120b", "temperature": 0.4 },
-    "stt": { "model": "saaras:v3" },
+    "stt": { "model": "saaras:v4" },
     "tts": { "model": "bulbul:v3", "voice": "shubh" },
     "tools": [
       {
@@ -112,7 +112,7 @@ role.
 | `agent.language` | `en-IN` | BCP-47. Falls back to `agent.stt.language`, then `agent.tts.language` |
 | `agent.llm.model` | `gemma-4-31b` | Any LLM id from [`GET /api/v1/voice/models`](#list-available-models) except `deepgram-voice-*` (see [Choosing models](#choosing-models)) |
 | `agent.llm.temperature` | model default | Number, 0–2 |
-| `agent.stt.model` | `saaras:v3` | |
+| `agent.stt.model` | `saaras:v4` | |
 | `agent.tts.model` | plan-dependent | Free plan `bulbul:v3`; paid plans (starter, pro, enterprise) `sonic-3.6` |
 | `agent.tts.voice` | model default | With no `agent.tts.model`: free plan `shubh`, paid plans `skylar`. With a model set, that model's own default speaker. A voice you set must be a speaker of the chosen model |
 | `agent.tools` | `[]` | Functions the agent may call: `name` (required), `description`, `parameters` (JSON Schema) |
@@ -590,6 +590,12 @@ the rest with `LatencyReport`.
 | `agent.context.messages` | 100 entries, 60,000 characters |
 | Fallback entries per array | 3 after the primary |
 | Concurrent sessions | Per plan |
+| Models named in `Settings` | Must be inside the key's `allowed_models` list |
+
+A model you name in `Settings` that the key's `allowed_models` list excludes fails
+`Settings` with `INVALID_SETTINGS` ("not allowed for this API key"); the same
+model named in a live update is refused with an `INVALID_UPDATE` warning and the
+session keeps the model it was running. Models you leave out are not checked.
 
 JSON control messages are small; one far larger than any legitimate update is
 dropped with a `MESSAGE_TOO_LARGE` warning. A `Settings` message whose prompt is
