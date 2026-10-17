@@ -108,7 +108,7 @@ Created as `draft` with an empty `traffic_split`. Returns `201`.
   "bot_version_number": 12,
   "overrides": {
     "system_prompt": "Greet in one sentence, then ask how you can help.",
-    "voice": "anushka",
+    "voice": "shubh",
     "timing": { "interrupt_sensitivity": 0.6, "silence_timeout_ms": 2000 }
   },
   "is_control": false,

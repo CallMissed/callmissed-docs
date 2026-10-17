@@ -103,11 +103,16 @@ Send as `multipart/form-data`.
 | `features` | The features that ran |
 | `transcript` | Transcript of the audio |
 | `summary` / `topics` / `sentiments` / `intents` | Present only for the features you requested |
-| `metadata` | Per-feature token counts (`*_info`), the basis of the charge |
+| `metadata` | Per-feature token counts (`*_info`), the basis of the analysis charge |
 
 ## Pricing
 
-Billed per token, summed across the features you request: $0.0003125 per 1K input tokens plus $0.000625 per 1K output tokens. See [Models](/docs/models).
+Two parts, charged together on each request:
+
+- **Analysis:** billed per token, summed across the features you request: $0.0003125 per 1K input tokens plus $0.000625 per 1K output tokens.
+- **Transcription:** the audio duration, billed at the per-hour rate of the matching `deepgram-*` STT model. For example, `model=nova-3` bills at the `deepgram-nova-3` rate ($0.3021 / hour).
+
+See [Models](/docs/models).
 
 ## Errors
 
@@ -116,8 +121,10 @@ Errors use the OpenAI envelope: `{"error": {"message", "type", "code"}}`.
 | Status | `code` | When |
 |--------|--------|------|
 | `400` | `invalid_request_error` | `features` is empty or contains an unknown value. The message lists the valid values |
+| `400` | `invalid_request` | `file` is empty |
 | `402` | `insufficient_credits` | Credit balance is exhausted |
 | `403` | `permission_denied` | The key does not have the `stt` permission, or a feature is not available on your plan |
 | `404` | `model_not_found` | `model` is not an accepted model name |
+| `413` | `file_too_large` | `file` is larger than 25 MB |
 | `429` | `quota_exceeded` | Plan usage limit reached |
-| `502` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The analysis failed. The response includes a `request_id` |
+| `503` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The analysis failed. The response includes a `request_id` |

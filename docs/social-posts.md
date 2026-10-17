@@ -42,7 +42,7 @@ res = requests.post(
         "platform": "instagram",
         "tone": "warm",
         "hashtag_count": 8,
-        "image_model": "flux-2-klein-9b",
+        "image_model": "flux-2-pro",
         "size": "1024x1024",
     },
 ).json()
@@ -94,12 +94,12 @@ curl -X POST https://api.callmissed.com/v1/social/posts/generate \
 | `tone` | string | — | Optional voice, e.g. `warm`, `professional`, `playful`. Max 40 characters. |
 | `hashtag_count` | integer | `8` | How many hashtags to return, 0–30. Instagram allows at most 30. |
 | `generate_image` | boolean | `true` | Set `false` for a caption-only draft — no image credits, and no `image` key permission needed. |
-| `image_model` | string | `flux-2-klein-9b` | Any model from the [image generation](/docs/image-generation) catalogue. |
+| `image_model` | string | `flux-2-pro` | Any model from the [image generation](/docs/image-generation) catalogue. The free plan has no image model: send `generate_image: false` for a caption-only draft. |
 | `image_prompt` | string | — | An explicit prompt for the image. When omitted, the image prompt is written **for you** from the `topic` — see below. Max 4000 characters. |
 | `size` | string | — | Width×height for the image, e.g. `1024x1024`, `1024x1280`. Defaults to a 4:5 portrait, the ratio the Instagram and Facebook feeds prioritise. |
 | `quality` | string | — | For models that support it (GPT Image): `low`, `medium`, `high` or `auto`. Ignored by models without a quality tier. |
-| `reference_images` | string[] | — | Up to **16** base64 PNG/JPEG images used as visual references, so the picture is built **from your own** logo or product shot. Requires a `gpt-image-*` model (`gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`). |
-| `reference_pdf` | string | — | One base64 PDF. Its extracted **text** becomes brand context for the image prompt. Requires a `gpt-image-*` model (`gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`). |
+| `reference_images` | string[] | — | Up to **16** base64 PNG/JPEG images used as visual references, so the picture is built **from your own** logo or product shot. Requires `gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-2`, `nano-banana-pro` or `gemini-3.1-flash-lite-image`. |
+| `reference_pdf` | string | — | One base64 PDF. Its extracted **text** becomes brand context for the image prompt. Works with any `image_model`. |
 | `n` | integer | `1` | Must be `1` — a post has one image. Any other value returns `422`. |
 | `user` | string | — | Your end user's id, for your own records. |
 
@@ -117,23 +117,28 @@ the output is yours instead of an invented lookalike.
 Each item is base64, either bare or as a full `data:image/png;base64,…` URL (what
 a browser's `FileReader.readAsDataURL` gives you, so no string surgery needed).
 PNG and JPEG only — the format is checked from the file's own bytes, not from a
-declared type. Up to 16 images, each at most 10 MB decoded.
+declared type. Up to 16 images, each at most 10 MB decoded (`nano-banana-2`,
+`nano-banana-pro` and `gemini-3.1-flash-lite-image`: up to 14 images, each at most
+7 MB, 14 MB in total).
 
 `reference_pdf` is a different kind of reference: a brand guideline, a spec sheet
 or a menu, whose **text** is extracted and folded into the image prompt as
 context. The file itself never reaches the image model, and a PDF with no
 extractable text (a scan) is ignored rather than failing the call. At most 10 MB
-decoded.
+decoded. Because only text reaches the model, it works with any `image_model`.
 
-**Both require an image model with an edit surface: `gpt-image-2.5-sunburst`,
-`gpt-image-2.5-flare`, `gpt-image-2` or `gpt-image-1.5`.** Sent with any other `image_model`, the request fails `422`
+**Reference images require an image model with an edit surface: `gpt-image-2.5-sunburst`,
+`gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-2`,
+`nano-banana-pro` or `gemini-3.1-flash-lite-image`.** Sent with any other `image_model`, the request fails `422`
 before a single credit is reserved. That is deliberate — the alternative is
 quietly dropping your references and charging full price for a picture carrying
 none of your branding. For the same reason, a reference-carrying request will not
 silently fall back to a model that cannot honour them.
 
-**Pricing does not change.** A referenced image is billed at exactly the same
-per-image rate as a plain generation of the same model, size and quality.
+**Pricing does not change on the `gpt-image-*` models.** A referenced image is
+billed at exactly the same per-image rate as a plain generation of the same model,
+size and quality. `nano-banana-2`, `nano-banana-pro` and `gemini-3.1-flash-lite-image`
+add a small per-reference charge — see [image pricing](/docs/image-generation#pricing).
 
 ```bash [cURL]
 curl -X POST https://api.callmissed.com/v1/social/posts/generate \
@@ -175,8 +180,8 @@ Pass your own `image_prompt` to override this and control the image directly.
     "revised_prompt": null,
     "url": "https://...signed-url..."
   },
-  "model_used": "glm-4.7-flash",
-  "image_model_used": "flux-2-klein-9b",
+  "model_used": "gpt-oss-120b",
+  "image_model_used": "flux-2-pro",
   "credits": {
     "image": 10.0,
     "llm": 0.065,
@@ -217,7 +222,8 @@ endpoints individually:
 
 - **Caption + hashtags** — per token, at the drafting model's rate. A typical post
   is well under one credit.
-- **Image** — the flat per-image price of `image_model`. See the
+- **Image** — the flat per-image price of `image_model`, plus any per-reference
+  charge. See the
   [image pricing table](/docs/image-generation#pricing).
 
 Every response carries the exact split in `credits`. A caption-only call is
@@ -235,8 +241,8 @@ either. A failed post costs nothing.
 | 403 | `permission_denied` | Key lacks `llm` (or `image`, when generating one). |
 | 403 | `model_not_available` | `image_model` needs a paid plan. |
 | 404 | `model_not_found` | Unknown `image_model`. |
-| 422 | `invalid_request_error` | Bad `topic`, `platform` or `hashtag_count` (0–30); `n` other than 1; a malformed or oversized `reference_images` / `reference_pdf`; or references sent with an `image_model` that has no edit surface. |
+| 422 | `invalid_request_error` | Bad `topic`, `platform` or `hashtag_count` (0–30); `n` other than 1; a malformed or oversized `reference_images` / `reference_pdf`; or `reference_images` sent with an `image_model` that has no edit surface, or over its limits. |
 | 429 | `quota_exceeded` | Monthly plan cap hit for the LLM or image service. |
 | 429 | `too_many_concurrent_requests` | Too many in-flight requests on this key. Retry shortly. |
-| 502 | `upstream_error` | The caption or the image failed. No credits charged — safe to retry. |
+| 503 | `upstream_error` | The caption or the image failed. No credits charged — safe to retry. |
 | 503 | `service_unavailable` | Image service temporarily unavailable. No credits charged. |
