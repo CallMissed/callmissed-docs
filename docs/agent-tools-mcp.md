@@ -221,7 +221,7 @@ An outbound campaign is a list of people, a voice agent and the rules for when a
 | `list_do_not_call` | List the numbers on this account's do-not-contact list, with the channel each one blocks | Read | `campaigns:read` | No |
 | `add_do_not_call` | Suppress numbers from calls, WhatsApp, or both (`channel`, default `all`) | Write | `campaigns:write` | No |
 
-Taking a number back **off** the do-not-call list is deliberately not a tool. Adding one is safe in the direction that matters — the worst case is a call that does not happen — but removing one un-does somebody's opt-out, and the next thing that happens is a call to a person who asked not to be called. That stays with a person in the [console](https://console.callmissed.com). The `DELETE /dnc/{entry_id}` endpoint is still there for your own code; see the [Campaigns API](/docs/voice-campaigns).
+Taking a number back **off** the do-not-call list is deliberately not a tool. Adding one is safe in the direction that matters — the worst case is a call that does not happen — but removing one un-does somebody's opt-out, and the next thing that happens is a call to a person who asked not to be called. That stays with a person in the [console](https://console.callmissed.com). API keys cannot remove an entry either.
 
 Uploading a CSV to a campaign is not a tool either: it is a file upload, and MCP arguments are JSON. Use `add_campaign_contacts` for a list the agent already holds, or the [Campaigns API](/docs/voice-campaigns) for a file.
 

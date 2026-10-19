@@ -99,6 +99,7 @@ Content-Type: application/json
 X-CallMissed-Event: message.received
 X-CallMissed-Delivery: <delivery id>
 X-CallMissed-Signature: sha256=<hex digest>
+X-CallMissed-Signature-Previous: sha256=<hex digest>   (only for 24 hours after a secret rotation)
 ```
 
 `X-CallMissed-Delivery` is the `id` you see in the delivery log; use it to de-duplicate, because a retry or a replay can deliver the same event more than once.
@@ -116,12 +117,19 @@ The digest is `HMAC-SHA256(secret, raw_request_body)`. Compute it over the **raw
 ```python
 import hashlib, hmac
 
-def verify(raw_body: bytes, header: str, secret: str) -> bool:
-    expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(f"sha256={expected}", header)
+def verify(raw_body: bytes, headers: dict, secret: str) -> bool:
+    expected = "sha256=" + hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
+    return any(
+        hmac.compare_digest(expected, headers.get(name, ""))
+        for name in ("X-CallMissed-Signature", "X-CallMissed-Signature-Previous")
+    )
 ```
 
-The full `secret` is returned **only once**, in the `POST` create response. Every later read masks it as `first4 + "****" + last4`. Store it when you create the subscription.
+The full `secret` is returned **only once**, in the `POST` create response (and, for a new secret, in the [rotate-secret](#rotating-the-secret) response). Every later read masks it as `first4 + "****" + last4`. Store it when you create the subscription.
+
+### Rotating the secret
+
+`POST /api/v1/webhooks/{webhook_id}/rotate-secret` replaces the secret. From then on `X-CallMissed-Signature` is signed with the **new** secret, and for **24 hours** every delivery also carries `X-CallMissed-Signature-Previous`, signed with the **old** one. A receiver that accepts either header (as in the snippet above) keeps verifying while you deploy the new secret. After 24 hours only the new secret signs. Rotating again during the window replaces the old secret with the one just retired.
 
 ## URL rules
 
@@ -233,6 +241,31 @@ curl -X DELETE https://api.callmissed.com/api/v1/webhooks/w1a2b3c4-d5e6-4f70-819
 ```
 
 `403` for insufficient permission; `404` when the subscription is not in your tenant.
+
+## POST `/api/v1/webhooks/{webhook_id}/rotate-secret`
+
+Generates a new signing secret and returns it **once**. No request body. The previous secret keeps signing `X-CallMissed-Signature-Previous` until `previous_secret_expires_at` (24 hours), see [Rotating the secret](#rotating-the-secret). Writes a `webhook.secret.rotate` audit event.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/webhooks/w1a2b3c4-d5e6-4f70-8192-a3b4c5d6e7f8/rotate-secret \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+{
+  "id": "w1a2b3c4-d5e6-4f70-8192-a3b4c5d6e7f8",
+  "tenant_id": "a0b1c2d3-4455-6677-8899-aabbccddeeff",
+  "url": "https://hooks.acme.com/callmissed",
+  "secret": "Qm7tZ2pLw9XcV4bN1sRkY8eH3uJ6dF0aGq5o",
+  "events": ["conversation.started", "message.received"],
+  "is_active": true,
+  "bot_id": null,
+  "created_at": "2026-07-19T08:00:00Z",
+  "previous_secret_expires_at": "2026-10-18T09:30:00+00:00"
+}
+```
+
+`403` when a `cm_` key lacks `webhooks:write`, or a JWT caller is not owner/admin; `404` when the subscription is not in your tenant.
 
 ## POST `/api/v1/webhooks/{webhook_id}/test`
 

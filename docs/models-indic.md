@@ -56,7 +56,7 @@ it we send 4,096 so the answer is not cut off by the upstream default of
 
 ## Speech to Text
 
-### saaras:v3
+### saaras:v4
 
 - **Languages:** 23 (22 Indic + English)
 - **Output modes:** transcribe, translate, verbatim, translit, codemix
@@ -65,13 +65,6 @@ it we send 4,096 so the answer is not cut off by the upstream default of
 - **Endpoint:** `POST /v1/audio/transcriptions`
 
 Supported languages include: Hindi, Bengali, Gujarati, Kannada, Malayalam, Marathi, Odia, Punjabi, Tamil, Telugu, Urdu, Assamese, Bodo, Dogri, Kashmiri, Konkani, Maithili, Manipuri, Nepali, Sanskrit, Santali, Sindhi, and English.
-
-### saaras:v4
-
-- **Languages:** 24
-- **Output modes:** transcribe, translate, verbatim, translit, codemix
-- **Auto language detection:** yes
-- **Endpoint:** `POST /v1/audio/transcriptions`
 
 Five output modes on one model — standard transcription, English translation, verbatim (fillers kept), Latin-script transliteration, and code-mixed output. Select one with the `mode` form field; `transcribe` is the default.
 
@@ -87,3 +80,15 @@ Five output modes on one model — standard transcription, English translation, 
 - **Endpoint:** `POST /v1/audio/speech`
 
 Default voice: `shubh`. See the [Voices](/docs/tts-voices) page for the full list.
+
+### bulbul:v4-flash
+
+- **Voices:** 222 persona voices
+- **Languages:** 9 (`hi-IN`, `en-IN`, `bn-IN`, `gu-IN`, `kn-IN`, `mr-IN`, `pa-IN`, `ta-IN`, `te-IN`) plus Hinglish; no Malayalam or Odia
+- **Max input:** 2,500 characters per request
+- **Audio codecs:** WAV, MP3, FLAC, AAC, PCM
+- **Pace:** 0.5–2.0 (maps to `speed` parameter)
+- **Sample rates:** 8000, 16000, 22050, 24000 Hz
+- **Endpoint:** `POST /v1/audio/speech`
+
+Default voice: `shubh_enhi_ads`. Voice IDs follow `<name>_<language>_<style>`; `bulbul:v3` names such as `shubh` are not valid here. See the [Voices](/docs/tts-voices) page for the full list.
