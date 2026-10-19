@@ -101,4 +101,4 @@ Errors use the `{"detail": "..."}` shape.
 | `404` | `Conversation not found` (unknown id, or another account's) |
 | `422` | Body failed validation (bad `role`, `turns` over 12, `instruction` over 500 characters) |
 | `429` | The conversation's 30-per-5-minutes limit is spent |
-| `502` | The model call failed — safe to retry |
+| `503` | The model call failed — safe to retry |

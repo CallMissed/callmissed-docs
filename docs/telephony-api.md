@@ -176,7 +176,7 @@ curl "https://api.callmissed.com/api/v1/telephony/numbers/search?country_iso=IN&
 ```json
 [
   {
-    "number": "+918080247309",
+    "number": "+919309963483",
     "number_type": "local",
     "country": "IN",
     "region": "Mumbai",
@@ -201,7 +201,7 @@ Rent one of the searched numbers. This is a **paid action**: the first month (re
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| `e164` | string | Yes | The number to buy, e.g. `+918080247309` |
+| `e164` | string | Yes | The number to buy, e.g. `+919309963483` |
 | `compliance_application_id` | string | Yes | The `plivo_compliance_id` of your **accepted** KYC application |
 
 The purchase runs in a strict, money-safe order: it verifies your KYC application is accepted (else `409`), confirms the number is still available and prices it live (else `422`), deducts the rental credits, and only then rents the number. If the rent fails, the credits are refunded automatically.
@@ -212,7 +212,7 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/numbers \
   -H "Authorization: Bearer cm_your_api_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "e164": "+918080247309",
+    "e164": "+919309963483",
     "compliance_application_id": "your-accepted-compliance-reference"
   }'
 ```
@@ -226,7 +226,7 @@ resp = httpx.post(
     f"{BASE}/numbers",
     headers=headers,
     json={
-        "e164": "+918080247309",
+        "e164": "+919309963483",
         "compliance_application_id": "your-accepted-compliance-reference",
     },
 )
@@ -247,7 +247,7 @@ else:
 {
   "id": "9c2b7e30-1d8a-4c5f-9b3d-2f4a6e8b1c2d",
   "tenant_id": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
-  "e164": "+918080247309",
+  "e164": "+919309963483",
   "country_iso": "IN",
   "number_type": "local",
   "status": "active",
@@ -539,7 +539,7 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/click-to-call \
 | `409` | No `agent_number` and no operator phone configured, or no active number to call from |
 | `422` | Neither `destination` nor `contact_id` given, or a number is not valid E.164 |
 | `429` | Too many calls in progress (a bridge uses two of the 10 concurrent lines) |
-| `504` | Nobody answered your phone, so the contact was not dialled |
+| `503` | Nobody answered your phone, so the contact was not dialled |
 
 ## 9. Voicemail drop
 

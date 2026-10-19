@@ -17,10 +17,10 @@ Unlike [Speech to Text](/docs/speech-to-text) (which transcribes in the original
 
 **Endpoint:** `POST /v1/audio/translations`
 
-**Supported input languages (23, with `saaras:v3` / `saaras:v4`):** Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi, Odia, Assamese, Urdu, Nepali, Konkani, Kashmiri, Sindhi, Sanskrit, Santali, Manipuri, Bodo, Maithili, Dogri, English. The source language is always auto-detected — this endpoint takes no `language` field.
+**Supported input languages (23, with `saaras:v4`):** Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi, Odia, Assamese, Urdu, Nepali, Konkani, Kashmiri, Sindhi, Sanskrit, Santali, Manipuri, Bodo, Maithili, Dogri, English. The source language is always auto-detected — this endpoint takes no `language` field.
 
 :::warning
-**Only three models translate.** `saaras:v3`, `saaras:v4` and `whisper-large-v3-turbo` return English. Any other STT model accepted here returns a transcript in the **original** language, billed at that model's rate. Stick to those three for translation.
+**Only two models translate.** `saaras:v4` and `whisper` return English (the retired `whisper-large-v3-turbo` ID is answered by `whisper`). Any other STT model accepted here returns a transcript in the **original** language, billed at that model's rate. Stick to those two for translation.
 :::
 
 ## Basic Usage
@@ -37,7 +37,7 @@ client = OpenAI(
 # Translate Hindi audio to English text
 with open("hindi_audio.wav", "rb") as f:
     translation = client.audio.translations.create(
-        model="saaras:v3",
+        model="saaras:v4",
         file=f,
     )
 
@@ -53,7 +53,7 @@ const client = new OpenAI({
 });
 
 const translation = await client.audio.translations.create({
-  model: "saaras:v3",
+  model: "saaras:v4",
   file: fs.createReadStream("hindi_audio.wav"),
 });
 
@@ -62,7 +62,7 @@ console.log(translation.text);
 ```bash [cURL]
 curl -X POST https://api.callmissed.com/v1/audio/translations \
   -H "Authorization: Bearer cm_your_key" \
-  -F model=saaras:v3 \
+  -F model=saaras:v4 \
   -F file=@hindi_audio.wav
 ```
 :::
@@ -78,12 +78,12 @@ curl -X POST https://api.callmissed.com/v1/audio/translations \
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `file` | file | Yes | Audio file (WAV, MP3, AAC, OGG, FLAC, WebM, M4A), up to 25 MB. An empty file returns `400`. The same per-model size and duration limits as [transcription](/docs/speech-to-text) apply |
-| `model` | string | No | Default `saaras:v3`. `saaras:v4` and `whisper-large-v3-turbo` also translate to English — see the warning above |
+| `model` | string | No | Default `saaras:v4`. `whisper` also translates to English — see the warning above |
 | `response_format` | string | No | `json` (default), `text`, or `verbose_json`. Any other value is answered as `json` |
 | `temperature` | float | No | 0–2. Accepted for OpenAI SDK compatibility; currently not forwarded to the model |
 | `prompt` | string | No | Accepted for OpenAI SDK compatibility; currently not forwarded to the model |
 
-Errors match [Speech to Text](/docs/speech-to-text#errors): `400` empty file, `402` insufficient credits, `403` missing `stt` permission or model not on your plan, `404` unknown model, `422` invalid form field, `429` plan limit, `502` model failure.
+Errors match [Speech to Text](/docs/speech-to-text#errors): `400` empty file, `402` insufficient credits, `403` missing `stt` permission or model not on your plan, `404` unknown model, `422` invalid form field, `429` plan limit, `503` model failure.
 
 ## Response Formats
 

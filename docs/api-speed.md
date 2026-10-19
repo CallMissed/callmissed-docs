@@ -18,7 +18,7 @@ A single playground call and a typical API call hit the **exact same endpoint** 
 | Setting | Playground default | Common API default | Effect |
 | --- | --- | --- | --- |
 | Streaming | `stream: true` | `stream: false` | Non-streaming waits for the *whole* generation before any byte returns |
-| Model | `gpt-oss-120b` (fast free model) | `gpt-5.6-sol` | Bigger model → 2-3× wall-clock for the same prompt |
+| Model | `gpt-oss-120b` (fast free model) | `gpt-6-sol` | Bigger model → 2-3× wall-clock for the same prompt |
 | Connection | One persistent HTTP/2 connection | New TCP+TLS per call | Adds ~150-300ms handshake to every request |
 
 Same endpoint, very different perceived speed. Below: how to close the gap.
@@ -95,39 +95,40 @@ Behaviour per model, as the gateway applies it. Each model's accepted values com
 | --- | --- | --- | --- | --- | --- | --- |
 | `gpt-6-sol`, `gpt-6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-6.1-sol` | ↓ `"low"` | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
+| `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` | ↓ `"low"` | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5.5` | ✅ off | ✅ | ✅ | ✅ | ✅ | ↓ `"low"` |
 | `gpt-5-mini` | ↓ `"minimal"` | ✅ | ✅ | ✅ | ↓ `"high"` | ✅ |
 | `gpt-4o`, `gpt-4.1`, `grok-4.3` | ⊘ | ⊘ | ⊘ | ⊘ | ⊘ | ⊘ |
 | `gemini-3.8-flash`, `gemini-3.7-flash`, `gemini-3.1-pro-preview` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"high"` | ↓ `"low"` |
 | `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite` | ↓ `"minimal"` | ✅ | ✅ | ✅ | ↓ `"high"` | ✅ |
-| `kimi-k2.5` | ✅ off | ✅ | ✅ | ✅ | ⊘ | ↓ `"none"` |
-| `kimi-k2.6` | ✅ off | ↓ `"high"` | ↓ `"high"` | ✅ | ↓ `"high"` | ↓ `"none"` |
-| `gpt-oss-120b` | ↓ `"low"` | ✅ | ✅ | ✅ | ⊘ | ↓ `"low"` |
-| `nemotron-3-super` | ↓ low-effort mode | ✅ low-effort mode | ⊘ | ⊘ | ⊘ | ↓ low-effort mode |
-| `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash` | ✅ off | ✅ | ↓ `"high"` | ✅ | ↓ `"high"` | ↓ `"low"` |
-| `glm-4.7-flash`, `gemma-4-26b-a4b-it` | ✅ off | ⊘ | ⊘ | ⊘ | ⊘ | ✅ off |
-| `glm-5.2` | ✅ off | ↓ `"high"` | ↓ `"high"` | ✅ | ↓ `"max"` | ✅ off |
+| `kimi-k2.5`, `kimi-k2.6` | ✅ off | ✅ | ✅ | ✅ | ↓ `"max"` | ↓ `"none"` |
+| `kimi-k2.7-code` | ⊘ | ✅ | ✅ | ✅ | ↓ `"max"` | ⊘ |
+| `gpt-oss-120b` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"high"` | ↓ `"low"` |
+| `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash` | ✅ off | ↓ on | ↓ on | ↓ on | ↓ on | ↓ on |
 | `sarvam-105b`, `sarvam-105b-conversations` | ✅ off | ✅ | ⊘ default | ✅ | ↓ `"max"` | ✅ off |
 | `glm-5.3` | ↓ `"low"` | ✅ | ↓ `"high"` | ✅ | ↓ `"max"` | ↓ `"low"` |
+| `deepseek-v4.1-flash` | ↓ `"low"` | ✅ | ↓ `"high"` | ✅ | ↓ `"max"` | ↓ `"low"` |
 | `gemma-4-31b` | ✅ off | ✅ | ✅ | ✅ | ↓ `"high"` | ↓ `"none"` |
-| `kimi-k2.7-code`, `mistral-small-3.1` | ⊘ | ⊘ | ⊘ | ⊘ | ⊘ | ⊘ |
 
 Legend: ✅ = sent to the model as-is · ✅ off = thinking is switched off · ↓ = mapped to the listed value before forwarding · ⊘ = dropped from the request; the model runs at its default thinking behaviour and the request still succeeds.
 
 Notes worth reading before you rely on a value:
 
-- `glm-4.7-flash` and `gemma-4-26b-a4b-it` honour only the off switch. `"none"` and `"minimal"` turn thinking off. `"low"`, `"medium"` and `"high"` are dropped, so the model thinks at its own default — they are not an intensity dial.
-- `glm-5.2` accepts `"max"` (its default), `"high"` and off. `"low"` and `"medium"` run as `"high"`, and `"xhigh"` as `"max"`. `DeepSeek-V4-Pro` and `DeepSeek-V4-Flash` accept `"max"`, `"high"` (default), `"low"` and `"none"`. `kimi-k2.6` has two levels, `"high"` (default) and `"none"`, so every other value runs as `"high"`. Send `"max"` directly where the model has it.
-- `nemotron-3-super` takes no `reasoning_effort` field upstream. `"low"`, `"none"` and `"minimal"` switch it to its low-effort reasoning mode. Higher values leave its default reasoning on. It has no full off switch through this API.
+- `kimi-k2.5`, `kimi-k2.6` and `kimi-k2.7-code` accept `"none"`, `"low"`, `"medium"`, `"high"` and `"max"`; `"xhigh"` runs as `"max"`. `"minimal"` turns thinking off on K2.5 and K2.6. `kimi-k2.7-code` always thinks, so `"none"` and `"minimal"` are dropped.
+- `DeepSeek-V4-Pro` and `DeepSeek-V4-Flash` have an on/off switch, not levels: `"none"` turns thinking off and any other value turns it on. Without `reasoning_effort` they think and return the trace in `reasoning_content`.
+- `gpt-oss-120b` has three levels, `"low"`, `"medium"` and `"high"`. `"none"` and `"minimal"` run as `"low"` (it has no full off switch); `"xhigh"` and `"max"` run as `"high"`.
+- The retired `glm-4.7-flash`, `glm-5.2`, `nemotron-3-super`, `gemma-4-26b-a4b-it` and `mistral-small-3.1` IDs follow the row of the model that answers them (`gpt-oss-120b`, `kimi-k2.7-code`, `kimi-k2.6`, `kimi-k2.5`, `kimi-k2.5`).
 - `sarvam-105b` and `sarvam-105b-conversations` switch thinking fully off for `"none"` and `"minimal"`. Their levels are `"low"`, `"high"` and `"max"`; `"medium"` is not one of them, so it is dropped and the model runs at its own default. When you omit `max_tokens` on a Sarvam model we send 4,096 (16,384 for `glm-5.3`), because thinking tokens count toward the limit and the upstream default of 2,048 cut answers short.
+- `deepseek-v4.1-flash` always reasons and defaults to its highest level, `"max"`. Its levels are `"low"`, `"high"` and `"max"`, mapped as in the table. Reasoning tokens share the `max_tokens` budget, so raise `max_tokens` or lower the effort if answers come back short.
 - `glm-5.3` always reasons and defaults to its highest level, `"max"`. Send `"low"` when latency matters: in our tests it cut time to first word from about 3.5s to about 0.9s. `gemma-4-31b` does not think unless asked. Any of `"low"`, `"medium"` or `"high"` switches thinking on (in our tests it did not track the level), and `"none"` or `"minimal"` keep it off at about 0.25s to first word.
-- `kimi-k2.7-code`, `mistral-small-3.1`, `gpt-4o`, `gpt-4.1` and `grok-4.3` take no reasoning control through this API. Every value is dropped and the request still returns 200. `kimi-k2.7-code` always thinks and returns its trace in `reasoning_content`.
+- `gpt-4o`, `gpt-4.1` and `grok-4.3` take no reasoning control through this API. Every value is dropped and the request still returns 200.
 - The `gemini-*` models map `reasoning_effort` onto their own thinking levels. They have no full off switch: `"none"` gives the lowest level the model accepts.
 - The GPT-5.5 / GPT-5.6 / GPT-6 family accepts the full `none`/`low`/`medium`/`high`/`xhigh` ladder. `"minimal"` is rejected upstream, so we map it to `"low"`. Send `xhigh`, not `max` or `ultra`. `gpt-5-mini` is an original GPT-5 model: its ladder is `minimal`/`low`/`medium`/`high`, so `"none"` is sent as `"minimal"` and `"xhigh"` as `"high"`.
 - On `gpt-6-sol` and `gpt-6-luna`, `temperature` and `top_p` are applied only when `reasoning_effort` is `"none"`; with any other effort they are dropped, because the model accepts only the default sampling while it reasons.
 - On the GPT-5.6 and GPT-6 models, a request that includes `tools` always runs with `reasoning_effort: "none"`, whatever you send — those models cannot combine function tools with reasoning on Chat Completions.
 - `gpt-6.1-sol` always reasons: it accepts `low`/`medium`/`high`/`xhigh` (default `medium`) and cannot switch thinking off, so `"none"` and `"minimal"` are sent as `"low"` and `"max"` is sent as `"xhigh"`.
+- `claude-opus-5-5`, `claude-sonnet-5-5` and `claude-haiku-5-5` (Pro plan and up) accept `low`, `medium`, `high`, `xhigh` and `max`; `"none"` and `"minimal"` are accepted and run as `"low"`. Defaults when you omit it: `medium` on `claude-opus-5-5` and `claude-haiku-5-5`, `high` on `claude-sonnet-5-5`. `temperature`, `top_p` and `top_k` are ignored on these models. Tools can be combined with reasoning (see [function calling](/docs/chat-function-calling)).
 
 Concrete numbers on `kimi-k2.6` answering "What is 2+2?":
 
@@ -174,7 +175,7 @@ Three back-to-back streaming calls on a reused HTTP/2 connection land in the reg
 Before reporting "the API feels slow," verify:
 
 - [ ] `stream: true` is set on every chat completion request
-- [ ] Model is one of `gpt-oss-120b`, `kimi-k2.6`, `mistral-small-3.1`, or `gpt-5.6-luna` (avoid the 1M-context flagships for latency-bound paths)
+- [ ] Model is one of `gpt-oss-120b`, `kimi-k2.6`, `gpt-6-luna`, or `DeepSeek-V4-Flash` (avoid the 1M-context flagships for latency-bound paths)
 - [ ] For Kimi: `reasoning_effort: "none"` is passed when you don't need the reasoning trace
 - [ ] One `OpenAI()` / `Anthropic()` client instance is shared across requests
 - [ ] HTTP client supports HTTP/2 (the official OpenAI / Anthropic SDKs do)

@@ -114,7 +114,7 @@ Folds duplicates into one surviving record.
 
 `fields_filled` lists the fields that were **blank on the primary** and taken from a duplicate — merging never overwrites a value the primary already had. `external_ids` maps are combined key by key, with the primary winning any conflict.
 
-`repointed` counts the related rows moved onto the primary. For a contact merge the keys are `conversations`, `crm_deals`, `commerce_events`, `crm_notes`, `crm_tasks` and `contact_memory`; for a company merge they are `contacts`, `crm_deals`, `crm_notes` and `crm_tasks`.
+`repointed` counts the related rows moved onto the primary. For a contact merge the keys are `conversations`, `crm_deals`, `commerce_events`, `crm_notes`, `crm_tasks`, `contact_memory`, `crm_quotes`, `crm_invoices`, `crm_leads`, `support_tickets`, `csat_surveys`, `payment_requests`, `wa_flow_responses` and `wa_orders`; for a company merge they are `contacts`, `crm_deals`, `crm_notes`, `crm_tasks`, `crm_quotes`, `crm_invoices` and `crm_leads`.
 
 `404 Contact not found` (or Company) when the primary or any duplicate is not in your tenant — nothing is merged.
 
@@ -210,7 +210,7 @@ Streams `text/csv` with `Content-Disposition: attachment; filename="contacts-YYY
 
 ## POST `/api/v1/crm/csv/inspect`
 
-Preview how a file's columns map onto CallMissed fields before you import it. Writes nothing and keeps no copy of the file. Requires `crm_csv:write`.
+Preview how a file's columns map onto CallMissed fields before you import it. Writes no records and keeps no copy of the file. Requires `crm_csv:write`.
 
 `multipart/form-data`.
 
@@ -218,7 +218,7 @@ Preview how a file's columns map onto CallMissed fields before you import it. Wr
 | --- | --- | --- | --- |
 | `file` | file | Yes | UTF-8 CSV with a header row. At most **5 MB** |
 | `entity_type` | text | Yes | `contact`, `company` or `deal` |
-| `use_ai` | text | No | Default `true`. When `true`, headers that no alias or value pattern matched are also tried with an AI pass. Send `false` for a purely rule-based mapping |
+| `use_ai` | text | No | Default `true`. When `true`, headers that no alias or value pattern matched are also tried with an AI pass, billed at the model's token rate. The pass is skipped when your credit balance is empty or your budget cap is reached, and the mapping then uses the rules alone. Send `false` for a purely rule-based mapping |
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/crm/csv/inspect \
@@ -325,4 +325,4 @@ Whole-file problems return `422` and nothing is written: a file that is not UTF-
 | `409` | Records still referenced, or a concurrent import |
 | `422` | Query too short, unknown `types`, over 500 ids, a non-updatable change key, a deal stage from another pipeline, a file over 5 MB or 10,000 rows, an unrecognised CSV header, or a bad `column_map` |
 
-Nothing on this page consumes credits.
+Nothing on this page consumes credits except the optional AI header-mapping pass (`use_ai`), which is billed at the model's token rate.
