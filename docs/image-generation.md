@@ -36,7 +36,7 @@ client = OpenAI(
 )
 
 res = client.images.generate(
-    model="flux-2-klein-9b",
+    model="flux-2-pro",
     prompt="A golden retriever in a sunlit library, cinematic bokeh",
     n=1,
     size="1024x1024",
@@ -52,7 +52,7 @@ const client = new OpenAI({
 });
 
 const res = await client.images.generate({
-  model: "flux-2-klein-9b",
+  model: "flux-2-pro",
   prompt: "A golden retriever in a sunlit library, cinematic bokeh",
   n: 1,
   size: "1024x1024",
@@ -64,7 +64,7 @@ curl -X POST https://api.callmissed.com/v1/images/generations \
   -H "Authorization: Bearer cm_your_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "flux-2-klein-9b",
+    "model": "flux-2-pro",
     "prompt": "A golden retriever in a sunlit library",
     "n": 1,
     "size": "1024x1024"
@@ -76,16 +76,16 @@ curl -X POST https://api.callmissed.com/v1/images/generations \
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `model` | string | `flux-2-klein-9b` | Model ID (see below). |
+| `model` | string | `flux-2-pro` | Model ID (see below). |
 | `prompt` | string | — | Text description. 1–4000 characters. Required. |
 | `n` | integer | 1 | Number of images. 1–4. Billed per image. |
-| `size` | string | model default | Width×height, e.g. `1024x1024`, `768x768`, `1024x1536`. Per-model limits: `lucid-origin` up to 2500 px per side, `phoenix-1.0` up to 2048, `sdxl-lightning` and `dreamshaper-8-lcm` 256–2048, `flux-1.1-pro` at most 1.6 megapixels in total. A size outside the model's range returns `400`. |
+| `size` | string | model default | Width×height, e.g. `1024x1024`, `768x768`, `1024x1536`. Per-model limits: `flux-2-pro` 256–1536 px per side, `flux-1.1-pro` at most 1.6 megapixels in total. A size outside the model's range returns `400`. |
 | `response_format` | string | `b64_json` | `b64_json` returns the image inline plus a signed `url`. `url` returns only the signed link (smaller response); if no link can be issued you get `b64_json` instead. |
-| `negative_prompt` | string | — | Concepts to avoid (e.g. "lowres, blurry"). At most 4000 characters. `lucid-origin` does not support it and returns `400`. |
+| `negative_prompt` | string | — | Concepts to avoid (e.g. "lowres, blurry"). At most 4000 characters. The FLUX Pro models ignore it. |
 | `seed` | integer | random | Reproducibility, `0`–`2147483647`. Same seed + prompt + model → same image. |
-| `steps` | integer | auto | Denoising steps, 1–50. Higher = slower + more detail. |
-| `reference_images` | string[] | — | Up to 16 base64 PNG/JPEG images (bare base64 or a `data:` URL), each at most 10 MB decoded. The image is produced as an **edit** of these references — e.g. to place your real logo. Requires a `gpt-image-*` model. |
-| `reference_pdf` | string | — | One base64 PDF, at most 10 MB decoded. Its extracted text is added to the prompt as brand context. Requires a `gpt-image-*` model. |
+| `steps` | integer | auto | Denoising steps, 1–50, for models that take a step count. The FLUX Pro and `gpt-image-*` models ignore it. |
+| `reference_images` | string[] | — | Up to 16 base64 PNG/JPEG images (bare base64 or a `data:` URL), each at most 10 MB decoded. The image is produced as an **edit** of these references — e.g. to place your real logo. Requires a `gpt-image-*` model, `nano-banana-2`, `nano-banana-pro` or `gemini-3.1-flash-lite-image` (those three take at most 14 images, 7 MB each, 14 MB in total). |
+| `reference_pdf` | string | — | One base64 PDF, at most 10 MB decoded. Its extracted text is added to the prompt as brand context. Works with any model. |
 | `user` | string | — | Your end user's id, for your own records. |
 
 ### Response
@@ -101,38 +101,35 @@ curl -X POST https://api.callmissed.com/v1/images/generations \
 
 `url` is a short-lived signed link — download or re-host it promptly. It is omitted when the image could not be stored, so always fall back to `b64_json`.
 
-`reference_images` and `reference_pdf` work only with `gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2` and `gpt-image-1.5`. With any other model the request fails `422` before any credits are reserved, rather than quietly ignoring your references.
+`reference_images` work only with `gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-2`, `nano-banana-pro` and `gemini-3.1-flash-lite-image`. The three Google models take at most 14 reference images, each at most 7 MB decoded and 14 MB in total. With any other model, or over those limits, the request fails `422` before any credits are reserved, rather than quietly ignoring your references. `reference_pdf` only adds text to the prompt, so it works with every model.
 
 ## Models
 
 | ID | Creator | Plan | Speed | Best for |
 |----|---------|------|-------|----------|
-| `flux-2-klein-9b` | Black Forest Labs | Free | Slow | Final output, print, marketing |
-| `flux-2-dev` | Black Forest Labs | Free | Slow | Maximum fidelity, hero imagery |
-| `lucid-origin` | Leonardo | Free | Medium | Cinematic, concept art |
-| `phoenix-1.0` | Leonardo | Free | Medium | Photorealistic portraits |
-| `sdxl-lightning` | ByteDance | Free | Fast | Prototyping, iteration |
-| `dreamshaper-8-lcm` | Lykon | Free | Fast | Stylised illustrations |
 | `flux-2-pro` | Black Forest Labs | Paid | Medium | Flagship FLUX fidelity |
-| `flux-1.1-pro` | Black Forest Labs | Paid | Fast | Production-grade at lower cost |
+| `flux-1.1-pro` | Black Forest Labs | Paid | Fast | Production-grade at lower cost. Deprecated, sunset 2026-11-16 → `flux-2-pro` |
 | `gpt-image-2.5-sunburst` | OpenAI | Paid | Medium | Most capable generation + editing, inpainting |
 | `gemini-3.1-flash-lite-image` | Google | Paid | Fast | Low-cost generation with reference edits |
 | `gpt-image-2.5-flare` | OpenAI | Paid | Fast | Fast everyday generation, on-image text |
-| `gpt-image-2` | OpenAI | Paid | Medium | Accurate on-image text, marketing visuals |
-| `gpt-image-1.5` | OpenAI | Paid | Medium | Precise editing, logo/face preservation |
+| `gpt-image-2` | OpenAI | Paid | Medium | Accurate on-image text, marketing visuals. Deprecated, sunset 2026-11-16 → `gpt-image-2.5-flare` |
+| `gpt-image-1.5` | OpenAI | Paid | Medium | Precise editing, logo/face preservation. Deprecated, sunset 2026-11-16 → `gpt-image-2.5-flare` |
 | `nano-banana-pro` | Google | Paid | Medium | Infographics, accurate typography |
 | `nano-banana-2` | Google | Paid | Fast | Multimodal (text + reference images) |
 
-Free-plan keys can call the six **Free** rows. Every **Paid** row needs Starter
-or above; a free key gets `403 model_not_available`. `flux-1.1-pro` is currently
+The free plan has no image model. Every model needs Starter or above; a free
+key gets `403 model_not_available`. The retired `flux-2-klein-9b`,
+`lucid-origin`, `phoenix-1.0`, `sdxl-lightning` and `dreamshaper-8-lcm` IDs are
+answered by `flux-2-pro` on paid plans — see
+[Retired and deprecated models](/docs/models#retired-and-deprecated-models). `flux-1.1-pro` is currently
 under maintenance and returns `503 model_under_maintenance` — use `flux-2-pro` or
-`gpt-image-2`.
+`gpt-image-2.5-flare`.
 
 ### Availability fallback
 
 If the model you asked for fails with a temporary upstream error, the request
 may be served by a similar fallback model instead of failing (for example
-`gpt-image-2` → `gpt-image-1.5`). A fallback is only used when your plan and the
+`gpt-image-2.5-sunburst` → `gpt-image-2.5-flare`). A fallback is only used when your plan and the
 key's `allowed_models` permit it, never for a model under maintenance, and only
 with models that can honour `reference_images` when you sent them. You are never
 charged more than the price of the model you asked for: if a cheaper model
@@ -157,18 +154,19 @@ Flat per-image price, converted to credits at 1 credit = ₹1 ≈ US$0.0104 (US$
 | `gpt-image-2` | $0.2604 | 25 |
 | `gpt-image-1.5` | $0.2604 | 25 |
 | `nano-banana-pro` | $0.1396 | 13.4 |
-| `flux-2-dev` | $0.125 | 12 |
-| `flux-2-klein-9b` | $0.1042 | 10 |
 | `flux-2-pro` | $0.1042 | 10 |
-| `phoenix-1.0` | $0.1042 | 10 |
-| `lucid-origin` | $0.08333 | 8 |
 | `nano-banana-2` | $0.06979 | 6.7 |
 | `flux-1.1-pro` | $0.05208 | 5 |
-| `sdxl-lightning` | $0.04167 | 4 |
-| `dreamshaper-8-lcm` | $0.04167 | 4 |
 | `gemini-3.1-flash-lite-image` | $0.035 | 3.36 |
 
 Prices are for a standard-resolution (1K) image.
+
+Reference images add a per-reference charge to **each** generated image on the three
+Google models, which are billed for every reference as input: `nano-banana-2`
+$0.0005833 (0.056 credits), `nano-banana-pro` $0.001167 (0.112 credits) and
+`gemini-3.1-flash-lite-image` $0.0002917 (0.028 credits) per reference image. For example, `nano-banana-2` with 3
+references and `n: 2` costs 2 × (6.7 + 3 × 0.056) = 13.736 credits. References
+cost nothing extra on the `gpt-image-*` models.
 
 Credits for the request are reserved before generation and refunded in full if it fails, so a failed generation costs nothing.
 
@@ -248,5 +246,5 @@ curl "https://api.callmissed.com/v1/images/history?limit=20" \
 | 422 | — | Validation failed: prompt length, `n`, `seed`, a malformed or oversized reference, or references sent to a model without an edit surface. |
 | 429 | `quota_exceeded` | Monthly plan cap hit. Upgrade tier. |
 | 429 | `rate_limit_exceeded` / `too_many_concurrent_requests` | Too many requests on this key. Retry with backoff. |
-| 502 | `upstream_error` | The image provider failed. No credits debited — safe to retry. |
+| 503 | `upstream_error` | The image provider failed. No credits debited — safe to retry. |
 | 503 | `model_under_maintenance` | The model is temporarily unavailable; the message names an alternative. |

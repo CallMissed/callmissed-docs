@@ -367,6 +367,6 @@ Cost is one embedding call for the query plus the added context tokens, billed a
 | `403` | Key is missing the `knowledge:read` / `knowledge:write` scope |
 | `404` | Bot or source not found in your tenant |
 | `413` | Content or upload exceeds the size cap |
-| `502` | Indexing failed after the text was extracted — safe to retry |
+| `503` | Indexing failed after the text was extracted — safe to retry |
 
-A `502` means extraction succeeded but embedding did not, so nothing was stored. Retry the same request. See [Errors](/docs/errors) for the standard error shape.
+A `503` means extraction succeeded but embedding did not, so nothing was stored. Retry the same request. See [Errors](/docs/errors) for the standard error shape.
