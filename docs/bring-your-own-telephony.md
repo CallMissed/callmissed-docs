@@ -51,21 +51,20 @@ Both paths converge: once a number is in CallMissed, whether rented or imported,
 |---|---|---|---|
 | **Twilio** | SIP trunk (Elastic SIP Trunking) | Yes | Self-serve |
 | **Plivo** (your own account) | SIP trunk (Zentrunk) | Yes | Self-serve |
+| **Vobiz** | SIP trunk | Yes | Self-serve |
 | **Custom SIP** | SIP trunk (any provider) | Manual entry | Self-serve |
-| **Exotel** | SIP trunk (vSIP) | n/a | Set up by our team |
-| **Smartflo** (Tata) | Media streaming (WebSocket) | n/a | Set up by our team |
+| **Exotel** | Media stream (Voicebot applet) | Yes | Self-serve, inbound only |
+| **Smartflo** (Tata) | Media stream (Voice Bot) | Yes | Self-serve, inbound only |
 | **Pulse** | Contact us | n/a | Contact us |
 | **InTalk** | Contact us | n/a | Contact us |
 
 What the **Status** column means:
 
-- **Self-serve**: you can connect it yourself from the dashboard, start to finish. The three self-serve providers are documented below.
-- **Set up by our team**: the integration exists, but part of the trunk mapping has to be arranged with the provider on your behalf. Write to `support@callmissed.com` with your account details and we complete the connection with you.
-- **Contact us**: not wired yet. Tell us which provider you are on at `support@callmissed.com` and we will scope it.
+- **Self-serve**: you connect it yourself from the dashboard, start to finish. Every self-serve provider is documented below.
+- **Inbound only**: the provider streams each incoming call's audio to us. Calls you place from these numbers are not supported yet.
+- **Contact us**: the provider publishes no API we can build against. Tell us which provider you are on at `support@callmissed.com`.
 
-Over the API, a provider that is not self-serve returns `501` when you try to connect it.
-
-> **Do not follow the self-serve steps for a "Set up by our team" provider.** Their trunk mapping is done by the provider's own support team, not from your console, and a half-configured trunk silently drops inbound calls.
+Over the API, a *Contact us* provider returns `501` when you try to connect it.
 
 ## Twilio
 
@@ -121,10 +120,88 @@ Zentrunk splits the two directions, so CallMissed creates **both** an inbound tr
 
 ## Import your numbers
 
-Your Plivo voice numbers are listed for import. Note the format difference: **Plivo returns numbers in E.164 without a leading `+`** (for example `918080247309`, not `+918080247309`). CallMissed normalises them to `+E.164` on import, so they appear the same way as every other number in the dashboard.
+Your Plivo voice numbers are listed for import. Note the format difference: **Plivo returns numbers in E.164 without a leading `+`** (for example `919309963483`, not `+919309963483`). CallMissed normalises them to `+E.164` on import, so they appear the same way as every other number in the dashboard.
 
-Finally, attach each imported number to the inbound trunk in the Plivo Console. Plivo binds a number to a trunk on their side, so this last step is done in their console, not ours.
+Each imported number is attached to the inbound trunk on your Plivo account for you, so its calls reach your agent. If Plivo refuses one (for example, it is linked to a subaccount), it is still imported; attach it to the trunk in the Plivo Console.
 :::
+
+## Vobiz
+
+Connects as a **SIP trunk** in your own Vobiz account.
+
+:::steps
+## Get your Vobiz credentials
+
+In the [Vobiz Console](https://console.vobiz.ai), copy your **Auth ID** and **Auth Token**.
+
+Vobiz does not publish the IP addresses it sends inbound calls from, so also ask Vobiz support for the **public IPs or CIDR ranges** your inbound calls come from. CallMissed only accepts inbound calls from these addresses.
+
+## Enter the details in CallMissed
+
+Choose **Vobiz**, paste the Auth ID and Auth Token, and enter the inbound source IPs. The credentials are verified against Vobiz before anything is stored.
+
+## We provision the trunk
+
+CallMissed creates a SIP credential and a trunk on your Vobiz account. Outbound calls authenticate with that credential, and the trunk's inbound destination is pointed at our SIP endpoint.
+
+## Import your numbers
+
+Your Vobiz numbers are listed for import. Each imported number is assigned to the trunk we created, so its inbound calls reach your agent.
+:::
+
+## Smartflo (Tata Tele)
+
+Smartflo streams each call's audio to CallMissed from a **Voice Bot** endpoint. Inbound calls only.
+
+:::steps
+## Get an API token
+
+In the Smartflo portal, open **API Token** and generate a token. Pick the longest expiry: CallMissed uses it to read your numbers. Calls keep working after it expires; only importing more numbers needs a fresh token.
+
+## Connect in CallMissed
+
+Choose **Tata Tele Smartflo** and paste the token. It is verified by reading your numbers.
+
+## Point Smartflo at your agent
+
+CallMissed shows a private **stream URL**. In Smartflo:
+
+1. Make sure **Channels Hub** is enabled on your account.
+2. Open **Settings → Channels → Voice Bot → Add an Endpoint**, choose **Static URL**, paste the stream URL, save and switch it on.
+3. Open **My Numbers**, select each number you import, choose **Configure Destination**, pick that Voice Bot and save.
+
+## Import your numbers
+
+Your Smartflo numbers are listed for import. Assign an agent to each, as for any number.
+:::
+
+## Exotel
+
+Exotel streams each call's audio to CallMissed from a **Voicebot applet** in one of your Flows. Inbound calls only.
+
+:::steps
+## Get your API credentials
+
+In the Exotel dashboard, open **API Settings** and copy your **Account SID**, **API key** and **API token**.
+
+## Connect in CallMissed
+
+Choose **Exotel** and paste the three values. They are verified by reading your ExoPhones; CallMissed finds whether your account is on the India or Singapore cluster itself.
+
+## Point Exotel at your agent
+
+CallMissed shows a private **stream URL**. In Exotel:
+
+1. In **App Bazaar**, create a Flow and add a **Voicebot** applet.
+2. Paste the stream URL into the applet's URL field and save the Flow.
+3. In **ExoPhones**, assign each number you import to that Flow.
+
+## Import your numbers
+
+Your ExoPhones are listed for import. Assign an agent to each, as for any number.
+:::
+
+> **Keep the stream URL private.** It identifies your connection, so anyone who has it can start calls on your numbers. Disconnect and reconnect the provider to get a new one.
 
 ## Custom SIP
 
@@ -144,7 +221,7 @@ Use this for any provider not listed above that can terminate a SIP trunk. You s
 
 > **Outbound calls authenticate with the SIP username and password, not with an IP allowlist.** We cannot guarantee a static egress IP for allowlisting, so an IP-only trunk cannot be authorised. Ask your provider to enable digest (username and password) authentication on the trunk. If they cannot, write to `support@callmissed.com` before you start.
 
-**Inbound.** Set CallMissed's SIP host as the inbound destination on your provider's trunk, then confirm each number is attached to that trunk on their side. The connection response does not include that host for Custom SIP, so ask `support@callmissed.com` for it. Only the numbers you entered are accepted.
+**Inbound.** Set CallMissed's SIP URI as the inbound destination on your provider's trunk, then confirm each number is attached to that trunk on their side. The URI is in the connection's `config.origination_uri`, and the dashboard shows it with a copy button under **Connected providers** on the Phone numbers page. Only the numbers you entered are accepted.
 
 > **Inbound calls must be restricted to your provider.** Give the source IPs your provider sends calls from, inbound SIP credentials, or both. A Custom SIP connection with neither is refused, because anyone who knows one of your numbers could otherwise send a call straight to our SIP host and start an AI call billed to your account. Source ranges must be public and no wider than `/16` (IPv4) or `/48` (IPv6); `0.0.0.0/0`, private, loopback and link-local ranges are rejected.
 
@@ -161,7 +238,7 @@ In the [Dashboard](https://console.callmissed.com), go to **Phone numbers**. The
 
 ## Pick a provider
 
-Select your provider from the list. Providers marked *Set up by our team* show a contact panel instead of a credential form.
+Select your provider from the list. Providers marked *Contact us* show a contact panel instead of a credential form.
 
 ## Step 1. Get credentials
 
@@ -175,10 +252,12 @@ Submitting verifies the credentials with your provider. If verification fails, y
 
 ## Step 3. Configure and import numbers
 
-CallMissed provisions the trunk, then lists the numbers it found on your account. Select the ones to import. For Custom SIP, this step confirms the numbers you typed in.
+CallMissed provisions the trunk, then lists the numbers it found on your account. Select the ones to import. For Custom SIP, this step confirms the numbers you typed in. For Smartflo and Exotel, this step also shows the stream URL and the steps to paste it into the provider's dashboard.
 :::
 
-A connection is saved only once verification and provisioning have both succeeded, so a new connection is **active** straight away. If either step fails, the request returns the reason and nothing is saved; fix the cause at your provider and connect again. A connection you no longer want is disconnected (deleted).
+A connection is saved only once verification and provisioning have both succeeded, so a new connection is **active** straight away. If either step fails, the request returns the reason and nothing is saved; fix the cause at your provider and connect again.
+
+Your connections are listed under **Connected providers** on the Phone numbers page. From there you can **Import numbers** from a connection at any time, or **Disconnect** one you no longer want.
 
 ## After connecting
 
@@ -198,7 +277,8 @@ Everything the dashboard wizard does is also available with your `cm_` key. Base
 | `POST /provider-connections` | `telephony:write` | Verify credentials, provision the trunk, and save the connection. `201` |
 | `GET /provider-connections/{connection_id}/numbers` | `telephony:read` | Numbers on your provider account that can be imported. `limit` 1–200 (default 100) |
 | `POST /provider-connections/{connection_id}/import` | `telephony:write` | Import numbers. `201` |
-| `PUT /provider-connections/{connection_id}/inbound-allowed-addresses` | `telephony:write` | Custom SIP only: replace the inbound source IPs. `200` |
+| `GET /provider-connections/{connection_id}/stream-url` | `telephony:write` | Smartflo and Exotel only: the private stream URL and the provider-dashboard steps that use it. `200` |
+| `PUT /provider-connections/{connection_id}/inbound-allowed-addresses` | `telephony:write` | Custom SIP and Vobiz only: replace the inbound source IPs. `200` |
 | `DELETE /provider-connections/{connection_id}` | `telephony:write` | Disconnect. `204` |
 
 ### The provider catalogue
@@ -209,6 +289,9 @@ Everything the dashboard wizard does is also available with your `cm_` key. Base
 |---|---|
 | `twilio` | `account_sid` (required, `AC` + 32 hex), `auth_token` (required), `api_key_sid` and `api_key_secret` (optional, together) |
 | `plivo_byo` | `auth_id` (required), `auth_token` (required) |
+| `vobiz` | `auth_id` (required), `auth_token` (required), `inbound_allowed_addresses` (required, list of public IPs/CIDRs Vobiz sends your inbound calls from, up to 200) |
+| `smartflo` | `api_token` (required) |
+| `exotel` | `account_sid` (required), `api_key` (required), `api_token` (required) |
 | `custom_sip` | `address` (required, bare host, optional `:port`), `transport` (`auto`/`udp`/`tcp`/`tls`, default `tcp`), `auth_username` (required), `auth_password` (required), `numbers` (list of `+E.164`, up to 200), `inbound_allowed_addresses` (list of public IPs/CIDRs, up to 200), `inbound_auth_username` and `inbound_auth_password` (optional, together, password at least 12 characters). At least one of `inbound_allowed_addresses` or the inbound credential pair is required |
 
 ### Connect a provider
@@ -254,8 +337,8 @@ The response also carries internal routing identifiers for the trunk; treat any 
 | Code | Meaning |
 |---|---|
 | `409` | This provider account is already connected |
-| `422` | Unknown `provider`, a missing or malformed credential field, or (Custom SIP) an `address` that is not a public, fully-qualified host, or no inbound restriction (neither `inbound_allowed_addresses` nor inbound credentials) |
-| `501` | The provider is *Set up by our team* or *Contact us* |
+| `422` | Unknown `provider`, a missing or malformed credential field, or (Custom SIP) an `address` that is not a public, fully-qualified host, or no inbound restriction (neither `inbound_allowed_addresses` nor inbound credentials), or (Vobiz) no `inbound_allowed_addresses` |
+| `501` | The provider is *Contact us* |
 | `4xx` / `5xx` | Your provider rejected the credentials or the trunk setup. The message says which |
 
 ### List and import numbers
@@ -269,11 +352,11 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/provider-connections/{c
   -d '{"numbers": ["+14155550123", "+14155550124"]}'
 ```
 
-`numbers` takes 1–50 `+E.164` entries; duplicates are collapsed. The response is the imported numbers, in the same shape as `GET /numbers` on the [Telephony API](/docs/telephony-api), with no rental charge. `409` if the connection is not active or a number is already in use (your own clashes are named; a number held elsewhere is only counted). A number that cannot be attached to the trunk at your provider is still imported and works for outbound calls; attach it on the provider's side for inbound.
+`numbers` takes 1–50 `+E.164` entries; duplicates are collapsed. The response is the imported numbers, in the same shape as `GET /numbers` on the [Telephony API](/docs/telephony-api), with no rental charge. `409` if the connection is not active or a number is already in use (your own clashes are named; a number held elsewhere is only counted). A number that cannot be attached to the trunk at your provider is still imported; attach it on the provider's side for inbound. Outbound calls from an imported number are placed over this connection's own outbound trunk, so your provider carries and bills the call leg and CallMissed bills only the AI voice agent. An outbound call from a number whose connection is not active, or has no outbound trunk, is refused with `409`.
 
 ### Restrict inbound calls on a Custom SIP connection
 
-Replaces the inbound source IPs of an existing Custom SIP connection. Use it to lock down a connection made before inbound protection was required, or when your provider's IPs change.
+Replaces the inbound source IPs of an existing Custom SIP or Vobiz connection. Use it to lock down a connection made before inbound protection was required, or when your provider's IPs change.
 
 ```bash
 curl -X PUT https://api.callmissed.com/api/v1/telephony/provider-connections/{connection_id}/inbound-allowed-addresses \
@@ -298,7 +381,7 @@ curl -X DELETE https://api.callmissed.com/api/v1/telephony/provider-connections/
 - **Credentials are encrypted at rest** before they reach the database. They are decrypted only in memory, only when a call to your provider needs them.
 - **They are never returned by the API.** No response body, log line, or webhook payload contains a provider secret. A connection exposes only whether credentials are present (`has_credentials`), your provider account id (Account SID or Auth ID — an identifier, not a secret), and the non-secret connection facts (trunk ids, SIP address, transport).
 - **Scoped per tenant.** A connection belongs to one tenant and is only ever readable inside it.
-- **To rotate a credential**, change it at your provider, then connect the provider again in CallMissed with the new pair. Verification runs against the new credential before it replaces the old one.
+- **To rotate a credential**, change it at your provider, disconnect the connection in CallMissed, then connect the provider again with the new pair. The same provider account cannot be connected twice at once.
 
 If you believe a credential has leaked, revoke it at your provider first, then reconnect. Revoking at the provider takes effect immediately, whatever is stored on our side.
 

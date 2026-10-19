@@ -238,7 +238,7 @@ An invoice is past due from the day after its `due_date` in your workspace timez
 
 | Status | When |
 | --- | --- |
-| `403` | Key is missing `crm_invoices:read` / `crm_invoices:write`, or a key sends to a recipient other than the buyer |
+| `403` | Key is missing `crm_invoices:read` / `crm_invoices:write`, or a key sends to a recipient other than the buyer, or emails an address that is not a CRM contact |
 | `404` | Invoice, quote, contact, company, deal, owner or product not in your tenant |
 | `409` | A payment link for the invoice is still being created |
 | `422` | Invalid status transition, editing or deleting a non-draft invoice, a line or invoice total above 10^15 minor units, issuing or sending a draft with no lines, sending a `void` invoice, overpayment, payment on a `draft`, `paid` or `void` invoice, voiding an invoice that has payments, a payment link on a non-payable or non-`INR` invoice, with no gateway connected, with no buyer email or phone, or above the ceiling, or a value outside the bounds above |
