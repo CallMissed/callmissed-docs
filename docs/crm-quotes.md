@@ -226,7 +226,7 @@ Returns `201` with the full quote, its `lines` and `public_url`.
 
 Sending a `draft` first numbers it, freezes your billing details and moves it to `sent`; a draft with no lines, or whose `valid_until` is in the past, returns `422`. A quote that is already `sent`, `viewed`, `accepted` or `converted` is delivered again without a status change. A `declined`, `expired` or `void` quote returns `422` (revise it first). The status change is saved before delivery starts, so a failed channel does not undo it. The customer receives a hosted link where they can view, accept or decline the quote.
 
-With an API key, `to_email` and `to_phone` may only repeat the buyer's own email and phone on the quote; any other recipient returns `403`. Leave them out to use the buyer's details, or change the buyer on the draft first. Signed-in console users can send to any recipient.
+With an API key, `to_email` and `to_phone` may only repeat the buyer's own email and phone on the quote; any other recipient returns `403`. Leave them out to use the buyer's details, or change the buyer on the draft first. An API key can email a quote only to an address that belongs to a [contact](/docs/crm-contacts) in your CRM (matched without regard to case); otherwise the send returns `403` and nothing is sent, so add the buyer as a contact first. Signed-in console users can send to any recipient.
 
 Each workspace can send up to 200 quotes and invoices per channel per day (UTC), counting every email or WhatsApp delivery attempted. Past that, the call returns `429` before anything is numbered or sent; try again the next day. Channels with no recipient (`skipped`) do not count.
 
@@ -293,7 +293,7 @@ A quote can be accepted until the end of its `valid_until` date in your workspac
 
 | Status | When |
 | --- | --- |
-| `403` | Key is missing `crm_quotes:read` / `crm_quotes:write`, or `crm_invoices:write` for convert, or a key sends to a recipient other than the buyer |
+| `403` | Key is missing `crm_quotes:read` / `crm_quotes:write`, or `crm_invoices:write` for convert, or a key sends to a recipient other than the buyer, or emails an address that is not a CRM contact |
 | `404` | Quote, contact, company, deal, lead, owner or product not in your tenant |
 | `422` | Invalid status transition, editing or deleting a non-draft quote, deleting a revised (numbered) draft, accepting an expired quote, a line or quote total above 10^15 minor units, sending a draft with no lines or a past `valid_until`, sending a `declined`, `expired` or `void` quote, a line missing `name`, `quantity` or `unit_price_minor`, or a value outside the bounds above |
 | `429` | The workspace's daily send limit for that channel is used up |

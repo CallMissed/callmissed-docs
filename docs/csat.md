@@ -129,7 +129,8 @@ curl "https://api.callmissed.com/api/v1/csat/stats?days=30" \
   "surveys_sent": 1840,
   "responses": 611,
   "response_rate": 0.3321,
-  "average_rating": 4.31,
+  "average_rating": 6.12,
+  "average_rating_by_scale": { "csat_5": 4.31, "nps_10": 7.86 },
   "promoters": 302,
   "passives": 118,
   "detractors": 61,
@@ -141,7 +142,8 @@ curl "https://api.callmissed.com/api/v1/csat/stats?days=30" \
 | --- | --- |
 | `surveys_sent` | Surveys created in the window, whether or not you called `/sent` for them |
 | `response_rate` | `responses / surveys_sent` as a fraction in `0..1`, not a percentage. `0.0` when no survey was created |
-| `average_rating` | Across all scales. `null` when there are no responses |
+| `average_rating` | **Deprecated.** Mixes `csat_5` (1–5) and `nps_10` (0–10) ratings into one number; use `average_rating_by_scale`. `null` when there are no responses |
+| `average_rating_by_scale` | Mean rating per scale: `{"csat_5": …, "nps_10": …}`. A scale with no responses in the window is `null` |
 | `promoters` / `passives` / `detractors` | `nps_10` only. Promoter is 9–10, passive 7–8, detractor 0–6 |
 | `nps` | `(promoters − detractors) / nps_responses × 100`. `null` when there are no `nps_10` answers in the window |
 

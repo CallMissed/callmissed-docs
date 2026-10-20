@@ -229,11 +229,12 @@ returns `409` and asks you to reconnect it first.
 ### Draft an agent system prompt
 
 `POST /api/v1/facebook/ai/build_system_prompt`
-`POST /api/v1/instagram/ai/build_system_prompt` — needs `whatsapp:read`.
+`POST /api/v1/instagram/ai/build_system_prompt` — needs `whatsapp:write`.
 
 Turns a plain-language description of your business into a system prompt shaped
 for DMs and comment replies (short, plain text). It writes nothing: review the
-returned markdown and save it onto your agent yourself. Not metered.
+returned markdown and save it onto your agent yourself. Each call is billed
+as LLM usage, per token, to your workspace's credit balance.
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
@@ -291,9 +292,7 @@ These are the statuses you will actually hit across the Social API:
 | `409` | Either the account is **ambiguous** (several connected, none marked default — name one with `?account=` or set a default), or the resolved account is **disconnected** / its token is unavailable, or the upstream state is ambiguous (e.g. a possible duplicate). |
 | `422` | The body failed validation — a bad post type, an unreachable media URL, a caption over the limit, or an out-of-range schedule. |
 | `429` | Meta is rate-limiting this account. Wait a few minutes and retry. |
-| `502` | The upstream call failed. |
-| `503` | The channel is temporarily unavailable. |
-| `504` | An ambiguous upstream timeout — the action **may or may not** have completed. Check the account before retrying rather than assuming it failed. (An ambiguous Instagram **publish** reports this as `409` instead.) |
+| `503` | The upstream call failed, or the channel is temporarily unavailable. When the reason is an ambiguous upstream timeout, the action **may or may not** have completed: check the account before retrying rather than assuming it failed. (An ambiguous Instagram **publish** reports `409` instead.) |
 
 Two details worth designing around:
 
@@ -309,6 +308,7 @@ Two details worth designing around:
 
 Organic publishing, comment moderation and messaging on Facebook and Instagram
 are **not metered** — Meta does not charge for them, and neither do we. No credits
-are reserved or deducted on these endpoints. (The [Post Studio](/docs/social-posts),
-which generates an image and a caption with AI, is metered for that generation —
-see its page.)
+are reserved or deducted on these endpoints. Two exceptions run AI models and are
+billed for that generation: [drafting an agent system prompt](#draft-an-agent-system-prompt)
+(LLM usage, per token), and the [Post Studio](/docs/social-posts), which generates
+an image and a caption with AI — see its page.

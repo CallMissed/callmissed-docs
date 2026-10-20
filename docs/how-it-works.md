@@ -29,10 +29,10 @@ The model id picks the backend. You never manage multiple SDKs or keys.
 | Model id | Routed to |
 | --- | --- |
 | `sarvam-*` (e.g. `sarvam-105b`) | Indic LLM |
-| `saaras:*`, `whisper*`, `nova-3`, `deepgram-*`, `gnani-prisma-*` | Speech to text |
-| `bulbul:*`, `aura-2-*`, `melotts`, `gnani-timbre-*` | Text to speech |
-| `flux-*`, `gpt-image-*`, `lucid-origin`, `phoenix-1.0`, … | Image generation |
-| everything else (e.g. `kimi-k2.5`, `gpt-5.6-terra`, `glm-5.2`) | Chat completions |
+| `saaras:*`, `whisper`, `gpt-4o-*transcribe*`, `deepgram-*`, `gnani-prisma-*`, `ink-*`, `assemblyai-*`, `inworld-stt-*` | Speech to text |
+| `bulbul:*`, `deepgram-aura-*`, `gpt-4o-mini-tts`, `gnani-timbre-*`, `sonic-*`, `rime-*`, `inworld-tts-*`, `fish-audio-*`, `gradium-*` | Text to speech |
+| `flux-*`, `gpt-image-*`, `nano-banana-*`, … | Image generation |
+| everything else (e.g. `kimi-k2.5`, `gpt-5.6-terra`, `gpt-6-sol`) | Chat completions |
 
 Every id is a plain CallMissed id. One API surface, one key, one bill.
 

@@ -35,8 +35,8 @@ API keys are checked against three WhatsApp scopes. A JWT session is authorized 
 
 | Scope | Grants |
 |---|---|
-| `whatsapp:read` | List accounts, numbers, templates, campaigns, calls, webhook events, analytics; resolve and download media |
-| `whatsapp:write` | Onboard and manage numbers, link bots, template create/delete/sync, campaign create/launch/cancel, upload media, calling settings |
+| `whatsapp:read` | List accounts, numbers, templates, campaigns, calls, webhook events, analytics; read template groups; resolve and download media |
+| `whatsapp:write` | Onboard and manage numbers, link bots, template create/edit/delete/sync, template groups, campaign create/launch/cancel, upload media, calling settings |
 | `whatsapp:send` | Send any message type, mark as read, request call permission, place and terminate calls |
 
 A key without the scope gets `403`:
@@ -134,7 +134,7 @@ Errors returned by Meta are translated. These are the mappings you will actually
 | `413` | Media file exceeds 100 MB | No, shrink the file |
 | `422` | 24-hour window closed, display name not yet approved by Meta, no call permission from the user, or a generic WhatsApp rejection | No, follow the instruction in `detail` |
 | `429` | Per-user-pair send rate limit, or too many registration attempts in a short window | Yes, with backoff |
-| `502` | WhatsApp returned a server error | Yes |
+| `503` | WhatsApp returned a server error | Yes |
 | `503` | The WhatsApp integration is not configured on this server | No, contact support |
 
 ## Accounts
@@ -197,7 +197,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/accounts/1a2b3c4d-5e6f-7
   -H "Authorization: Bearer cm_your_api_key"
 ```
 
-Returns the updated account object. `404` if the account is not on your workspace, `400` if no number on it has a stored token (reconnect one), `422` if Meta rejected the read, `502` if Meta failed.
+Returns the updated account object. `404` if the account is not on your workspace, `400` if no number on it has a stored token (reconnect one), `422` if Meta rejected the read, `503` if Meta failed.
 
 ### Delete an account
 
@@ -240,7 +240,7 @@ curl https://api.callmissed.com/api/v1/whatsapp/phone_numbers \
     "account_id": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
     "bot_id": "0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
     "phone_number_id": "1234567890",
-    "display_phone_number": "+91 80802 47309",
+    "display_phone_number": "+91 9309963483",
     "verified_name": "Acme Coffee",
     "code_verification_status": "VERIFIED",
     "quality_rating": "GREEN",
@@ -297,7 +297,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/phone_numbers/9c2b7e30-1
   -H "Authorization: Bearer cm_your_api_key"
 ```
 
-Returns the updated phone-number object. `400` if the number has no stored token (reconnect it), `422` if Meta rejected the read, `502` if Meta failed.
+Returns the updated phone-number object. `400` if the number has no stored token (reconnect it), `422` if Meta rejected the read, `503` if Meta failed.
 
 ### Link or unlink a bot
 
@@ -515,7 +515,9 @@ X-CallMissed-Delivery: 4c8d2e10-6b7a-4f3d-9e21-0a5b6c7d8e9f
 | `data.conversation_id` | UUID | The CallMissed conversation thread |
 | `data.bot_id` | UUID | The bot that owns the conversation |
 | `data.channel` | string | `whatsapp` |
-| `data.from` | string | The customer's WhatsApp id, digits only, no `+` |
+| `data.from` | string | The customer's WhatsApp id, digits only, no `+`. For a customer who hides their phone number it is their [business-scoped user id](/docs/whatsapp-messages#recipients-without-a-phone-number) instead. Either way it is a valid `to` for a reply |
+| `data.from_user_id` | string, nullable | The customer's business-scoped user id, when WhatsApp sent one |
+| `data.username` | string, nullable | The customer's WhatsApp username, lower-case, when they have one |
 | `data.message_id` | string | Meta's `wamid` for the inbound message |
 | `data.type` | string | WhatsApp message type, for example `text`, `image`, `audio`, `interactive`, `button`, `location` |
 | `data.text` | string, nullable | Body text. Null for non-text types |
@@ -637,6 +639,7 @@ curl "https://api.callmissed.com/api/v1/whatsapp/messages/wamid.HBgMOTE5MDAwMDAw
   "delivered_at": "2026-04-19T12:04:12+00:00",
   "read_at": "2026-04-19T12:09:40+00:00",
   "failed_at": null,
+  "played_at": null,
   "error": null,
   "conversation_id": "2f6c9a11-3b4d-4e5f-8a9b-0c1d2e3f4a5b",
   "campaign_id": null,
@@ -656,6 +659,7 @@ curl "https://api.callmissed.com/api/v1/whatsapp/messages/wamid.HBgMOTE5MDAwMDAw
 | `status` | string | The furthest status reached: `sent`, `delivered` or `read`, or `failed` |
 | `created_at` | string, nullable | When CallMissed accepted the send |
 | `sent_at`, `delivered_at`, `read_at`, `failed_at` | string, nullable | WhatsApp's timestamp for each status. Null if that status was never reported |
+| `played_at` | string, nullable | Voice messages only: when the recipient first played it. Null for every other message, and until it is played. A played voice message also has a `played` entry in `statuses` |
 | `error` | object, nullable | `{code, title}` from the failure |
 | `statuses` | array | Every status recorded, oldest first. This is the audit trail: one entry per status, each with WhatsApp's timestamp and, for `failed`, the error |
 

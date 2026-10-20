@@ -55,7 +55,7 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
     "llm_model": "kimi-k2.5",
     "tts_provider": "sarvam",
     "tts_model": "bulbul:v3",
-    "stt_model": "saaras:v3",
+    "stt_model": "saaras:v4",
     "max_duration_seconds": 300,
     "…": "…"
   },
@@ -89,14 +89,16 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 | `voice` | string | `shubh` | Max 50 chars. A speaker of the selected TTS model (`bulbul:v3` has 37); each model's speakers are listed in [`GET /api/v1/voice/models`](/docs/managed-voice-agent#list-available-models) under `tts[].voices` |
 | `language` | string | `en-IN` | Max 10 chars. BCP-47 language for STT + TTS |
 | `llm_model` | string | `gemma-4-31b` | Any voice-capable model id from [`GET /api/v1/voice/models`](/docs/managed-voice-agent#list-available-models) (`kimi-k2.5`, `sarvam-105b`, `gpt-5.6-luna`, `gpt-live-1`, …). Max 100 chars. An unsupported id returns `422`; a model under maintenance (e.g. `kimi-k2.5-fast`) returns `503` |
-| `stt_model` | string | `saaras:v3` | Speech-recognition model id, from the same list. Max 64 chars |
-| `tts_model` | string | follows `tts_provider` | Text-to-speech model id, from the same list. Max 64 chars. Defaults to `bulbul:v3` for `sarvam` and `sonic-3.6` for `cartesia` |
+| `stt_model` | string | `saaras:v4` | Speech-recognition model id, from the same list. Max 64 chars. Includes the voice-session-only `assemblyai-universal-3.6-pro` and `inworld-stt-1` ([details](/docs/speech-to-text#voice-session-only-models)) |
+| `tts_model` | string | follows `tts_provider` | Text-to-speech model id, from the same list. Max 64 chars. Includes the voice-session-only `deepgram-flux-tts`, `rime-coda`, `inworld-tts-2`, `inworld-tts-2-flash`, `fish-audio-drama-3` and `gradium-tts-beta` ([voices and languages](/docs/tts-voices#voice-session-voices)). Defaults to `bulbul:v3` for `sarvam` and `sonic-3.6` for `cartesia` |
 | `tts_provider` | string | *plan-dependent* | Legacy selector: `sarvam` or `cartesia`; prefer `tts_model`. `elevenlabs` is not available and returns `422`. Omit it and the server picks by plan: paid plans (starter, pro, enterprise) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
 | `tts_engine` | string | `cartesia` | Only for `deepgram-voice-*` models: `deepgram`, `flux`, `cartesia` or `aura-1`. With a `deepgram-voice-*` model and no `stt_model`, recognition defaults to `deepgram-flux-general-multi` |
 | `max_duration_seconds` | int | `1800` | 30–3600 |
 | `variables` | object | — | Values for `{{token}}` placeholders in the greeting and prompt, e.g. `{"callee_name": "Priya"}`. With `bot_id`, a variable the agent marks required must be supplied (`422` otherwise) |
 | `webhook_url` | string | — | Max 2048 chars; must be a public `http`/`https` URL (`400` otherwise). Stored with the session. Session events are delivered to your registered [webhook endpoints](#webhook-events), not to this URL |
 | `metadata` | object | — | Arbitrary JSON stored with the session |
+
+A key whose `allowed_models` list excludes a model you name in `llm_model`, `stt_model` or `tts_model` is refused with `403`, the same rule as the LLM gateway. Models you leave out (server defaults) are not checked against the list.
 
 ## Connect the client
 
@@ -242,7 +244,7 @@ The AI cost of a session, one line per `(service, model)` pair it actually used 
   "session_id": "7c2b9e30-1d8a-4c5f-9b3d-2f4a6e8b1c2d",
   "total_credits": 1.84,
   "items": [
-    { "service": "stt", "model": "saaras:v3", "credits": 0.42, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 50.3 },
+    { "service": "stt", "model": "saaras:v4", "credits": 0.42, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 50.3 },
     { "service": "llm", "model": "kimi-k2.5", "credits": 0.61, "input_tokens": 5120, "output_tokens": 410, "audio_seconds": 0.0 },
     { "service": "tts", "model": "bulbul:v3", "credits": 0.81, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 38.9 }
   ]
@@ -292,6 +294,7 @@ Every WhatsApp template the agent sent during the call or its follow-up, to whic
 | Limit | Value | Behavior on exceed |
 |-------|-------|--------------------|
 | Session create rate | 10 / minute / workspace | HTTP 429 |
+| Model outside the key's `allowed_models` | any `llm_model`, `stt_model` or `tts_model` you name | HTTP 403 |
 | API key spend cap / per-key rate limit | as set on the key | HTTP 402 / HTTP 429 |
 | Concurrent active sessions (free) | 1 | HTTP 429 |
 | Concurrent active sessions (starter) | 5 | HTTP 429 |

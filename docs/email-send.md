@@ -277,7 +277,7 @@ View delivery history and spend: see [Delivery Log & Usage](/docs/email-logs).
 | 422 | `message_too_large` | The message exceeds 10 MB, attachments included after base64 encoding |
 | 422 | `unresolvable_template_vars` | The subject or body references `{{ contact.something }}`, which nothing can populate. Pass the value in `params` instead |
 | 429 | `rate_limited` / `monthly_cap_exceeded` / `quota_exceeded` | A plan or domain ceiling was hit |
-| 502 | `relay_failed` | The message could not be accepted for delivery |
+| 503 | `relay_failed` | The message could not be accepted for delivery |
 | 503 | `sender_propagating` | The `from` address was just registered as a sender and is not live yet. Retry shortly; no further setup is needed |
 
 ## Switching from Brevo

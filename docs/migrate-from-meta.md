@@ -33,7 +33,9 @@ Authorization: Bearer cm_your_api_key
 Content-Type: application/json
 ```
 
-The request body is Meta's, verbatim. `messaging_product` must be `"whatsapp"`. Supported `type` values: `text`, `template`, `image`, `audio`, `video`, `document`, `sticker`, `interactive`, `location`, `contacts`, `reaction`.
+The request body is Meta's, verbatim. `messaging_product` must be `"whatsapp"`. Supported `type` values: `text`, `template`, `image`, `audio`, `video`, `document`, `sticker`, `interactive`, `location`, `contacts`, `reaction`. Interactive messages accept `button`, `list`, `cta_url`, `flow`, `voice_call`, `location_request_message` and `address_message`, and `audio.voice: true` sends a voice note (audio only).
+
+To message a customer who hides their phone number, send their business-scoped user id (max 135 chars) in `recipient` instead of `to`; `to` wins when both are sent, and the success response then carries `user_id` in place of `wa_id`. See [recipients without a phone number](/docs/whatsapp-messages#recipients-without-a-phone-number).
 
 :::tabs
 ```bash [cURL]
