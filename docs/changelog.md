@@ -11,6 +11,67 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## October 2026
 
+### Hosted in India voice agents
+
+- **New `hosting` setting.** Set `hosting: "india"` in a voice agent's config, or **Where calls run → Hosted in India** in the console's Voice card. Speech recognition, the model, the voice, their backups, knowledge-base and memory search, and post-call analysis, notes, scoring and contact memory then all run in India.
+- **Models you can choose in India mode.** Speech to text: `saaras:v4`, `gnani-prisma-v2.5`, `microsoft-speech-stt` and the Deepgram Nova and Flux models (Whisper excluded). Models: `gemma-4-31b`, `sarvam-105b`, `sarvam-105b-conversations`, `glm-5.3` and `deepseek-v4.1-flash`. Voices: `bulbul:v3`, `bulbul:v4-flash`, `gnani-timbre-v3.0`, `microsoft-neural-tts` and `deepgram-aura-2` / `deepgram-aura-1`. Of the voice plans, only `t1` qualifies. Speech-to-speech models are not available.
+- **Saving is checked.** Saving an India-hosted agent with a model outside this list returns `422` naming the model. `GET /api/v1/bots/config-schema` lists the allowed models under `india_hosting`, and each plan carries `hosted_in_india`.
+- **`hosting: "global"`** runs `gemma-4-31b` on a global host first, with India as its fallback; nothing else changes. Without `hosting`, agents behave as before. Prices are the same in every mode.
+- **`hosted_in_india` in the model catalogue now means processed in India on every request.** Models served from a global pool are no longer flagged, even when their endpoint is in India.
+
+### New voice-agent models: Microsoft Speech and Microsoft Neural voices
+
+- **Speech to text.** `microsoft-speech-stt` ($1.0417 / hour) is Microsoft's real-time streaming recognizer, processed in India. It hears 81 languages (148 locales), including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu, Bhojpuri and Indian English, one language per call.
+- **Text to speech.** `microsoft-neural-tts` ($0.1563 / 10K characters), processed in India, has 57 voices across 13 languages, with plain-text input and a speaking-speed control (`tts_speed`, 0.5 to 2.0).
+- **Voice sessions only.** Both run inside voice agents and voice sessions. `POST /v1/audio/transcriptions` and `POST /v1/audio/speech` return `400` for them. See [Voices](/docs/tts-voices#microsoft-neural-tts--microsoft-neural-voices) and [Speech to Text](/docs/speech-to-text#voice-session-only-models).
+- The catalogue is now 134 models: 45 speech-to-text and 14 text-to-speech.
+
+### New voice-agent models: AssemblyAI, Inworld, Rime, Fish Audio, Gradium and Deepgram Flux TTS
+
+- **Speech to text.** `assemblyai-universal-3.6-pro` ($0.4688 / hour) is AssemblyAI's newest streaming model with built-in turn detection and Hindi, Marathi, Urdu and Indian English among its languages. `inworld-stt-1` ($0.1563 / hour) is a low-cost English-only model.
+- **Text to speech.** `deepgram-flux-tts` ($0.4688 / 10K characters, 16 English voices), `rime-coda` ($0.5208, 8 languages including Hindi), `inworld-tts-2` ($0.2604) and `inworld-tts-2-flash` ($0.1563) with 94 languages including 11 Indian languages, `fish-audio-drama-3` ($0.5208, 13 languages) and `gradium-tts-beta` ($0.50, 5 languages).
+- **Voice sessions only.** All eight run inside voice agents and voice sessions. `POST /v1/audio/transcriptions` and `POST /v1/audio/speech` return `400` for them. See [Voices](/docs/tts-voices#voice-session-voices) and [Speech to Text](/docs/speech-to-text#voice-session-only-models).
+- The catalogue is now 132 models: 44 speech-to-text and 13 text-to-speech.
+
+### Models moved, retired and deprecated
+
+- **Same IDs, new hosting.** `kimi-k2.5`, `kimi-k2.6`, `kimi-k2.7-code`, `gpt-oss-120b`, `DeepSeek-V4-Pro` and `DeepSeek-V4-Flash` keep their IDs and prices. `kimi-k2.5` now has a 262,144-token context window and `gpt-oss-120b` 131,072. `DeepSeek-V4-Pro` and `DeepSeek-V4-Flash` take 1,000,000 input tokens.
+- **Price updated 2026-10-17.** `DeepSeek-V4-Pro` input is now $1.813 per 1M tokens (was $1.375) and cached input $0.151 (was $0.04583); output is unchanged at $4.125. `DeepSeek-V4-Flash` cached input is now $0.02917 per 1M (was $0.01458); input and output are unchanged.
+- **Retired IDs keep working.** `glm-4.7-flash`, `glm-5.2`, `nemotron-3-super`, `gemma-4-26b-a4b-it`, `mistral-small-3.1`, `flux-2-klein-9b`, `lucid-origin`, `phoenix-1.0`, `sdxl-lightning`, `dreamshaper-8-lcm`, `aura-2-en`, `aura-2-es`, `melotts`, `nova-3` and `whisper-large-v3-turbo` are no longer listed. Requests that name them are answered by a successor model and the response keeps the ID you sent. Most keep their price; `gemma-4-26b-a4b-it`, `mistral-small-3.1`, `sdxl-lightning`, `dreamshaper-8-lcm`, `melotts` and `whisper-large-v3-turbo` now bill at their successor's price. See [Retired and deprecated models](/docs/models#retired-and-deprecated-models) for each successor and price.
+- **Free plan.** The retired LLM, speech-to-text and text-to-speech IDs stay free. The free plan no longer includes an image model: a free key that requests an image gets `403 model_not_available`. The default image model for `POST /v1/images/generations` and social posts is now `flux-2-pro`. The free tier is now 11 listed models and the catalogue is 124.
+- **Deprecated, sunset 2026-11-16:** `gpt-4o`, `gpt-4.1`, `gpt-5.5`, `gpt-5.6-sol` and `gpt-5.6-terra` (successor `gpt-6-sol`); `gpt-5-mini` and `gpt-5.6-luna` (`gpt-6-luna`); `gemini-3.5-flash`, `gemini-3.6-flash` and `gemini-3.7-flash` (`gemini-3.8-flash`); `gemini-3.1-flash-lite` (`gemini-3.5-flash-lite`); `gpt-realtime`, `gpt-realtime-1.5` and `gpt-realtime-2` (`gpt-realtime-2.1`); `gpt-realtime-mini` (`gpt-realtime-2.1-mini`); `gpt-image-1.5` and `gpt-image-2` (`gpt-image-2.5-flare`); `flux-1.1-pro` (`flux-2-pro`); and the older Deepgram speech-to-text IDs (`deepgram-nova`, `deepgram-nova-2`, `deepgram-enhanced`, `deepgram-base` to `deepgram-nova-3`; their medical variants to `deepgram-nova-3-medical`; their phonecall, meeting, finance, conversationalai, voicemail and video variants to the matching `deepgram-nova-2-*` model). The full table is in [Retired and deprecated models](/docs/models#retired-and-deprecated-models). Until then they are served as themselves; responses carry `Deprecation`, `Sunset` and `Link` headers, and the catalogue marks them `deprecated: true` with `sunset_date` and `successor`. From 2026-11-16 a request that names one is answered by and billed as its successor.
+- `aura-2-en` and `aura-2-es` keep their voices but now accept up to 2,000 characters per request, the limit of the model that answers them.
+
+### Gnani Timbre v3, and older speech models retired
+
+- **`gnani-timbre-v3.0`** replaces `gnani-timbre-v2.0`. It has 12 voices (default `Shivani`), every voice speaks all 10 Indian languages plus Hinglish, it streams, and the text accepts expressive audio tags such as `<laugh>` and `<pauses>`. Price is unchanged at $0.27 per 10K characters. See [Text to Speech](/docs/text-to-speech#gnani-timbre-v3-audio-tags). Requests naming `gnani-timbre-v2.0` now return the unknown-model error.
+- **`bulbul:v2` and `saaras:v3` are retired.** Use `bulbul:v3` or `bulbul:v4-flash` for speech, and `saaras:v4` for transcription (same languages, modes and price). `saaras:v4` is now the default when `model` is omitted. Voice sessions that still name `saaras:v3` or `saarika:v2.5` are served as `saaras:v4`.
+- The catalogue is now 139 models and the free tier is 26.
+
+### New models: DeepSeek V4.1 Flash and Bulbul V4 Flash
+
+- **`deepseek-v4.1-flash`** — a 1M-token reasoning model with tool calling and text-only input. It always reasons: `reasoning_effort` takes `"low"`, `"high"` or `"max"` (the default). Pricing per 1M tokens is $0.427 in / $1.771 out ($0.0104 cached input). Paid plans only.
+- **`bulbul:v4-flash`** — low-latency Indic text to speech with 222 persona voices (`<name>_<language>_<style>`, default `shubh_enhi_ads`) across 9 Indian languages and Hinglish, at $0.2083 per 10K characters. It is on the free tier. Input is capped at 2,500 characters. `ml-IN` and `od-IN` are not available on it; use `bulbul:v3`.
+- The catalogue is now 140 models and the free tier is 27.
+
+### flux-2-dev removed
+
+- `flux-2-dev` has been removed: every request to it was failing upstream. `POST /v1/images/generations` with `"model": "flux-2-dev"` now returns `404` with code `model_not_found`. Use `flux-2-klein-9b`, which is also free. `nano-banana-2` and `flux-1.1-pro` now fall back to `flux-2-klein-9b`. The free tier is 26 models (5 image). Past images and usage records are unchanged.
+
+### Nova Sonic models removed
+
+- `nova-sonic-2` and `nova-sonic` have been removed from the catalog. `GET /api/v1/models` no longer lists them, and a voice session that names either returns `422`. Use `gpt-realtime-2.1-mini` for speech-to-speech. An agent still configured with either model keeps answering calls on the standard STT, LLM and TTS pipeline; past usage and session cost records are unchanged.
+
+### Upstream failures now return 503 with Retry-After
+
+- Failures of a model or channel behind the API, and gateway timeouts, now return `503` (with a `Retry-After` header) instead of `502` or `504`. Our CDN replaces an origin `502` or `504` with its own HTML error page, so your client never saw the JSON error body or its reason code. Reason codes and retry advice are unchanged: only the status moved. A timeout that may have applied the action (for example a social action or a Facebook publish) is still ambiguous, so check before retrying. See [Errors](/docs/errors).
+
+### New models: Claude Opus 5.5, Sonnet 5.5 and Haiku 5.5
+
+- **`claude-opus-5-5`**, **`claude-sonnet-5-5`** and **`claude-haiku-5-5`** — Anthropic's Claude 5.5 family, available on the Pro plan and higher (free and Starter keys get `403 model_not_available`). 1M context, 128K max output, text + image input, reasoning and tool calling.
+- **Pricing per 1M tokens** — Opus $4.167 in / $20.83 out ($0.2083 cached input); Sonnet $2.083 in / $10.42 out ($0.1042 cached); Haiku $0.1042 in / $0.5208 out ($0.01042 cached), rising to $0.5208 / $2.604 ($0.05208 cached) for prompts over 100K tokens.
+- **`reasoning_effort`** — accepts `low`, `medium`, `high`, `xhigh` and `max`; `none` and `minimal` run as `low`. `temperature`, `top_p` and `top_k` are ignored. See [API speed](/docs/api-speed) and [function calling](/docs/chat-function-calling) for the `anthropic_thinking` field to send back with tool calls.
+
 ### Nova Sonic models under maintenance
 
 - `nova-sonic-2` and `nova-sonic` are under maintenance: `POST /v1/voice/sessions` returns `503` with a message naming the alternative, and `GET /api/v1/models` shows `status: "maintenance"`. Use `gpt-realtime-2.1-mini` for speech-to-speech. An agent still configured with either model keeps answering calls on the standard STT, LLM and TTS pipeline.
@@ -28,9 +89,9 @@ Latest updates, new features, and improvements to the CallMissed API.
 - **Models** — `gpt-4.1` serves a 300,000-token context window. The realtime `gpt-realtime-2*` models take 32,000 input and 4,096 output tokens. `nova-sonic` was retired upstream on 2026-09-14 and returns `503`; use `nova-sonic-2`.
 - **Images and speech** — image sizes outside a model's range, and `negative_prompt` on `lucid-origin`, return `400`. `gpt-4o-mini-tts` has 13 voices and rejects an unknown voice with `400`. `gpt-4o-transcribe-diarize` returns speaker `segments` with `response_format` `verbose_json` or `diarized_json`; it is no longer accepted as a voice-session `stt_model` (`422`), because live transcription cannot label speakers. grok-4.3 reasoning tokens now count as output tokens, and its images must have at least 512 pixels.
 
-### Email domains — neutral `502` reason
+### Email domains — neutral `503` reason
 
-- The `502` returned by the email domain routes when provisioning or verification is temporarily unavailable now carries `reason: "provider_unavailable"`. Deployments still being upgraded may return the older `acs_unavailable` for the same condition; status, body shape and retry advice are identical, so match both strings. See [Email limits](/docs/email-limits).
+- The `503` returned by the email domain routes when provisioning or verification is temporarily unavailable now carries `reason: "provider_unavailable"`. Deployments still being upgraded may return the older `acs_unavailable` for the same condition; status, body shape and retry advice are identical, so match both strings. See [Email limits](/docs/email-limits).
 
 ### Voice session webhooks
 
@@ -39,7 +100,7 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ### Speech-to-text error codes
 
-- `/v1/audio/transcriptions` and `/v1/audio/translations` now return `400 invalid_request` for a problem with the request (unsupported audio, a streaming-only or unknown model), `429 rate_limit_exceeded` when rate limited, and `502 service_unavailable` when transcription is temporarily unavailable, the same code `/v1/audio/speech` uses. See [Speech-to-Text](/docs/speech-to-text#errors).
+- `/v1/audio/transcriptions` and `/v1/audio/translations` now return `400 invalid_request` for a problem with the request (unsupported audio, a streaming-only or unknown model), `429 rate_limit_exceeded` when rate limited, and `503 service_unavailable` when transcription is temporarily unavailable, the same code `/v1/audio/speech` uses. See [Speech-to-Text](/docs/speech-to-text#errors).
 
 ### Batch API, zero data retention, per-end-user budgets and prompt caching
 

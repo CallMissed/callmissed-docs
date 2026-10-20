@@ -66,6 +66,7 @@ Most of `config` is stored as-is, which is why [Build an agent programmatically]
 | `disabled_tools` | List of at most 50 tool names, each 1-100 chars, de-duplicated |
 | `button_actions` | List of at most 20 rules for WhatsApp button taps ([WhatsApp button actions](#whatsapp-button-actions)); `button` 1-25 chars and unique ignoring case, `action` one of `ai_reply`, `send_text`, `send_document`, `send_template`, plus that action's fields |
 | `callback_calls` | Object ([WhatsApp callback calls](#whatsapp-callback-calls)); `enabled` and `allow_other_number` booleans, `voice_bot_id` (required when enabled) and `from_number_id` ids of your own agent and active phone number, `hours_start` 0-23, `hours_end` 1-24 and later than `hours_start`, `max_per_day` 1-10. Stored with every field filled in |
+| `wa_details_template`, `wa_reengage_template` | Name of one of your approved WhatsApp templates ([Templates outside the 24-hour window](#whatsapp-templates-outside-the-24-hour-window)), with an optional `wa_details_template_language` / `wa_reengage_template_language`. Checked when you change it; `null` or `""` clears it and its language |
 | `followup_agent` | Object; `enabled` and `send_recap` booleans, `instructions` a string ≤ 4000 chars, `max_attempts` an integer 1-5 |
 | `transcript_retention_days`, `recording_retention_days` | Whole number of days, 1-3650. Applies to calls made after you save this; older calls follow your account's retention setting. The server records when each was saved as `transcript_retention_set_at` / `recording_retention_set_at` ([Voice data retention](/docs/voice-data-retention)) |
 | `data_retention_mode` | `"standard"` or `"zdr"` ([Voice data retention](/docs/voice-data-retention)) |
@@ -128,6 +129,26 @@ A tap with no matching rule, or an `ai_reply` rule, is answered by the agent lik
 | `allow_other_number` | `false` | When `true`, the customer may ask to be called on another number in the same country as their WhatsApp number |
 
 What the agent checks before it promises a call: the number is not on your [do-not-call list](/docs/voice-campaigns) for calls, you have credit, no call to that number is already on the line, the time is within 7 days and inside the hours above, and the daily limit is not reached. A customer has at most one call waiting per agent: asking again with a new time moves it. The call is placed within about a minute of its time, with the same do-not-call, credit and destination checks as any other call. If it cannot start because all your lines are in use or the phone network errors, it is tried up to twice more; a customer who does not answer is not called again. See and cancel waiting calls with [the callback endpoints](#callback-calls).
+
+### WhatsApp templates outside the 24-hour window
+
+WhatsApp delivers a plain message only within 24 hours of the customer last messaging or calling your WhatsApp number; outside that window only an approved template is delivered. A phone call never opens the window, so when a caller asks your agent to "send me the details on WhatsApp", the text can only go out inside a template.
+
+```json
+{
+  "wa_details_template": "requested_details",
+  "wa_details_template_language": "en",
+  "wa_reengage_template": "reply_to_continue"
+}
+```
+
+| Key | Notes |
+| --- | --- |
+| `wa_details_template` | An approved template with exactly one variable, in its body, and no media header or button variable. The text the agent sends fills that variable; with the template's own words it must fit WhatsApp's 1024-character body limit, and a longer text is refused so the agent can shorten it |
+| `wa_reengage_template` | Used when no details template is set: an approved template with no variable, or one body variable (filled with the customer's name). The details are not in it; the agent tells the customer they follow once they reply |
+| `wa_details_template_language`, `wa_reengage_template_language` | The template's language code. Needed only when the template is approved in more than one language |
+
+A write that sets or changes one returns `422` when the name is not one of your approved templates (in that language, when given), or when the template has a different shape. With neither set, the agent tells the customer it could not send the message on WhatsApp.
 
 ---
 
@@ -478,7 +499,7 @@ curl "https://api.callmissed.com/api/v1/bots/config-schema?bot_type=inbound_call
       "summary": "The model that speaks the agent's replies.",
       "default": "bulbul:v3",
       "if_omitted": "Falls back to the Indic-tuned default voice, which sounds wrong on an English line.",
-      "allowed_values": ["aura-2-en", "aura-2-es", "bulbul:v2", "bulbul:v3", "deepgram-aura-1", "deepgram-aura-2", "gnani-timbre-v2.0", "gpt-4o-mini-tts", "melotts", "sonic-3.6"],
+      "allowed_values": ["aura-2-en", "aura-2-es", "bulbul:v3", "bulbul:v4-flash", "deepgram-aura-1", "deepgram-aura-2", "deepgram-flux-tts", "fish-audio-drama-3", "gnani-timbre-v3.0", "gpt-4o-mini-tts", "gradium-tts-beta", "inworld-tts-2", "inworld-tts-2-flash", "melotts", "microsoft-neural-tts", "rime-coda", "sonic-3.6"],
       "values_depend_on": null,
       "bounds": null,
       "validated_on_write": false
@@ -531,7 +552,7 @@ curl "https://api.callmissed.com/api/v1/bots/config-schema?bot_type=inbound_call
   ],
   "voice_tiers": [ { "id": "t1", "label": "Standard", "price_credits_per_minute": 4.0, "billing": "flat", "minimum_seconds": 30.0, "…": "…" } ],
   "stt_languages": { "deepgram-flux-general-en": ["en"], "…": ["…"] },
-  "multilingual": { "stt": ["deepgram-flux-general-multi", "saaras:v3", "…"], "tts": ["bulbul:v3", "sonic-3.6", "…"] }
+  "multilingual": { "stt": ["deepgram-flux-general-multi", "saaras:v4", "…"], "tts": ["bulbul:v3", "sonic-3.6", "…"] }
 }
 ```
 
@@ -581,7 +602,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots/validate-config \
     "bot_type": "inbound_call",
     "config": {
       "tts_model": "deepgram-aura-2",
-      "voice": "anushka",
+      "voice": "shubh",
       "max_duration_seconds": 600,
       "greeting": "Hi, thanks for calling."
     }
@@ -604,7 +625,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots/validate-config \
       "key": "voice",
       "severity": "error",
       "code": "incompatible",
-      "message": "'anushka' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v2; set tts_model to it. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
+      "message": "'shubh' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v3; set tts_model to it. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
       "did_you_mean": ["janus"],
       "allowed": ["agathe", "agustina", "alvaro", "ama", "amalthea", "andromeda"]
     }
@@ -1063,7 +1084,7 @@ curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234
 | `400` | `File exceeds 20MB limit`; `Unsupported file. Use PDF, JPEG or PNG.`; `Give the document a name, e.g. itinerary`; `This agent already has a document named '<name>'`; or `An agent can hold up to 20 documents` |
 | `403` | Key missing `bots:write` |
 | `404` | `Bot not found` |
-| `502` | `The file could not be stored, try again` |
+| `503` | `The file could not be stored, try again` |
 | `503` | `File storage is not configured` |
 
 ## DELETE `/api/v1/bots/{bot_id}/documents/{document_id}`

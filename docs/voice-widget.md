@@ -130,7 +130,7 @@ Lists your widgets, newest first. Optional query parameters: `bot_id`, `limit` (
 
 ### POST `/api/v1/voice-widgets/{widget_id}/tokens`
 
-Mint one token per visitor on your server, and hand it to the page. A token is valid for **5 minutes**, works only for this widget, and is checked against the same `allowed_origins`.
+Mint one token per visitor on your server, and hand it to the page. A token is valid for **5 minutes**, starts **one** call (mint a new one for the next call), works only for this widget, and is checked against the same `allowed_origins`.
 
 | Field | Type | Description |
 |-------|------|-------------|

@@ -183,7 +183,7 @@ A request that fails with a `4xx` or `5xx` is recorded in your usage log but **n
 | `422` | `invalid_request_error` | Batch too long, empty input, bad `dimensions`, unsupported `encoding_format`, or a token array instead of a string |
 | `429` | `rate_limit_exceeded` | Per-key request rate exceeded. Retry with backoff |
 | `429` | `quota_exceeded` | Plan or monthly budget cap reached. Honour `Retry-After` |
-| `502` | `upstream_error` | Embedding generation failed. Safe to retry |
+| `503` | `upstream_error` | Embedding generation failed. Safe to retry |
 | `503` | `service_unavailable` | Temporary capacity problem. Retry with backoff |
 
 Every error uses the standard envelope:

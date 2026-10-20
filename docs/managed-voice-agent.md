@@ -86,7 +86,7 @@ role.
     "greeting": "Hi, how can I help?",
     "language": "en-IN",
     "llm": { "model": "gpt-oss-120b", "temperature": 0.4 },
-    "stt": { "model": "saaras:v3" },
+    "stt": { "model": "saaras:v4" },
     "tts": { "model": "bulbul:v3", "voice": "shubh" },
     "tools": [
       {
@@ -112,7 +112,7 @@ role.
 | `agent.language` | `en-IN` | BCP-47. Falls back to `agent.stt.language`, then `agent.tts.language` |
 | `agent.llm.model` | `gemma-4-31b` | Any LLM id from [`GET /api/v1/voice/models`](#list-available-models) except `deepgram-voice-*` (see [Choosing models](#choosing-models)) |
 | `agent.llm.temperature` | model default | Number, 0–2 |
-| `agent.stt.model` | `saaras:v3` | |
+| `agent.stt.model` | `saaras:v4` | |
 | `agent.tts.model` | plan-dependent | Free plan `bulbul:v3`; paid plans (starter, pro, enterprise) `sonic-3.6` |
 | `agent.tts.voice` | model default | With no `agent.tts.model`: free plan `shubh`, paid plans `skylar`. With a model set, that model's own default speaker. A voice you set must be a speaker of the chosen model |
 | `agent.tools` | `[]` | Functions the agent may call: `name` (required), `description`, `parameters` (JSON Schema) |
@@ -154,10 +154,10 @@ in `Settings` and in `UpdateListen` / `UpdateSpeak`:
 | `listen`: a Deepgram speech-to-text model, e.g. `flux-general-en`, `flux-general-multi`, `nova-3-medical`, `nova-2-phonecall` | `deepgram-<model>`, the same Deepgram model |
 | `speak`: an Aura-2 model, e.g. `aura-2-thalia-en` | `deepgram-aura-2` with voice `thalia` |
 | `speak`: an Aura-1 model, e.g. `aura-asteria-en` | `deepgram-aura-1` with voice `asteria` |
-| `think`: an OpenAI model CallMissed serves under the same name, e.g. `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5` | unchanged |
+| `think`: an OpenAI model CallMissed serves under the same name, e.g. `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-terra` | unchanged |
 
-An id that is already a CallMissed id is never re-routed (`nova-3` stays
-`nova-3`). Anything else, including `think` models CallMissed does not serve
+An id that is already a CallMissed id is never re-routed (`deepgram-nova-3`
+stays `deepgram-nova-3`). Anything else, including `think` models CallMissed does not serve
 (for example `gpt-4o-mini` or Anthropic and Google models) and Flux TTS voices
 (`flux-<voice>-<lang>`), fails `Settings` with `INVALID_SETTINGS` naming the id.
 It is never swapped for a similar model. `agent.think.prompt`, `agent.think.functions`, `agent.greeting`,
@@ -299,8 +299,8 @@ up to three more are fallbacks, tried in order when the one serving fails:
 {
   "agent": {
     "think": [
-      { "provider": { "type": "open_ai", "model": "gpt-4.1" }, "prompt": "You are concise." },
-      { "provider": { "type": "open_ai", "model": "gpt-4o" } }
+      { "provider": { "type": "open_ai", "model": "gpt-6-sol" }, "prompt": "You are concise." },
+      { "provider": { "type": "open_ai", "model": "gpt-6-sol" } }
     ],
     "speak": [
       { "provider": { "type": "deepgram", "model": "aura-2-thalia-en" } },
@@ -590,6 +590,12 @@ the rest with `LatencyReport`.
 | `agent.context.messages` | 100 entries, 60,000 characters |
 | Fallback entries per array | 3 after the primary |
 | Concurrent sessions | Per plan |
+| Models named in `Settings` | Must be inside the key's `allowed_models` list |
+
+A model you name in `Settings` that the key's `allowed_models` list excludes fails
+`Settings` with `INVALID_SETTINGS` ("not allowed for this API key"); the same
+model named in a live update is refused with an `INVALID_UPDATE` warning and the
+session keeps the model it was running. Models you leave out are not checked.
 
 JSON control messages are small; one far larger than any legitimate update is
 dropped with a `MESSAGE_TOO_LARGE` warning. A `Settings` message whose prompt is

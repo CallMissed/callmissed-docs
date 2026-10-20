@@ -99,6 +99,7 @@ Sends the customer an interactive message asking them to allow calls. It only wo
 | `phone_id` / `phone_number_id` | UUID / string | One of | Your number |
 | `to` | string, 5 to 20 chars | Yes | The customer in E.164 |
 | `body_text` | string, 1 to 1024 chars | Yes | Why you want to call |
+| `context_message_id` | string, max 128 | No | A `wamid` to quote. The request is sent as a reply to it |
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/whatsapp/calling/permission-request \
