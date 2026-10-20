@@ -244,10 +244,10 @@ Five ways a `config` is accepted, stored, and returned to you unchanged — and 
 
 ### 1. A `voice` the chosen `tts_model` cannot speak
 
-The speaker list belongs to the speech model, not to the platform. `anushka` is a `bulbul` speaker; `thalia` is a `deepgram-aura-2` speaker. Send one with the other and the write succeeds, then the call does not: on the standard speech pipeline the engine rejects the speaker and the session **cannot start**, and on a managed voice model the agent's own default speaker is substituted — a different voice, possibly a different gender, with no warning anywhere.
+The speaker list belongs to the speech model, not to the platform. `shubh` is a `bulbul` speaker; `thalia` is a `deepgram-aura-2` speaker. Send one with the other and the write succeeds, then the call does not: on the standard speech pipeline the engine rejects the speaker and the session **cannot start**, and on a managed voice model the agent's own default speaker is substituted — a different voice, possibly a different gender, with no warning anywhere.
 
 ```json
-{ "tts_model": "deepgram-aura-2", "voice": "anushka" }
+{ "tts_model": "deepgram-aura-2", "voice": "shubh" }
 ```
 
 ```json
@@ -255,7 +255,7 @@ The speaker list belongs to the speech model, not to the platform. `anushka` is 
   "key": "voice",
   "severity": "error",
   "code": "incompatible",
-  "message": "'anushka' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v2; set tts_model to it. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
+  "message": "'shubh' is not a speaker on deepgram-aura-2 — it belongs to bulbul:v3; set tts_model to it. On a standard voice call the session refuses to start; where a softer path applies, the caller hears a different speaker than you chose.",
   "did_you_mean": ["janus"],
   "allowed": ["agathe", "agustina", "alvaro", "ama", "amalthea", "andromeda"]
 }
@@ -268,7 +268,7 @@ The speaker list belongs to the speech model, not to the platform. `anushka` is 
 On a `bulbul` or `saaras` stack a bare `"en"` is not rejected — it is expanded to `"en-IN"`. Indian English, not the neutral English you asked for. The same rewrite on a language the stack does not serve at all is worse: you get a different language, silently.
 
 ```json
-{ "tts_model": "bulbul:v3", "stt_model": "saaras:v3", "language": "en" }
+{ "tts_model": "bulbul:v3", "stt_model": "saaras:v4", "language": "en" }
 ```
 
 ```json
@@ -276,7 +276,7 @@ On a `bulbul` or `saaras` stack a bare `"en"` is not rejected — it is expanded
   "key": "language",
   "severity": "warning",
   "code": "incompatible",
-  "message": "'en' is not a language 'saaras:v3' accepts; it is read as 'en-IN'. Send the full code so it is unambiguous.",
+  "message": "'en' is not a language 'saaras:v4' accepts; it is read as 'en-IN'. Send the full code so it is unambiguous.",
   "did_you_mean": ["en-IN"]
 }
 ```
@@ -339,7 +339,7 @@ A name can also be real and still do nothing on this agent. Two findings say so,
   "severity": "error",
   "code": "incompatible",
   "message": "tts_provider alone does not select a speech provider. With tts_model unset the call speaks on 'bulbul:v3' (sarvam), not gnani — the caller hears a different voice than you configured. Set tts_model to a gnani model.",
-  "did_you_mean": ["gnani-timbre-v2.0"]
+  "did_you_mean": ["gnani-timbre-v3.0"]
 }
 ```
 
@@ -370,7 +370,7 @@ And a value the platform does not serve at all — `tts_provider: "google"`, say
 }
 ```
 
-A `tts_provider` that agrees with `tts_model` — `"tts_provider": "gnani"` with `"tts_model": "gnani-timbre-v2.0"` — produces no finding at all.
+A `tts_provider` that agrees with `tts_model` — `"tts_provider": "gnani"` with `"tts_model": "gnani-timbre-v3.0"` — produces no finding at all.
 
 **Fix:** prefer `tts_model`, which picks the provider for you, and leave `tts_provider` out entirely. If you do set it on an older config, set `tts_model` to a model from that same provider too — `tts_provider` alone is not enough to steer the call.
 

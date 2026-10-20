@@ -36,11 +36,10 @@ Your actual spend is always governed by your credit balance and any monthly budg
 
 #### Included allowances
 
-Every plan also comes with the following allowances. These are shown on your plan for reference and are **not** enforced as hard caps — going past one does not block an API request. Only the monthly call caps above, your credit balance, your monthly budget cap, your per-key request rate, and model access are enforced.
+Every plan also includes a storage allowance and a number of team members. Both are enforced: once your account has used its storage, new knowledge-base uploads are refused until you free space or upgrade, and once every member seat is taken, new invitations are refused until you remove a member or upgrade. Existing members and content are never removed. Conversations are not capped on any plan. Apart from these, the limits that apply are the monthly call caps above, your credit balance, your monthly budget cap, your per-key request rate, and model access.
 
 | Allowance | Free | Starter | Pro | Enterprise |
 |-----------|------|---------|-----|------------|
-| Conversations | 50 | 1,000 | 10,000 | No cap |
 | Storage | 100 MB | 1 GB | 10 GB | Unlimited |
 | Team members | 2 | 5 | 20 | Unlimited |
 

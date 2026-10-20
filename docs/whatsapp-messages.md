@@ -11,6 +11,14 @@ Every WhatsApp send endpoint: text, template, media, interactive, location, reac
 
 Every send endpoint lives under `https://api.callmissed.com/api/v1/whatsapp`, takes a JSON body, needs the `whatsapp:send` scope (media upload needs `whatsapp:write`, media reads need `whatsapp:read`), and identifies the sending number with `phone_id` or `phone_number_id`. See [WhatsApp API](/docs/whatsapp-api#choosing-the-sending-number) for the selector and the shared error shape.
 
+## Recipients without a phone number
+
+WhatsApp users can hide their phone number behind a username. WhatsApp then identifies them to your business by a **business-scoped user id** (BSUID): a two-letter country code, a period, an optional `ENT.`, then up to 128 letters and digits, for example `US.13491208655302741918`. It is at most 135 characters, is unique to your business, and changes if the user changes their number.
+
+- **Receiving.** For such a customer, the [`message.received`](/docs/whatsapp-api#the-request-you-receive) webhook's `from` carries the BSUID instead of a phone, and `from_user_id` and `username` are set.
+- **Replying.** The text, template, media, interactive, location, reaction and contact-card sends below accept a BSUID in `to`. Pass `from` back as `to` and the reply goes to the same person.
+- **Authentication templates cannot go to a BSUID.** WhatsApp refuses copy-code, one-tap and zero-tap authentication templates sent to a BSUID with error `131062`. Send one-time codes to a phone number.
+
 > **Free-form sends need an open window.** Text, media, interactive and location sends only work inside the 24-hour customer service window that opens when the customer last messaged you. Outside it, send an approved [template](/docs/whatsapp-templates). A closed-window send returns `422`.
 
 ## The common response
@@ -63,7 +71,7 @@ Each delivered paid template costs a flat **0.12 credits (₹0.12)**, the same i
 |---|---|---|---|
 | `phone_id` | UUID | One of | CallMissed's number id |
 | `phone_number_id` | string, max 64 | One of | Meta's number id |
-| `to` | string, 5 to 20 chars | Yes | Recipient in E.164, for example `+919000000000` |
+| `to` | string, 5 to 135 chars | Yes | Recipient in E.164, for example `+919000000000`, or a [business-scoped user id](#recipients-without-a-phone-number) |
 | `text` | string, 1 to 65536 chars | Yes | Message body. WhatsApp caps a single message at 4096 characters, so a longer body is split across several messages and every id comes back in `wamids` |
 | `preview_url` | boolean | No | Render a link preview for the first URL. Default `false` |
 | `context_message_id` | string, max 128 | No | A `wamid` to quote. The message is sent as a reply to it |
@@ -155,7 +163,7 @@ The only way to message someone outside the 24-hour window. The template must al
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `phone_id` / `phone_number_id` | UUID / string | One of | The sending number |
-| `to` | string, 5 to 20 chars | Yes | Recipient in E.164 |
+| `to` | string, 5 to 135 chars | Yes | Recipient in E.164, or a [business-scoped user id](#recipients-without-a-phone-number) |
 | `template_name` | string, 1 to 512 chars | Yes | The approved template's name |
 | `language_code` | string, max 12 | No | Template locale. Default `en_US` |
 | `components` | array of objects | No | Header, body and button variable values, passed to WhatsApp unchanged |
@@ -230,12 +238,16 @@ Reference the file by an uploaded `media_id` (recommended, reusable for 30 days)
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `phone_id` / `phone_number_id` | UUID / string | One of | The sending number |
-| `to` | string, 5 to 20 chars | Yes | Recipient in E.164 |
+| `to` | string, 5 to 135 chars | Yes | Recipient in E.164, or a [business-scoped user id](#recipients-without-a-phone-number) |
 | `kind` | enum | Yes | `image`, `audio`, `video`, `document` or `sticker` |
 | `media_id` | string, max 64 | One of | From [upload media](#upload-media) |
 | `link` | string, max 2048 | One of | A public URL to the file |
 | `caption` | string, max 1024 | No | Honoured for `image`, `video` and `document` only, ignored otherwise |
 | `filename` | string, max 255 | No | Display filename for documents |
+| `voice` | boolean | No | `audio` only: send it as a voice note. Honoured only for a `media_id` whose uploaded file is mono OGG/OPUS; anything else goes as ordinary audio. Default `false` |
+| `context_message_id` | string, max 128 | No | A `wamid` to quote. The message is sent as a reply to it |
+
+The response adds `sent_as_voice` for `audio`: `true` when WhatsApp was asked to render a voice note, `false` when it went as ordinary audio, and `null` for other kinds.
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/media \
@@ -263,18 +275,19 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/media \
 
 `POST /api/v1/whatsapp/messages/interactive` · scope `whatsapp:send`
 
-Reply buttons, a list menu, a call-to-action URL button, or a Flow. `interactive_type` selects the variant.
+Reply buttons, a list menu, a call-to-action URL button, a Flow, a call button, a location request or an address request. `interactive_type` selects the variant.
 
 **Common fields**
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `phone_id` / `phone_number_id` | UUID / string | One of | The sending number |
-| `to` | string, 5 to 20 chars | Yes | Recipient in E.164 |
-| `interactive_type` | enum | Yes | `button`, `list`, `cta_url` or `flow` |
-| `body_text` | string, 1 to 1024 chars | Yes | The main message body |
-| `footer_text` | string, max 60 | No | Small footer line |
-| `header` | object | No | Header block, passed through to WhatsApp. For `list` only its `text` is used |
+| `to` | string, 5 to 135 chars | Yes | Recipient in E.164, or a [business-scoped user id](#recipients-without-a-phone-number) |
+| `interactive_type` | enum | Yes | `button`, `list`, `cta_url`, `flow`, `voice_call`, `location_request_message` or `address_message` |
+| `body_text` | string, 1 to 4096 chars | Yes | The main message body. At most 1024 characters for `button`, `cta_url`, `flow` and `location_request_message` |
+| `footer_text` | string, max 60 | No | Small footer line. Not accepted for `voice_call` or `location_request_message` |
+| `header` | object | No | Header block, passed through to WhatsApp. For `list` only its `text` is used. Not accepted for `voice_call` or `location_request_message` |
+| `context_message_id` | string, max 128 | No | A `wamid` to quote. The message is sent as a reply to it |
 
 **Variant fields**
 
@@ -284,6 +297,22 @@ Reply buttons, a list menu, a call-to-action URL button, or a Flow. `interactive
 | `list` | `button_text`, `sections` | `button_text` max 20. Each section is `{ "title": string (1-24), "rows": [{ "id": string (1-200), "title": string (1-24), "description"?: string (max 72) }] }`, at least one row per section |
 | `cta_url` | `button_text`, `button_url` | `button_url` max 2048 |
 | `flow` | `flow_cta`, and exactly one of `flow_id` / `flow_name` | The flow fields below |
+| `voice_call` | — | A button that starts a WhatsApp call to your business. Optional `button_text` (label, max 20, default `Call Now`), `ttl_minutes` (1 to 43200, how long the button stays tappable; WhatsApp's default is 10080, 7 days) and `payload` (max 512, your own reference, echoed back on the call's events). Calling must be on for the number, see [WhatsApp Calling](/docs/whatsapp-calling) |
+| `location_request_message` | — | A **Send location** button. The customer's pin arrives as a `message.received` event with `type: "location"` |
+| `address_message` | — | A native delivery-address form, below. India only |
+
+**Address fields** (`interactive_type: "address_message"` only)
+
+Address messages are available only to businesses in India messaging customers in India. The form's fields are `name`, `phone_number`, `in_pin_code`, `house_number`, `floor_number`, `tower_number`, `building_name`, `address`, `landmark_area`, `city` and `state`; any other key returns `422`.
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `country` | string | No | `IN`, the only accepted value. Default `IN` |
+| `address_values` | object | No | Prefill: field name to value, each value max 512 chars. `in_pin_code` max 6 |
+| `saved_addresses` | array of objects, max 20 | No | Addresses to offer, each `{ "id": string (1-128), "value": { field: value } }` |
+| `validation_errors` | object | No | Field name to an error message, to ask again after an answer you could not use |
+
+The customer's submitted address arrives as a `message.received` event with `type: "interactive"`.
 
 **Flow fields** (`interactive_type: "flow"` only)
 
@@ -352,6 +381,32 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/interactive \
     "button_url": "https://acme.example.com/invoices/AC-10294"
   }'
 ```
+```bash [Call button]
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/interactive \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone_number_id": "1234567890",
+    "to": "+919000000000",
+    "interactive_type": "voice_call",
+    "body_text": "Prefer to talk it through? Tap to call us on WhatsApp.",
+    "button_text": "Call Acme",
+    "ttl_minutes": 1440,
+    "payload": "order-AC-10294"
+  }'
+```
+```bash [Address request]
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/interactive \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone_number_id": "1234567890",
+    "to": "+919000000000",
+    "interactive_type": "address_message",
+    "body_text": "Where should we deliver order AC-10294?",
+    "address_values": { "name": "Priya", "city": "Pune", "in_pin_code": "411001" }
+  }'
+```
 ```bash [Flow]
 curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/interactive \
   -H "Authorization: Bearer cm_your_api_key" \
@@ -377,7 +432,7 @@ Returns the common send response. The customer's tap arrives on your webhook as 
 
 | Code | Meaning |
 |---|---|
-| `400` | `buttons` missing for `button`, or `button_text` and `sections` missing for `list`, or `button_text` and `button_url` missing for `cta_url`, or for `flow`: `flow_cta` missing, neither or both of `flow_id` / `flow_name` supplied, or `flow_action_payload.screen` missing while `flow_action` is `navigate` |
+| `400` | `buttons` missing for `button`, or `button_text` and `sections` missing for `list`, or `button_text` and `button_url` missing for `cta_url`, or for `flow`: `flow_cta` missing, neither or both of `flow_id` / `flow_name` supplied, or `flow_action_payload.screen` missing while `flow_action` is `navigate`, or a `header` or `footer_text` sent with `voice_call` or `location_request_message` |
 | `422` | The 24-hour window is closed, or WhatsApp rejected the layout |
 
 ## Send an order details message
@@ -390,6 +445,7 @@ An itemised bill the customer can pay from the chat with UPI. Needs a payment co
 |---|---|---|---|
 | `phone_id` / `phone_number_id` | UUID / string | One of | The sending number |
 | `to` | string, 5 to 20 chars | Yes | Recipient in E.164 |
+| `context_message_id` | string, max 128 | No | A `wamid` to quote. The message is sent as a reply to it |
 | `reference_id` | string, max 35 | Yes | Your order reference. Letters, digits, `_`, `-` and `.` only, and unique per order details message. This is the key an [order status](#send-an-order-status-update) update quotes to settle the bill |
 | `goods_type` | string | Yes | `digital-goods` or `physical-goods` |
 | `payment_configuration` | string, 1 to 60 chars | Yes | The `configuration_name` of the payment configuration to charge into |
@@ -485,6 +541,7 @@ The update that settles a bill. It moves the customer's order screen off "Order 
 | `phone_id` / `phone_number_id` | UUID / string | One of | The sending number |
 | `to` | string, 5 to 20 chars | Yes | Recipient in E.164 |
 | `reference_id` | string, max 35 | Yes | The same reference you sent the order details message with |
+| `context_message_id` | string, max 128 | No | A `wamid` to quote. The message is sent as a reply to it |
 | `status` | enum | Yes | `pending`, `processing`, `partially-shipped`, `shipped`, `completed` or `canceled`. `partially_shipped` and `cancelled` are accepted and normalised |
 | `body_text` | string, 1 to 1024 chars | Yes | The message body |
 | `description` | string, max 120 | No | A line of detail under the status |
@@ -514,7 +571,8 @@ Returns the common send response. `400` for an unknown `status` or a `reference_
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `phone_id` / `phone_number_id` | UUID / string | One of | The sending number |
-| `to` | string, 5 to 20 chars | Yes | Recipient in E.164 |
+| `to` | string, 5 to 135 chars | Yes | Recipient in E.164, or a [business-scoped user id](#recipients-without-a-phone-number) |
+| `context_message_id` | string, max 128 | No | A `wamid` to quote. The message is sent as a reply to it |
 | `latitude` | float, -90 to 90 | Yes | |
 | `longitude` | float, -180 to 180 | Yes | |
 | `name` | string, max 200 | No | Location label |
@@ -541,7 +599,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/location \
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `phone_id` / `phone_number_id` | UUID / string | One of | The sending number |
-| `to` | string, 5 to 20 chars | Yes | Recipient in E.164 |
+| `to` | string, 5 to 135 chars | Yes | Recipient in E.164, or a [business-scoped user id](#recipients-without-a-phone-number) |
 | `message_id` | string, 1 to 128 chars | Yes | The `wamid` of the message to react to |
 | `emoji` | string, max 8 | No | The emoji. An empty string removes an existing reaction. Default empty |
 
@@ -564,7 +622,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/reaction \
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `phone_id` / `phone_number_id` | UUID / string | One of | The sending number |
-| `to` | string, 5 to 20 chars | Yes | Recipient in E.164 |
+| `to` | string, 5 to 135 chars | Yes | Recipient in E.164, or a [business-scoped user id](#recipients-without-a-phone-number) |
 | `contacts` | array of objects, 1 to 10 | Yes | WhatsApp contact objects. Each needs a `name` block with at least `formatted_name`, or `first_name` plus `last_name` |
 | `context_message_id` | string, max 128 | No | `wamid` of the inbound message this replies to |
 | `biz_opaque_callback_data` | string, max 256 | No | Opaque string echoed back on status events for your own correlation |
@@ -579,7 +637,7 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/messages/contacts \
     "contacts": [
       {
         "name": { "formatted_name": "Acme Support", "first_name": "Acme", "last_name": "Support" },
-        "phones": [{ "phone": "+918080247309", "type": "WORK", "wa_id": "918080247309" }],
+        "phones": [{ "phone": "+919309963483", "type": "WORK", "wa_id": "919309963483" }],
         "emails": [{ "email": "support@acme.example.com", "type": "WORK" }]
       }
     ],
