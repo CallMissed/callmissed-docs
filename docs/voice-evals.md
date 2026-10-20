@@ -359,6 +359,8 @@ runs:
         set -euo pipefail
         base="${CM_API_BASE%/}/api/v1/voice/evals"
         auth="Authorization: Bearer ${CM_API_KEY}"
+        # -m bounds each request so timeout-minutes holds; `|| true` turns a
+        # transport error into HTTP 000, which the checks below report/retry.
         body="$(mktemp)"
 
         # Both values go into a URL, so they are checked, not trusted.
@@ -372,8 +374,8 @@ runs:
           echo "::error::timeout-minutes and poll-seconds must be whole numbers."; exit 1
         fi
 
-        code=$(curl -sS -o "$body" -w '%{http_code}' -X POST -H "$auth" \
-          "${base}/${CM_SUITE_ID}/run?wait=false&min_pass_rate=${CM_MIN_PASS_RATE}")
+        code=$(curl -sS -m 60 -o "$body" -w '%{http_code}' -X POST -H "$auth" \
+          "${base}/${CM_SUITE_ID}/run?wait=false&min_pass_rate=${CM_MIN_PASS_RATE}") || true
         if [ "$code" != "202" ] && [ "$code" != "201" ]; then
           echo "::error::Could not start the eval run (HTTP $code): $(jq -r '.detail // .' "$body" 2>/dev/null || cat "$body")"
           exit 1
@@ -390,8 +392,8 @@ runs:
             exit 1
           fi
           sleep "$CM_POLL_SECONDS"
-          code=$(curl -sS -o "$body" -w '%{http_code}' -H "$auth" \
-            "${base}/runs/${run_id}?min_pass_rate=${CM_MIN_PASS_RATE}")
+          code=$(curl -sS -m 60 -o "$body" -w '%{http_code}' -H "$auth" \
+            "${base}/runs/${run_id}?min_pass_rate=${CM_MIN_PASS_RATE}") || true
           if [ "$code" != "200" ]; then
             echo "::warning::Polling run ${run_id} returned HTTP $code; retrying."
             continue

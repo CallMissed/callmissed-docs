@@ -50,6 +50,7 @@ Omitting both returns `400` with `"Either account_id (UUID) or waba_id (Meta) is
 | `library_template_button_inputs` | array of objects | No | Library path only. Values the preset cannot know, such as your URL, your phone number or the OTP type |
 | `parameter_format` | string | No | `positional` (`{{1}}`) or `named` (`{{customer_name}}`), case-insensitive. Omit to infer it from the placeholders. Ignored on the library path |
 | `allow_category_change` | boolean | No | Let Meta re-categorise the template. Defaults to on, so only send this to opt out. Ignored on the library path |
+| `message_send_ttl_seconds` | integer, -1 to 2592000 | No | [Time-to-live](#time-to-live): how long WhatsApp keeps trying to deliver a message sent from this template. Omit for WhatsApp's default. Not accepted with `library_template_name` (`422`): create the template, then [edit](#edit-a-template) its TTL |
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/whatsapp/templates \
@@ -168,7 +169,19 @@ Every template route that reaches WhatsApp maps its error to a short, stable mes
 | `404` | The WABA is not on your workspace (`WhatsApp account not found`), or the template no longer exists on WhatsApp |
 | `409` | A template with this name and language already exists, the WABA is disconnected, the WABA has no active phone number, or the template is paused for low quality |
 | `422` | Any other WhatsApp rejection: `WhatsApp rejected this template request. Check the details and try again.` |
-| `502` | WhatsApp itself failed. Retry |
+| `503` | WhatsApp itself failed. Retry |
+
+### Time-to-live
+
+`message_send_ttl_seconds` sets how long WhatsApp keeps trying to deliver a message sent from the template, for example while the customer's phone is off. After that WhatsApp stops trying and the message fails. The allowed range depends on the category:
+
+| Category | Minimum | Maximum | `-1` (30 days) |
+|---|---|---|---|
+| `AUTHENTICATION` | 30 seconds | 900 seconds (15 minutes) | Accepted |
+| `UTILITY` | 30 seconds | 43200 seconds (12 hours) | Accepted |
+| `MARKETING` | 43200 seconds (12 hours) | 2592000 seconds (30 days) | Not accepted |
+
+A value outside the template's range returns `400`. On an edit the range is checked against the new category when you change it, otherwise against the current one. A short TTL suits one-time codes, which are useless once they expire.
 
 ### Authentication templates
 
@@ -191,7 +204,58 @@ curl -X POST https://api.callmissed.com/api/v1/whatsapp/templates \
 
 The only body option is the boolean `add_security_recommendation`, and there is no `example` because there is no sender-supplied variable in the body. Sending `BODY` text on an `AUTHENTICATION` template returns `400` telling you the verification-code copy is fixed by Meta, and a non-boolean `add_security_recommendation` returns `400` as well. Any additional button or footer options come from Meta's authentication-template reference and are passed through unchanged.
 
-Once approved, send the code through [`POST /messages/template`](/docs/whatsapp-messages#send-a-template-message), passing it as the body or button parameter.
+Once approved, send the code through [`POST /messages/template`](/docs/whatsapp-messages#send-a-template-message), passing it as the body or button parameter. Authentication templates can only be sent to a phone number, never to a [business-scoped user id](/docs/whatsapp-messages#recipients-without-a-phone-number): WhatsApp refuses that with error `131062`.
+
+### One-tap and zero-tap codes
+
+An authentication template takes **one** `OTP` button in a `BUTTONS` component. Its `otp_type` picks how the code reaches your Android app (`copy_code`, `one_tap` or `zero_tap`, case-insensitive):
+
+| `otp_type` | What the customer does |
+|---|---|
+| `copy_code` | Taps **Copy code** and pastes it into your app |
+| `one_tap` | Taps an autofill button, and WhatsApp hands the code to your app. |
+| `zero_tap` | Nothing: WhatsApp hands the code to your app without a tap. |
+
+| Button field | Applies to | Notes |
+|---|---|---|
+| `text` | All | Button label, max 25 characters |
+| `autofill_text` | `one_tap`, `zero_tap` | Autofill button label, max 25 characters |
+| `supported_apps` | `one_tap`, `zero_tap` | 1 to 5 apps, each `{ "package_name", "signature_hash" }`. Required for `zero_tap`. `package_name` is your Android package name: two or more dot-separated segments, each starting with a letter, letters, digits and `_` only, max 224 characters. `signature_hash` is your app's signing-key hash, exactly 11 characters of letters, digits, `+`, `/` and `=` |
+| `zero_tap_terms_accepted` | `zero_tap` | Must be `true`. WhatsApp does not create a zero-tap template without it |
+
+`package_name` and `signature_hash` directly on the button (the older form) are refused with `400`: put them in `supported_apps`. A second `OTP` button, an unknown `otp_type`, or a `one_tap`/`zero_tap`-only field on a `copy_code` button also return `400`.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/templates \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "waba_id": "102290129340398",
+    "name": "acme_app_login",
+    "category": "AUTHENTICATION",
+    "language": "en_US",
+    "message_send_ttl_seconds": 600,
+    "components": [
+      { "type": "BODY", "add_security_recommendation": true },
+      { "type": "FOOTER", "code_expiration_minutes": 10 },
+      {
+        "type": "BUTTONS",
+        "buttons": [
+          {
+            "type": "OTP",
+            "otp_type": "zero_tap",
+            "text": "Copy code",
+            "autofill_text": "Autofill",
+            "zero_tap_terms_accepted": true,
+            "supported_apps": [
+              { "package_name": "com.acme.app", "signature_hash": "K8a/AINcGX7" }
+            ]
+          }
+        ]
+      }
+    ]
+  }'
+```
 
 ### Carousel templates
 
@@ -455,6 +519,7 @@ Editing keeps the template's name, so it avoids the 30-day name lock a delete-an
 | `components` | array of objects | One of | A **full replacement** list. WhatsApp replaces every component, it does not merge. Validated exactly like a create |
 | `category` | string | One of | `MARKETING`, `UTILITY` or `AUTHENTICATION`. WhatsApp rejects a category change on an `APPROVED` template |
 | `parameter_format` | string | No | `positional` or `named`. Selects which variable syntax the new components are checked against |
+| `message_send_ttl_seconds` | integer, -1 to 2592000 | One of | New [time-to-live](#time-to-live), checked against the template's category |
 
 ```bash
 curl -X PATCH https://api.callmissed.com/api/v1/whatsapp/templates/3f9a1c20-7d8e-4b1a-9c2f-5e6a7b8c9d0e \
@@ -476,12 +541,49 @@ curl -X PATCH https://api.callmissed.com/api/v1/whatsapp/templates/3f9a1c20-7d8e
 
 | Code | Meaning |
 |---|---|
-| `400` | Neither `components` nor `category` was sent, or the components failed validation |
+| `400` | None of `components`, `category` or `message_send_ttl_seconds` was sent, the components failed validation, or the TTL is outside the category's range |
 | `404` | The template is not on your workspace |
 | `409` | The template is `PENDING` (only `APPROVED`, `REJECTED` and `PAUSED` templates can be edited), or WhatsApp never confirmed it. Sync, then retry |
 | `422` | The new components break a template rule, or WhatsApp refused the edit |
 
 WhatsApp limits edits to an `APPROVED` template to 10 in 30 days and 1 in 24 hours. `REJECTED` and `PAUSED` templates can be edited without limit. WhatsApp enforces this count, so an edit over the limit comes back as a WhatsApp rejection.
+
+## Template groups
+
+Group templates from one WABA so you can read their metrics together, for example every order-update template. Groups are read live from WhatsApp; CallMissed keeps no copy. Name member templates by their CallMissed `id` from [list templates](#list-templates); each must be on the same WABA and already confirmed by WhatsApp (sync first if it is new). Every route takes the WABA as `account_id` or `waba_id`, in the body for create and update and as a query parameter for read and delete. There is no list call. Per-group delivery figures are at [`GET /analytics/meta/template-groups`](/docs/whatsapp-api#meta-insights).
+
+| Method and path | Scope | Body |
+|---|---|---|
+| `POST /api/v1/whatsapp/template_groups` | `whatsapp:write` | `name` (1 to 256 chars), optional `description` (max 512), `template_uuids` (1 to 500) |
+| `GET /api/v1/whatsapp/template_groups/{group_id}` | `whatsapp:read` | None |
+| `PATCH /api/v1/whatsapp/template_groups/{group_id}` | `whatsapp:write` | At least one of `name`, `description`, `add_template_uuids`, `remove_template_uuids` (each list max 500) |
+| `DELETE /api/v1/whatsapp/template_groups/{group_id}` | `whatsapp:write` | None. The templates and their past metrics are kept |
+
+`group_id` is WhatsApp's numeric group id, returned by create.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/whatsapp/template_groups \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "waba_id": "102290129340398",
+    "name": "Order updates",
+    "template_uuids": ["3f9a1c20-7d8e-4b1a-9c2f-5e6a7b8c9d0e", "8b2d4e61-1a3c-4f5e-9d7b-2c4e6a8b0d1f"]
+  }'
+```
+
+```json
+{ "group_id": "1234567890123456", "name": "Order updates", "template_ids": ["594425479261596", "702183654120938"] }
+```
+
+Read returns `group_id`, `name`, `description`, `creation_time`, `update_time`, `templates` (the member templates as WhatsApp returns them) and `paging`. Update and delete return `{ "group_id", "success" }`.
+
+| Code | Meaning |
+|---|---|
+| `400` | Neither `account_id` nor `waba_id` was sent |
+| `403` | The key is missing the scope |
+| `404` | The group is not on your WABA, or a template is not on it or not yet confirmed by WhatsApp |
+| `422` | A field is outside its bounds, `group_id` is not numeric, or update had nothing to change |
 
 ## Unpause a template
 
