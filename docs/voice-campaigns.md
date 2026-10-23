@@ -212,7 +212,7 @@ Each row is upserted into your CRM contacts **and** attached to the campaign, de
 
 | Form field | Type | Notes |
 |-------|------|-------|
-| `file` | file | UTF-8 CSV, first row is the header |
+| `file` | file | CSV, first row is the header. UTF-8 or Windows-1252; comma, semicolon or tab separated |
 | `column_map` | string | JSON object mapping your headers to our fields, e.g. `{"Mobile No.":"phone"}` |
 | `dry_run` | boolean | **Default `true`** — previews both effects and writes nothing |
 | `opted_in` | boolean | Asserts messaging consent for new contacts with no opt-in column of their own |
