@@ -98,9 +98,9 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 | Model | Input / 1M tokens | Output / 1M tokens |
 |-------|-------------------|-------------------|
 | `kimi-k2.5-fast` | $0.8438 | $4.219 |
-| `sarvam-105b` | $0.3646 (₹35) | $0.3646 (₹35) |
-| `sarvam-105b-conversations` | $0.3646 (₹35) | $0.3646 (₹35) |
-| `gpt-5.6-sol` | $5.208 | $31.25 |
+| `sarvam-105b` | $0.1563 (₹15) | $0.625 (₹60) |
+| `sarvam-105b-conversations` | $0.1563 (₹15) | $0.625 (₹60) |
+| `gpt-5.6-sol` | $4.167 | $20.83 |
 | `gpt-5.6-terra` | $2.083 | $12.5 |
 | `gpt-5.6-luna` | $0.2083 | $1.25 |
 | `gpt-6-sol` | $2.083 | $10.42 |
@@ -442,8 +442,8 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
-| `sarvam-105b` | 105B MoE. Complex reasoning, agentic tasks, long documents. | 131K | Yes | $0.3646 in / $0.3646 out per 1M |
-| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. Tool calling. | 32K | Yes | $0.3646 in / $0.3646 out per 1M |
+| `sarvam-105b` | 105B MoE. Complex reasoning, agentic tasks, long documents. | 131K | Yes | $0.1563 in / $0.625 out per 1M |
+| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. Tool calling. | 32K | Yes | $0.1563 in / $0.625 out per 1M |
 | `gpt-4o` | Multimodal text + vision. | 128K | No | $2.604 in / $10.42 out per 1M |
 | `gemini-3.8-flash` | Fast multimodal flagship. Thinking low/medium/high. | 1M | No | $1.563 in / $7.813 out per 1M |
 | `gemini-3.7-flash` | Fast multimodal. Thinking low/medium/high. | 1M | No | $1.563 in / $7.813 out per 1M |
@@ -455,7 +455,7 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `gpt-4.1` | Long-context multimodal. Strong instruction following. | 300K | No | $2.083 in / $8.333 out per 1M |
 | `gpt-5-mini` | Fast, affordable reasoning. | 400K | No | $0.2604 in / $2.083 out per 1M |
 | `gpt-5.5` | Reasoning flagship. Vision, tools, prompt caching. | 1.05M | No | $5.208 in / $31.25 out per 1M |
-| `gpt-5.6-sol` | Frontier model for complex professional work. Vision, reasoning, tools. | 1.05M | No | $5.208 in / $31.25 out per 1M |
+| `gpt-5.6-sol` | Frontier model for complex professional work. Vision, reasoning, tools. | 1.05M | No | $4.167 in / $20.83 out per 1M |
 | `gpt-5.6-terra` | Balances intelligence and cost. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $12.5 out per 1M |
 | `gpt-5.6-luna` | Cost-sensitive, high-volume workloads. Vision, reasoning, tools. | 1.05M | No | $0.2083 in / $1.25 out per 1M |
 | `gpt-6-sol` | Frontier reasoning for enterprise agents, coding and complex knowledge work. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $10.42 out per 1M |
@@ -474,7 +474,7 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `glm-5.3` | Z.ai GLM 5.3. Tools + reasoning (low / high / max). Text-only. | 1M | No | $2.125 in / $6.667 out per 1M |
 | `deepseek-v4.1-flash` | DeepSeek V4.1 Flash. Tools + reasoning (low / high / max). Text-only. | 1M | No | $0.427 in / $1.771 out per 1M |
 | `gpt-oss-120b` | Open-weight 120B MoE. Reasoning-grade at lower cost. | 131K | Yes | $1.042 in / $4.167 out per 1M |
-| `gemma-4-31b` | Gemma 4 31B instruct. Fast with thinking off, vision, tools. | 128K | No | $0.6146 in / $1.542 out per 1M |
+| `gemma-4-31b` | Gemma 4 31B instruct. Fast with thinking off, vision, tools. | 128K | No | $0.3646 in / $0.9375 out per 1M |
 | `gpt-realtime` | OpenAI flagship realtime speech-to-speech model — STT + reasoning + function calling + TTS in one. 10 concurrent. | 32K | No | $4.167 in / $16.67 out per 1M • $0.3906/min |
 | `gpt-realtime-mini` | Lowest-cost realtime — same single-model shape as gpt-realtime, ~3× cheaper. 20 concurrent. | 32K | No | $0.625 in / $2.5 out per 1M • $0.1229/min |
 | `gpt-realtime-2` | Newest realtime with stronger tool calling. 32K input, 4K output. | 32K | No | $4.167 in / $25 out per 1M • $0.3906/min |
