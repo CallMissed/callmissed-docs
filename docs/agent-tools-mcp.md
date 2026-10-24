@@ -1,13 +1,13 @@
 ---
 title: "Account MCP Server"
-description: "Give an AI agent 340 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
+description: "Give an AI agent 342 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
 slug: "agent-tools-mcp"
 breadcrumb: "Getting Started"
 ---
 
 # Account MCP Server
 
-Give an AI agent 340 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
+Give an AI agent 342 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
 
 :::cards
 /docs/mcp-server | Docs MCP Server | book | Searchable CallMissed docs inside your coding agent
@@ -16,7 +16,7 @@ Give an AI agent 340 tools that act on your CallMissed account: draft, build and
 
 ## Overview
 
-The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 340 tools: draft, build and configure voice agents end to end, set up how inbound calls are answered with flows, menus and queues, place and inspect phone calls, read transcripts, build and run outbound calling campaigns, work the shared inbox and the support desk, search and update the CRM and set up its pipelines, custom fields and lead scoring, summarise and score calls, send WhatsApp messages, catalog products and Flow forms, send email, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, wire up webhooks and managed prompts, version and roll back an agent, run evaluation suites and A/B experiments, and check what it all cost.
+The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 342 tools: draft, build and configure voice agents end to end, set up how inbound calls are answered with flows, menus and queues, place and inspect phone calls, read transcripts, build and run outbound calling campaigns, work the shared inbox and the support desk, search and update the CRM and set up its pipelines, custom fields and lead scoring, summarise and score calls, send WhatsApp messages, catalog products and Flow forms, send email, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, wire up webhooks and managed prompts, version and roll back an agent, run evaluation suites and A/B experiments, and check what it all cost.
 
 It is hosted, so there is nothing to install and nothing to run locally.
 
@@ -135,7 +135,7 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 
 ## Tools
 
-340 tools in sixteen groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
+342 tools in sixteen groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
 
 ### Voice and calls
 
@@ -148,8 +148,10 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 | `get_call_recording` | Get a short-lived download link for a call's recording | Read | `telephony:read` | No |
 | `click_to_call` | Ring one of your people, dial the contact, and bridge the two. No AI agent involved | Write | `telephony:write` | Yes |
 | `list_phone_numbers` | List your numbers and their status, to find the `from_number_id` `place_call` takes | Read | `telephony:read` | No |
-| `search_available_numbers` | Search the numbers you could rent, with monthly price and whether each takes calls. Buys nothing | Read | `telephony:read` | No |
-| `provision_phone_number` | Rent a number. It is bought immediately and renews monthly until released; needs an approved compliance application | Write | `telephony:write` | Yes |
+| `search_available_numbers` | Search the numbers you could rent in a country, with monthly price, whether each takes calls and whether it needs documents. Buys nothing | Read | `telephony:read` | No |
+| `list_number_countries` | List the countries you can rent numbers in, India first, with dialling codes and whether each is open yet | Read | `telephony:read` | No |
+| `get_number_requirements` | Get the documents and fields a country's numbers need before activation; every country differs | Read | `telephony:read` | No |
+| `provision_phone_number` | Rent a number. It is bought immediately and renews monthly until released; Indian numbers and numbers that need documents require an approved compliance application for that country | Write | `telephony:write` | Yes |
 | `attach_number_to_agent` | Point one of your numbers at an agent, so calls to it are answered by that agent. Pass `bot_id: null` to detach | Write | `telephony:write` | No |
 | `list_voice_sessions` | List voice agent sessions, newest first | Read | `stt` + `tts` + `llm` permissions | No |
 | `get_voice_session_transcript` | Get a session's full turn-by-turn transcript | Read | `stt` + `tts` + `llm` permissions | No |
@@ -713,9 +715,9 @@ Step-by-step playbooks an assistant follows before it builds anything: it interv
 
 ### Calling tools are deployment-gated
 
-33 of the 340 tools are gated on whether calling is switched on for your account, in two independent groups.
+35 of the 342 tools are gated on whether calling is switched on for your account, in two independent groups.
 
-**20 telephony tools:** `place_call`, `list_calls`, `get_call`, `end_call`, `get_call_recording`, `click_to_call`, `list_phone_numbers`, `search_available_numbers`, `provision_phone_number`, `attach_number_to_agent`, the four voicemail-message tools, `set_agent_voicemail_drop`, `get_number_reputation`, `update_number_call_settings`, `declare_number_for_ai_calls`, `list_telephony_compliance` and `callback_handoff`. With telephony off, `tools/list` returns the other 320.
+**22 telephony tools:** `place_call`, `list_calls`, `get_call`, `end_call`, `get_call_recording`, `click_to_call`, `list_phone_numbers`, `search_available_numbers`, `list_number_countries`, `get_number_requirements`, `provision_phone_number`, `attach_number_to_agent`, the four voicemail-message tools, `set_agent_voicemail_drop`, `get_number_reputation`, `update_number_call_settings`, `declare_number_for_ai_calls`, `list_telephony_compliance` and `callback_handoff`. With telephony off, `tools/list` returns the other 320.
 
 **13 campaign tools:** the whole **Calling campaigns** table above. With campaigns off, `tools/list` returns the other 327.
 
@@ -741,7 +743,7 @@ curl https://api.callmissed.com/api/v1/mcp/catalog
 {
   "serverUrl": "https://api.callmissed.com/api/v1/mcp",
   "protocolVersion": "2025-06-18",
-  "count": 340,
+  "count": 342,
   "categories": { "voice": "Voice and calls", "crm": "CRM" },
   "tools": [
     {
