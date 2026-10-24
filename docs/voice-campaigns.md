@@ -212,7 +212,7 @@ Each row is upserted into your CRM contacts **and** attached to the campaign, de
 
 | Form field | Type | Notes |
 |-------|------|-------|
-| `file` | file | UTF-8 CSV, first row is the header |
+| `file` | file | CSV, first row is the header. UTF-8 or Windows-1252; comma, semicolon or tab separated |
 | `column_map` | string | JSON object mapping your headers to our fields, e.g. `{"Mobile No.":"phone"}` |
 | `dry_run` | boolean | **Default `true`** — previews both effects and writes nothing |
 | `opted_in` | boolean | Asserts messaging consent for new contacts with no opt-in column of their own |
@@ -282,6 +282,8 @@ A `preview` campaign dials only approved contacts, so this is what makes the pho
 ## TRAI readiness for AI calls (India)
 
 TRAI's Third Amendment to the TCCCPR (announced 18 September 2026, [press release 119/2026](https://www.trai.gov.in/sites/default/files/2026-09/PR_No119of2026.pdf)) treats calls placed by an application or automated platform, including AI and artificial-voice calls, as A2P calls. Every business making them must declare that use, and the caller IDs it uses, to its telecom provider beforehand. An undeclared A2P call is treated as unsolicited commercial communication. Every campaign call is an A2P call.
+
+These rules cover Indian caller IDs. A campaign calling from a number outside India has no Indian telecom provider to declare to, so the checks below do not apply to it, unless its caller ID pool also holds Indian numbers, in which case the DLT fields are still required.
 
 You make the declaration with your telecom provider; CallMissed cannot file it for you. What CallMissed does:
 

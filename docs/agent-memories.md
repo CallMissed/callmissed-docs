@@ -18,7 +18,7 @@ Read, teach, correct and erase the standing facts an agent remembers and the rul
 
 ## The injection window: what the agent reads without asking
 
-Every memory stays searchable forever. The newest of each kind are handed to the agent at the start of a turn, so it acts on them without deciding to look anything up: up to **100 rules**, **500 facts** you or the agent saved, and **150 facts picked up from chats**, each kind in its own window. That set is the injection window, and `injected: true` marks it on every listed memory.
+Every memory stays searchable forever. The newest of each kind are handed to the agent at the start of a turn, so it acts on them without deciding to look anything up: up to **100 rules**, **500 facts** you saved (including ones the agent saved on your own turns), and **150 background facts**, each kind in its own window. Background facts are the ones you did not state: facts picked up from chats, and facts the agent saved during a conversation with someone else. The agent reads them as unverified information, never as your instructions. That set is the injection window, and `injected: true` marks it on every listed memory.
 
 The window is applied today on the linked personal WhatsApp channel. On every other channel a memory is still remembered and still found by `recall_memory`; it is simply not placed in the prompt ahead of time, so `injected` there tells you where a fact sits in the order rather than that it was already read.
 
@@ -31,7 +31,7 @@ The window is applied today on the linked personal WhatsApp channel. On every ot
 So a fact does not stop existing when it falls out of the window. It stops being free. If a preference must hold on every single reply, keep it near the top by restating it: memories are ordered newest first, and a fresh statement of the same preference moves it back into the window.
 
 <Callout type="info">
-  One more bound shapes each window. A memory is injected whole, never cut mid-sentence, and each block has a character budget: **20,000** for rules, **120,000** for saved facts and **30,000** for chat-picked facts. An unusually long run of long memories can fill a budget before its count is reached. `injected` is positional (the newest rows of each kind) and does not model the character budget. Write memories as one line each and the budget will not bite.
+  One more bound shapes each window. A memory is injected whole, never cut mid-sentence, and each block has a character budget: **20,000** for rules, **120,000** for saved facts and **30,000** for background facts. An unusually long run of long memories can fill a budget before its count is reached. `injected` is positional (the newest rows of each kind) and does not model the character budget. Write memories as one line each and the budget will not bite.
 </Callout>
 
 ## Facts and rules
