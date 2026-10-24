@@ -1,21 +1,21 @@
 ---
 title: "Telephony API"
-description: "Complete India KYC, rent Indian phone numbers, link them to a voice-agent bot, place, bridge and hang up outbound PSTN calls, and fetch recordings — all with your cm_ key."
+description: "Rent phone numbers in India and other countries (India needs KYC), link them to a voice-agent bot, place, bridge and hang up outbound PSTN calls, and fetch recordings — all with your cm_ key."
 slug: "telephony-api"
 breadcrumb: "Numbers (PSTN)"
 ---
 
 # Telephony API
 
-Complete India KYC, rent Indian phone numbers, link them to a voice-agent bot, place, bridge and hang up outbound PSTN calls, and fetch recordings — all with your cm_ key.
+Rent phone numbers in India and other countries (India needs KYC), link them to a voice-agent bot, place, bridge and hang up outbound PSTN calls, and fetch recordings — all with your cm_ key.
 
 ## Overview
 
-The Telephony API is a full lifecycle for **CallMissed Numbers**: submit an India KYC (compliance) application, wait for it to be accepted, search available Indian numbers, **buy** one (a paid action that draws your real credit balance), manage it, and place outbound **PSTN** calls answered by your AI voice agent.
+The Telephony API is a full lifecycle for **CallMissed Numbers**: pick a country, submit an India KYC (compliance) application if you want an Indian number, search available numbers, **buy** one (a paid action that draws your real credit balance), manage it, and place outbound **PSTN** calls answered by your AI voice agent.
 
 **Base path:** `https://api.callmissed.com/api/v1/telephony`
 
-> **The journey is ordered.** You cannot buy a number until you hold an **accepted** KYC application, and you cannot place a call until you own an **active** number. Follow the flow below top to bottom.
+> **The journey is ordered.** You cannot buy an Indian number until you hold an **accepted** KYC application, and you cannot place a call until you own an **active** number. Numbers outside India need no KYC application. Follow the flow below top to bottom.
 
 :::flow
 icon:app | Submit KYC | Upload your business documents and details once
@@ -25,7 +25,7 @@ icon:done | Buy & call | Search a number, buy it (paid), link a bot, place calls
 
 **Authentication.** Every endpoint accepts both a **JWT** (`Authorization: Bearer <jwt>`) and an **API key** (`Authorization: Bearer cm_<key>`). API-key callers need the `telephony:read` scope for search/list/get and `telephony:write` for every write: buy, release, patch, the AI-call declaration, KYC submit/sync, placing, bridging and hanging up calls, and voicemail drops. Those writes additionally require an **owner/admin** role when called with a JWT.
 
-> **Availability.** Telephony is **India-only** and enabled per tenant. When the feature is not enabled for your tenant, the routes are unmounted and every call returns `404`.
+> **Availability.** Numbers are sold in India and in the countries [`GET /numbers/countries`](#countries) returns. Telephony is enabled per tenant. When the feature is not enabled for your tenant, the routes are unmounted and every call returns `404`.
 
 ## 1. Submit KYC (Compliance)
 
@@ -153,7 +153,84 @@ Once `status` is `accepted`, the application's `plivo_compliance_id` field holds
 
 ## 3. Search Available Numbers
 
-Search for Indian numbers before buying. Rates are returned **after** your tenant markup, with **18% GST added on top**. `rental_credits` is the total you will be charged per month; `rental_base_credits` and `rental_gst_credits` break it down.
+### Countries
+
+`GET /numbers/countries` · scope `telephony:read`
+
+The countries you can buy numbers in, India first. `available: false` means the country is listed but not open for purchase yet.
+
+```bash
+curl https://api.callmissed.com/api/v1/telephony/numbers/countries \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+[
+  { "country_iso": "IN", "calling_code": "91", "available": true },
+  { "country_iso": "US", "calling_code": "1", "available": true }
+]
+```
+
+### Document requirements
+
+`GET /compliance/requirements?country_iso=DE&number_type=local` · scope `telephony:read`
+
+Every country asks for different documents. This returns them for a country and number type. `country_iso` is required and must be India or a country from [`/numbers/countries`](#countries), else `422`. `number_type` is `local` (default), `mobile` or `tollfree`. `documents_required: false` means none are needed. `proof_required: true` means the document needs a file upload as well as its fields. Field `type` is `string`, `date` (written in the field's `format`, e.g. `YYYY-DD-MM`), `enum` (one of `options`) or `geo-country` (a two-letter code).
+
+```json
+{
+  "country_iso": "DE",
+  "number_type": "local",
+  "documents_required": true,
+  "documents": [
+    {
+      "document_type_id": "919c5624-c14d-4330-bba5-12ecb46a8a3b",
+      "name": "Business registration",
+      "description": "Business Registration information",
+      "proof_required": true,
+      "fields": [
+        { "field_name": "unique_identification_number", "name": "Unique Identification Number",
+          "type": "string", "required": true, "min_length": 1, "max_length": 50,
+          "format": null, "options": [], "help_text": null },
+        { "field_name": "date_of_issue", "name": "Date of Issue", "type": "date",
+          "required": true, "min_length": null, "max_length": null,
+          "format": "YYYY-DD-MM", "options": [], "help_text": null }
+      ]
+    }
+  ]
+}
+```
+
+### Submit documents for a country outside India
+
+`POST /compliance/country` · multipart · scope `telephony:write` (owner/admin for JWT)
+
+Files the documents from the requirements above. The body is checked against that country's live requirements, so it must contain every listed document exactly once, every required field, and a file for each document with `proof_required: true`.
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `country_iso`, `number_type` | Yes | The market the application is for |
+| `alias` | Yes | Your name for the application |
+| `business_name`, `email`, `address_line1`, `city`, `postal_code`, `business_country` | Yes | Your business; `business_country` is a two-letter code |
+| `address_line2`, `state`, `registration_number` | No | |
+| `documents` | Yes | JSON list, one entry per document: `[{"document_type_id": "...", "data_fields": {"<field_name>": "value"}}]` |
+| `documents[N].file` | Per document | The file for the document at index `N` (PDF/JPEG/PNG, ≤ 5 MB) |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/telephony/compliance/country \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -F country_iso=DE -F number_type=local -F alias="Acme DE" \
+  -F business_name="Acme GmbH" -F email=ops@acme.example \
+  -F address_line1="1 Hauptstrasse" -F city=Berlin -F postal_code=10115 -F business_country=DE \
+  -F 'documents=[{"document_type_id":"a10fb4bb-0271-4b80-918e-c21ef7072508","data_fields":{"business_name":"Acme GmbH","address_line_1":"1 Hauptstrasse","city":"Berlin","postal_code":"10115","country":"DE"}},{"document_type_id":"919c5624-c14d-4330-bba5-12ecb46a8a3b","data_fields":{"unique_identification_number":"HRB 12345","business_name":"Acme GmbH","date_of_issue":"2020-15-01","country":"DE"}}]' \
+  -F 'documents[1].file=@registration.pdf'
+```
+
+It returns the application, like [Check KYC Status](#2-check-kyc-status). Poll or `sync` it until `status` is `accepted`, then pass its `plivo_compliance_id` when buying a number from that country and number type. `422` means the body does not match the country's requirements, or the country needs no documents.
+
+### Search
+
+Search for numbers before buying. Rates are returned **after** your tenant markup, with **18% GST added on top**. `rental_credits` is the total you will be charged per month; `rental_base_credits` and `rental_gst_credits` break it down.
 
 `GET /numbers/search` · scope `telephony:read`
 
@@ -161,7 +238,7 @@ Search for Indian numbers before buying. Rates are returned **after** your tenan
 
 | Param | Values | Default |
 |-------|--------|---------|
-| `country_iso` | 2-letter ISO (`IN`) | `IN` |
+| `country_iso` | 2-letter ISO from [`/numbers/countries`](#countries) | `IN` |
 | `type` | `local` / `mobile` / `tollfree` | — |
 | `pattern` | digit substring to match (max 32 chars) | — |
 | `limit` | 1–20 | 20 |
@@ -186,14 +263,18 @@ curl "https://api.callmissed.com/api/v1/telephony/numbers/search?country_iso=IN&
     "gst_rate": 0.18,
     "rental_credits": 295,
     "voice_enabled": true,
-    "sms_enabled": false
+    "sms_enabled": false,
+    "compliance_required": true,
+    "setup_credits": 0
   }
 ]
 ```
 
+`compliance_required` is `true` when the number needs documents before activation. For Indian numbers, that is your KYC application; elsewhere, an accepted [country application](#submit-documents-for-a-country-outside-india). `setup_credits` is a one-time fee added to the first payment only (GST included); it is `0` for most numbers.
+
 ## 4. Buy a Number
 
-Rent one of the searched numbers. This is a **paid action**: the first month (rental plus 18% GST) is drawn from your **real (paid) credit balance**. The signup bonus does **not** cover the purchase; if your paid balance is short, you get a `402` telling you to top up. Renewals are different. They draw on your whole credit balance, free credits included (see [Billing](#billing)).
+Rent one of the searched numbers. This is a **paid action**: the first month (rental plus 18% GST, plus any one-time `setup_credits`) is drawn from your **real (paid) credit balance**. The signup bonus does **not** cover the purchase; if your paid balance is short, you get a `402` telling you to top up. Renewals are different. They draw on your whole credit balance, free credits included (see [Billing](#billing)).
 
 `POST /numbers` · scope `telephony:write` (owner/admin for JWT)
 
@@ -202,9 +283,10 @@ Rent one of the searched numbers. This is a **paid action**: the first month (re
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | `e164` | string | Yes | The number to buy, e.g. `+919309963483` |
-| `compliance_application_id` | string | Yes | The `plivo_compliance_id` of your **accepted** KYC application |
+| `country_iso` | string | No | The number's country, as searched. Default `IN` |
+| `compliance_application_id` | string | Indian numbers, and numbers with `compliance_required: true` | The `plivo_compliance_id` of your **accepted** application for that country and number type. Ignored for numbers that need no documents |
 
-The purchase runs in a strict, money-safe order: it verifies your KYC application is accepted (else `409`), confirms the number is still available and prices it live (else `422`), deducts the rental credits, and only then rents the number. If the rent fails, the credits are refunded automatically.
+The purchase runs in a strict, money-safe order: for an Indian number it verifies your KYC application is accepted (else `409`), confirms the number is still available and prices it live (else `422`), deducts the rental credits, and only then rents the number. If the rent fails, the credits are refunded automatically.
 
 :::tabs
 ```bash [cURL]
@@ -275,8 +357,9 @@ else:
 | `200` | Number rented and active |
 | `402` | Insufficient **real** balance — top up to buy |
 | `403` | Missing `telephony:write` scope, or JWT caller is not an owner/admin |
-| `409` | KYC not accepted, or you already hold this number |
-| `422` | Number no longer available, or `e164` is malformed |
+| `409` | KYC not accepted, you already hold this number, or (outside India) the number needs documents and no accepted application for its country and type was given |
+| `422` | Number no longer available, `e164` is malformed or not from `country_iso`, or the country is not offered |
+| `503` | The country is listed but not open for purchase yet |
 | `404` | Telephony not enabled for your tenant |
 
 ## 5. Manage Numbers
