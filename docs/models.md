@@ -474,7 +474,7 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `glm-5.3` | Z.ai GLM 5.3. Tools + reasoning (low / high / max). Text-only. | 1M | No | $2.125 in / $6.667 out per 1M |
 | `deepseek-v4.1-flash` | DeepSeek V4.1 Flash. Tools + reasoning (low / high / max). Text-only. | 1M | No | $0.427 in / $1.771 out per 1M |
 | `gpt-oss-120b` | Open-weight 120B MoE. Reasoning-grade at lower cost. | 131K | Yes | $1.042 in / $4.167 out per 1M |
-| `gemma-4-31b` | Gemma 4 31B instruct. Fast with thinking off, vision, tools. | 128K | No | $0.6146 in / $1.542 out per 1M |
+| `gemma-4-31b` | Gemma 4 31B instruct. Fast with thinking off, vision, tools. | 128K | No | $0.3646 in / $0.9375 out per 1M |
 | `gpt-realtime` | OpenAI flagship realtime speech-to-speech model — STT + reasoning + function calling + TTS in one. 10 concurrent. | 32K | No | $4.167 in / $16.67 out per 1M • $0.3906/min |
 | `gpt-realtime-mini` | Lowest-cost realtime — same single-model shape as gpt-realtime, ~3× cheaper. 20 concurrent. | 32K | No | $0.625 in / $2.5 out per 1M • $0.1229/min |
 | `gpt-realtime-2` | Newest realtime with stronger tool calling. 32K input, 4K output. | 32K | No | $4.167 in / $25 out per 1M • $0.3906/min |
