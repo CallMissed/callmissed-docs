@@ -168,7 +168,7 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ### New models — conversational Indic LLM, Saaras V4 STT, Flux TTS
 
-- **`sarvam-105b-conversations`** — 105B MoE tuned for conversation and voice. 128K context, tool calling, streaming, hybrid thinking. Free-tier, same $0.3646 in / $0.3646 out per 1M as `sarvam-105b`. See [Indic Models](/docs/models-indic).
+- **`sarvam-105b-conversations`** — 105B MoE tuned for conversation and voice. 128K context, tool calling, streaming, hybrid thinking. Free-tier, same $0.1563 in / $0.625 out per 1M as `sarvam-105b`. See [Indic Models](/docs/models-indic).
 - **`saaras:v4`** — Sarvam STT with five output modes (transcribe, translate, verbatim, transliterate, code-mix) across 24 languages. Free-tier at $0.3125 / hour. See [Speech to Text](/docs/speech-to-text).
 - **Deepgram Flux TTS** — streaming-first TTS built for voice agents: turn-based synthesis with prosody carried across turns. 36 English voices including `priya` (Indian-accented English, the default). English only, no expressive controls. Available only through the managed Voice Agent (`tts_engine: "flux"`), billed inside the per-minute voice rate. See [Voices](/docs/tts-voices).
 - **Free tier** — now 27 models (11 LLM, 4 STT, 4 TTS, 6 image, 2 embedding).
