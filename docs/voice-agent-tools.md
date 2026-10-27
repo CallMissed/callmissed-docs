@@ -52,6 +52,11 @@ Enable them by name in the agent's `config.tools`. `GET /api/v1/bots/tool-catalo
 **`web_search` is always on** — it is enabled for every agent whether or not it
 appears in `config.tools`.
 
+`fetch_url` reads the text of one public web page: a link the caller gives, or a
+`web_search` result worth opening in full. It is off until you add it to
+`config.tools`. Private and internal addresses are refused, and long pages are
+trimmed.
+
 `constitution_of_india` returns the official text of the Constitution of India
 (as on 1 May 2024, amended up to the 106th Amendment Act, 2023): an article or
 one of its clauses, the Preamble, a Part's article list, a Schedule, or the
@@ -60,7 +65,7 @@ or civic procedure so it quotes the enacted wording rather than paraphrasing.
 
 | Category | Examples |
 | --- | --- |
-| Utility | `web_search`, `calculator`, `get_current_time`, `constitution_of_india` |
+| Utility | `web_search`, `fetch_url`, `calculator`, `get_current_time`, `constitution_of_india` |
 | Knowledge | `search_knowledge_base`, `save_to_knowledge` |
 | Memory | `remember`, `recall_memory` |
 | CRM | `update_contact`, `set_contact_optin`, `add_call_note`, `create_follow_up_task`, `update_contact_fields`, `create_or_update_deal` |
