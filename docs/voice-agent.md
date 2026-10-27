@@ -181,6 +181,10 @@ Advanced agent settings, saved in the agent's `config` with [`PATCH /api/v1/bots
 | Key | Values | Default | What it does |
 |-----|--------|---------|--------------|
 | `min_endpointing_delay` | 0.2–1.5 s | 0.3 | How long the agent waits after the caller stops before replying. |
+| `stt_fast_endpointing` | `true`, `false` | `false` | `saaras:v4` listening model only. Notices the end of the caller's speech after about 64 ms of silence instead of about 576 ms, so the reply starts roughly half a second sooner. May cut in on callers who pause mid-sentence. |
+| `tool_wait_phrase` | Text, up to 200 characters | unset | A short line the agent says when it starts one of the `tool_wait_tools` before saying anything else, for example "One moment, I'm sending that now." It plays while the tool runs. Write it in the agent's language. Used only when `tool_wait_tools` is also set. |
+| `tool_wait_tools` | List of tool names | unset | Which tools make the agent say `tool_wait_phrase`, for example `send_template_message` or `recall_memory`. |
+| `min_interruption_words` | 0–5 | 1 | How many words the caller must say before the agent stops talking. `0` stops it at any sound. `2` or more lets short replies like "okay" pass without cutting the agent off, but the caller must say more before the agent yields. Has no effect when `allow_interruptions` is `false`. |
 | `endpointing_mode` | `fixed`, `dynamic` | `fixed` | `fixed` waits the same pause every turn. `dynamic` learns how long this caller pauses mid-thought and waits that long, between `min_endpointing_delay` and `max_endpointing_delay`. |
 | `max_endpointing_delay` | 1.0–6.0 s | 3.0 (2.5 with `audio_turn_detector`) | The longest the agent waits when the caller sounds unfinished. It is the ceiling for `dynamic` and for `audio_turn_detector`; with neither, the agent never waits this long. |
 | `audio_turn_detector` | `true`, `false` | `false` | At each pause, listens to how the caller sounds, not just how long the pause is, and waits longer when they sound unfinished. Only for agents whose `language` is English or Hindi. Not used with Flux or `ink-2` listening models, which do this themselves. |
