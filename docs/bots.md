@@ -68,6 +68,7 @@ Most of `config` is stored as-is, which is why [Build an agent programmatically]
 | `callback_calls` | Object ([WhatsApp callback calls](#whatsapp-callback-calls)); `enabled` and `allow_other_number` booleans, `voice_bot_id` (required when enabled) and `from_number_id` ids of your own agent and active phone number, `hours_start` 0-23, `hours_end` 1-24 and later than `hours_start`, `max_per_day` 1-10. Stored with every field filled in |
 | `wa_details_template`, `wa_reengage_template` | Name of one of your approved WhatsApp templates ([Templates outside the 24-hour window](#whatsapp-templates-outside-the-24-hour-window)), with an optional `wa_details_template_language` / `wa_reengage_template_language`. Checked when you change it; `null` or `""` clears it and its language |
 | `followup_agent` | Object; `enabled` and `send_recap` booleans, `instructions` a string ≤ 4000 chars, `max_attempts` an integer 1-5 |
+| `call_personal_whatsapp` | Object ([Call personal WhatsApp](#call-personal-whatsapp)); `enabled`, a boolean, and `session_id`, a linked number's id or `null`. Stored as `{ "enabled": …, "session_id": … }`. Turning it on or changing `session_id` is owner-only (`403` otherwise) |
 | `transcript_retention_days`, `recording_retention_days` | Whole number of days, 1-3650. Applies to calls made after you save this; older calls follow your account's retention setting. The server records when each was saved as `transcript_retention_set_at` / `recording_retention_set_at` ([Voice data retention](/docs/voice-data-retention)) |
 | `data_retention_mode` | `"standard"` or `"zdr"` ([Voice data retention](/docs/voice-data-retention)) |
 | `tts_fallbacks` | List of at most 3 `{ "tts_model", "voice" }` objects (`voice` optional). Each `tts_model` must be a voice model that speaks the agent's `language`, each `voice` one of that model's voices, never a cloned voice; no repeats ([Backup voices](/docs/voice-agent#backup-voices-and-spoken-numbers)) |
@@ -150,6 +151,25 @@ WhatsApp delivers a plain message only within 24 hours of the customer last mess
 
 A write that sets or changes one returns `422` when the name is not one of your approved templates (in that language, when given), or when the template has a different shape. With neither set, the agent tells the customer it could not send the message on WhatsApp.
 
+### Call personal WhatsApp
+
+`call_personal_whatsapp: { "enabled": true }` lets a calling agent message the
+caller on WhatsApp from your linked personal number during the call, with no
+template: `whatsapp_personal_message_caller` (a message, optionally with one
+file) and `whatsapp_personal_remind_caller` (one scheduled message for later).
+Both go only to the caller. Off by default, and nothing happens until a personal
+number is linked in the console. See
+[Messaging the caller from your personal WhatsApp](/docs/voice-agent-tools#messaging-the-caller-from-your-personal-whatsapp).
+A write with any other field, a non-boolean `enabled` or a `session_id` that is
+not an id returns `422`. Turning it on, or changing `session_id`, needs the
+workspace owner's own console session: an API key, another team member or an
+agency stand-in gets `403`, because the messages go from the owner's own phone.
+Turning it off is open to anyone who can edit the agent. With several personal
+numbers linked, `session_id` picks which one sends (`null` = the default); a
+named number that is not connected sends nothing. Linked personal numbers are
+listed only in the console. It is not copied when an agency provisions an agent
+into a client workspace.
+
 ---
 
 ## GET /api/v1/bots
@@ -194,6 +214,8 @@ curl https://api.callmissed.com/api/v1/bots/tool-catalog \
 [
   {
     "name": "shopify_order_status",
+    "label": "Look up a Shopify order",
+    "summary": "Checks an order's payment, fulfilment and tracking by order number or email.",
     "description": "Look up a Shopify order's payment + fulfillment status and shipping tracking, by order number (e.g. 1001) or the customer's email.",
     "category": "general",
     "parameters": {
@@ -207,6 +229,8 @@ curl https://api.callmissed.com/api/v1/bots/tool-catalog \
   }
 ]
 ```
+
+`label` and `summary` are a short name and a one-line plain-English description for showing the tool to people; `description` is the text the model reads when deciding to call it.
 
 `parameters` is a JSON Schema object, empty (`{"type": "object", "properties": {}}`) for tools that take no arguments.
 
