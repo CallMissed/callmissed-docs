@@ -30,7 +30,7 @@ If you already place calls through Twilio Programmable Voice, you can move to Ca
 
 API-key callers need the `telephony:read` scope for fetch/list and `telephony:write` to place a call; placing a call additionally requires an owner/admin role when called with a JWT.
 
-> **Availability.** Telephony is India-only and enabled per tenant. When it is not enabled, these routes are unmounted and return `404`. See [Telephony API](/docs/telephony-api) for the native lifecycle (KYC, buying a number, linking an agent).
+> **Availability.** Numbers are sold in India and the countries `GET /api/v1/telephony/numbers/countries` lists. Telephony is enabled per tenant. When it is not enabled, these routes are unmounted and return `404`. See [Telephony API](/docs/telephony-api) for the native lifecycle (KYC, buying a number, linking an agent).
 
 ## Place a call
 
