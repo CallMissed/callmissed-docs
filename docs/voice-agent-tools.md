@@ -52,6 +52,11 @@ Enable them by name in the agent's `config.tools`. `GET /api/v1/bots/tool-catalo
 **`web_search` is always on** — it is enabled for every agent whether or not it
 appears in `config.tools`.
 
+`fetch_url` reads the text of one public web page: a link the caller gives, or a
+`web_search` result worth opening in full. It is off until you add it to
+`config.tools`. Private and internal addresses are refused, and long pages are
+trimmed.
+
 `constitution_of_india` returns the official text of the Constitution of India
 (as on 1 May 2024, amended up to the 106th Amendment Act, 2023): an article or
 one of its clauses, the Preamble, a Part's article list, a Schedule, or the
@@ -60,7 +65,7 @@ or civic procedure so it quotes the enacted wording rather than paraphrasing.
 
 | Category | Examples |
 | --- | --- |
-| Utility | `web_search`, `calculator`, `get_current_time`, `constitution_of_india` |
+| Utility | `web_search`, `fetch_url`, `calculator`, `get_current_time`, `constitution_of_india` |
 | Knowledge | `search_knowledge_base`, `save_to_knowledge` |
 | Memory | `remember`, `recall_memory` |
 | CRM | `update_contact`, `set_contact_optin`, `add_call_note`, `create_follow_up_task`, `update_contact_fields`, `create_or_update_deal` |
@@ -176,6 +181,36 @@ keeps a generic title, and `update_contact_fields` accepts only
 `lifecycle_stage` and `lead_source`. With `redact_pii` on, card, Aadhaar, PAN
 and OTP digits are masked in the text these tools store.
 
+### Messaging the caller from your personal WhatsApp
+
+If your workspace has a personal WhatsApp number linked in the console, a calling
+agent can send the caller WhatsApp messages from that number during the call. No
+template is needed. Turn it on per agent with
+[`call_personal_whatsapp`](/docs/bots#call-personal-whatsapp):
+
+```json
+{ "call_personal_whatsapp": { "enabled": true } }
+```
+
+The agent then gets two tools, on phone and WhatsApp calls:
+
+| Tool | What it does |
+| --- | --- |
+| `whatsapp_personal_message_caller` | Sends the caller a message, optionally followed by one file or JPEG image (a public `https://` link) |
+| `whatsapp_personal_remind_caller` | Schedules one later message to the caller, such as an appointment reminder |
+
+Both always go to the number of the person on the call; the agent cannot choose
+another recipient. They share the call's limit on WhatsApp sends with the
+WhatsApp messaging tools above, and the same text is not sent twice on one call.
+If several personal numbers are linked, the default one sends. The tools are not
+in the tool catalog and cannot be added through `config.tools`; with no linked
+number, the agent is not offered them. To stop one of them while keeping the
+other, list it in `disabled_tools`.
+
+The agent cannot read your chats, search your contacts or message anyone else
+from your personal number during a call: those stay in your own WhatsApp
+Personal chat with the agent.
+
 ### Not available on voice
 
 Four categories are excluded from voice calls:
@@ -183,7 +218,7 @@ Four categories are excluded from voice calls:
 | Category | Why |
 | --- | --- |
 | `conversation` | Inbox-thread actions — notes, tags, status, escalation — belong to the chat channels |
-| `personal_whatsapp` | Needs a linked personal-WhatsApp session, which a call does not have |
+| `personal_whatsapp` | Reads and writes the owner's own chats, so it stays in the owner's WhatsApp Personal chat. A call can still [message the caller](#messaging-the-caller-from-your-personal-whatsapp) from that number |
 | `calling` | `request_call` and `request_phone_call` ask for a phone call from a chat; on a call, use `transfer_to_human` below for a callback |
 | `callback` | `request_callback` arranges a call back from a WhatsApp chat. It is switched on by the agent's [`callback_calls`](/docs/bots#whatsapp-callback-calls) setting rather than `config.tools`, so it is not in the tool catalog |
 
