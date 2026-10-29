@@ -11,7 +11,7 @@ Convert text to natural-sounding speech — Indic, English and multilingual TTS 
 
 ## Overview
 
-The Text to Speech API converts text into audio with any of **7 TTS models**. The default, `bulbul:v3`, has 37 voices across 11 Indian languages. `bulbul:v4-flash` is a lower-latency, lower-cost alternative with 222 persona voices across 9 Indian languages and Hinglish.
+The Text to Speech API converts text into audio with any of **9 TTS models**. The default, `bulbul:v3`, has 37 voices across 11 Indian languages. `bulbul:v4-flash` is a lower-latency, lower-cost alternative with 222 persona voices across 9 Indian languages and Hinglish.
 
 Two models are on the **free tier**: `bulbul:v3` and `bulbul:v4-flash`. The retired `aura-2-en`, `aura-2-es` and `melotts` IDs still work and stay free; they are answered by `deepgram-aura-2` (same voices) and `gpt-4o-mini-tts` — see [Retired and deprecated models](/docs/models#retired-and-deprecated-models).
 
@@ -76,10 +76,10 @@ Send a JSON body.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `input` | string | Yes | Text to synthesize, up to 4096 characters. Some models accept less: `bulbul:v3` 2500, `bulbul:v4-flash` 2500, `deepgram-aura-2` / `deepgram-aura-1` 2000 |
-| `model` | string | No | Default `bulbul:v3`. One of `bulbul:v3`, `bulbul:v4-flash`, `sonic-3.6`, `gnani-timbre-v3.0`, `deepgram-aura-2`, `deepgram-aura-1`, `gpt-4o-mini-tts` — see [Models](/docs/models) |
+| `model` | string | No | Default `bulbul:v3`. One of `bulbul:v3`, `bulbul:v4-flash`, `sonic-3.6`, `gnani-timbre-v3.0`, `deepgram-aura-2`, `deepgram-aura-1`, `gpt-4o-mini-tts`, `mai-voice-2.1`, `mai-voice-2.1-flash` — see [Models](/docs/models) |
 | `voice` | string | No | Voice ID — default `shubh` for `bulbul:v3`, `shubh_enhi_ads` for `bulbul:v4-flash` (v3 names such as `shubh` are not valid there), `skylar` for `sonic-3.6` (see [Voices](/docs/tts-voices)). An unrecognized voice falls back to the model's default, except on `gpt-4o-mini-tts`, which returns `400` and lists its 13 voices |
 | `language` | string | No | Language code (e.g. `hi-IN`, `ta-IN`; `sonic-3.6` takes base codes like `en`, `hi`). `bulbul:v3` defaults to `en-IN`. `bulbul:v4-flash` covers `hi-IN`, `en-IN`, `bn-IN`, `gu-IN`, `kn-IN`, `mr-IN`, `pa-IN`, `ta-IN` and `te-IN`; `ml-IN` and `od-IN` are not available on it and return `400` (use `bulbul:v3`) |
-| `speed` | number | No | Speech speed, default 1.0. Must be 0.25–4.0, then each model clamps to its own range: `bulbul:v3` and `bulbul:v4-flash` 0.5–2.0, `gpt-4o-mini-tts` 0.25–4.0, `deepgram-aura-2`/`-1` 0.7–1.5, `sonic-3.6` 0.6–1.5, `gnani-timbre-v3.0` 0.85–1.15. Ignored by `aura-2-en`, `aura-2-es`, `melotts` |
+| `speed` | number | No | Speech speed, default 1.0. Must be 0.25–4.0, then each model clamps to its own range: `bulbul:v3` and `bulbul:v4-flash` 0.5–2.0, `gpt-4o-mini-tts` 0.25–4.0, `deepgram-aura-2`/`-1` 0.7–1.5, `sonic-3.6` 0.6–1.5, `gnani-timbre-v3.0` 0.85–1.15, `mai-voice-2.1` / `mai-voice-2.1-flash` 0.5–2.0. Ignored by `aura-2-en`, `aura-2-es`, `melotts` |
 | `speech_sample_rate` | integer | No | Output sample rate in Hz, an integer from 8000 to 48000. Leave it out to get each model's own default: `bulbul:v3` and `bulbul:v4-flash` 22050, `sonic-3.6` 44100, `gnani-timbre-v3.0` 48000, `deepgram-aura-2` / `deepgram-aura-1` 24000 (8000 for `mulaw` / `alaw`). Headerless `pcm` carries no rate, so it defaults to 8000 on every model. Send 8000 for phone audio. `bulbul:v3` accepts only 8000, 16000, 22050, 24000, 32000, 44100 or 48000 and `bulbul:v4-flash` only 8000, 16000, 22050 or 24000 (anything else is a `400`); Deepgram PCM output snaps to the nearest of 8000, 16000, 24000, 32000 or 48000, and its `mp3` / `opus` / `aac` output has a fixed rate. Ignored by `gpt-4o-mini-tts` |
 | `response_format` | string | No | Default `mp3` — see [Audio Formats](#audio-formats) |
 | `temperature` | number | No | Expressiveness. `bulbul:v3` and `bulbul:v4-flash` only — higher is more expressive, lower is more consistent. The model's range is 0.01–1.0; values up to 2.0 are accepted and applied as 1.0, above 2.0 is a 422. Ignored by other models. Defaults to 0.9 (warmer than the model's flat default) |
@@ -100,6 +100,7 @@ Send a JSON body.
 | `deepgram-aura-2`, `deepgram-aura-1` | `mp3`, `opus`, `aac`, `flac`, `wav`, `pcm`, plus `mulaw` / `alaw` | WAV |
 | `sonic-3.6` | `mp3`, `wav`, `pcm` | WAV |
 | `gnani-timbre-v3.0` | `mp3`, `wav`, `pcm`, `opus`, plus `mulaw` | WAV |
+| `mai-voice-2.1`, `mai-voice-2.1-flash` | `mp3` (default, 24 kHz), `wav`, `pcm` (alias `raw`), `opus` (alias `ogg`), `webm`, `mulaw`, `alaw` | `flac` and `aac` return `400` |
 
 ## Errors
 
@@ -114,6 +115,27 @@ Errors use the OpenAI envelope: `{"error": {"message", "type", "code"}}`.
 | `422` | `invalid_request` | Missing or empty `input`, `input` over the model's character limit (see `input` above), or a field with the wrong type or out of range (`speed`, `speech_sample_rate`, `temperature`, `instructions`) |
 | `429` | `quota_exceeded` | Plan usage limit reached |
 | `503` | `provider_error`, `upstream_timeout`, `upstream_unavailable` | The model failed to synthesize. The response includes a `request_id` |
+
+## MAI Voice (preview)
+
+`mai-voice-2.1` and `mai-voice-2.1-flash` are Microsoft AI's text-to-speech models. **Both are preview.** `mai-voice-2.1` ($0.2292 per 10K characters) is the most expressive and suits narration and long-form audio. `mai-voice-2.1-flash` ($0.1563 per 10K characters) is built for low latency and is the pick for live calls.
+
+- **Voices and languages.** 97 voices across 23 languages: `cs`, `da`, `de`, `en`, `es`, `fi`, `fr`, `hi`, `hu`, `id`, `it`, `ko`, `nb`, `nl`, `pl`, `pt`, `ro`, `ru`, `sv`, `th`, `tr`, `vi`, `zh`. Voice handles are lowercase `<locale>-<name>` (for example `hi-in-kavya`) and case-insensitive. Each voice speaks only its own locale. The full list is in `voice_names` and `voice_details` on `GET /api/v1/models?category=tts`, and in [Voices](/docs/tts-voices#mai-voice-preview).
+- **Default voice.** With no `voice`, the first voice for the request `language` is used (`hi` gives `hi-in-arjun`), otherwise `en-in-priya`.
+- **Text.** Plain text only. SSML and tags are not supported; the text is read as written.
+- **Formats.** `mp3` (default), `wav`, `pcm`, `opus`, `webm`, `mulaw` and `alaw`; `flac` and `aac` return `400`. `speech_sample_rate` snaps to the nearest supported rate: `mp3` 16000, 24000 or 48000; `wav` 8000, 16000, 24000 or 48000; `pcm` 8000, 16000, 22050, 24000, 44100 or 48000; `opus` 24000 or 48000; `webm` 24000; `mulaw` / `alaw` 8000.
+- **Speed.** `speed` is 0.5 to 2.0 and is clamped. Voice agents use `tts_speed`, 0.5 to 2.0.
+- **Voice agents.** Set `tts_model` to either id in a voice agent or voice session.
+- **Limits.** Up to 4096 characters per request. Not processed in India, so an agent with `hosting: "india"` cannot use them. They are paid-plan only, are never a default, and cannot be used in `tts_fallbacks`.
+- **Preview.** Microsoft ships these models as a public preview with no SLA, and may change or retire them at short notice. If one is retired, its ID keeps working and is answered by a named successor, as described in [Retired and deprecated models](/docs/models#retired-and-deprecated-models), so an agent that uses it keeps working but may sound different. Use a generally available model for production-critical agents.
+
+```bash
+curl -X POST https://api.callmissed.com/v1/audio/speech \
+  -H "Authorization: Bearer cm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "mai-voice-2.1-flash", "voice": "hi-in-kavya", "input": "Namaste, aapka order aaj shaam tak pahunch jayega."}' \
+  --output speech.mp3
+```
 
 ## Making speech sound human
 
@@ -197,6 +219,8 @@ Seven more TTS models (`deepgram-flux-tts`, `rime-coda`, `inworld-tts-2`, `inwor
 | Indian languages, warm delivery | `bulbul:v3` with `temperature` 0.9–1.0 |
 | Pauses and hesitation in text | `deepgram-aura-2` (90 voices, many tagged expressive/cheerful) |
 | Lowest cost | `deepgram-aura-1` or `bulbul:v4-flash` |
+| Narration and long-form audio (preview) | `mai-voice-2.1` |
+| Live calls on a Microsoft AI voice (preview) | `mai-voice-2.1-flash` |
 
 ## Streaming (Deepgram Aura)
 

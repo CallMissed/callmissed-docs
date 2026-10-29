@@ -1,13 +1,13 @@
 ---
 title: "Speech to Text"
-description: "Transcribe audio to text across 45 STT models — Indic-first saaras, Cartesia Ink, and Deepgram Nova."
+description: "Transcribe audio to text across 46 STT models — Indic-first saaras, Cartesia Ink, and Deepgram Nova."
 slug: "speech-to-text"
 breadcrumb: "Speech"
 ---
 
 # Speech to Text
 
-Transcribe audio to text across 45 STT models — Indic-first saaras, Cartesia Ink, and Deepgram Nova.
+Transcribe audio to text across 46 STT models — Indic-first saaras, Cartesia Ink, and Deepgram Nova.
 
 :::cards
 /docs/stt-realtime | Real-time STT | play | Stream audio for live transcription
@@ -17,7 +17,7 @@ Transcribe audio to text across 45 STT models — Indic-first saaras, Cartesia I
 
 ## Overview
 
-Transcribe an audio file into text with any of **45 speech-to-text models**. The default, `saaras:v4`, covers 22 Indian languages plus English with automatic language detection — but the `model` field takes any file-transcription STT id, so you can pick per request.
+Transcribe an audio file into text with any of **46 speech-to-text models**. The default, `saaras:v4`, covers 22 Indian languages plus English with automatic language detection — but the `model` field takes any file-transcription STT id, so you can pick per request.
 
 **Endpoint:** `POST /v1/audio/transcriptions`
 
@@ -28,6 +28,7 @@ Transcribe an audio file into text with any of **45 speech-to-text models**. The
 | Indian languages, or code-mixed Hinglish | `saaras:v4` | Purpose-built for Indic phonetics; 23 languages, all five output modes |
 | The widest language coverage | `ink-whisper` | 100 languages, and cheaper per hour than the Indic models |
 | English call-centre audio | `deepgram-nova-3` | Strong on accented and noisy telephony English |
+| Long recordings, up to 2 hours per file (preview) | `mai-transcribe-2` | 60 languages with automatic detection — see [MAI-Transcribe-2](#mai-transcribe-2-preview) |
 | Turn detection built into the model | `ink-2`, `assemblyai-universal-3.6-pro` or `deepgram-flux-general-en` | Voice sessions only — see the note below |
 
 One model is on the **free tier**: `saaras:v4`. The retired `nova-3` and
@@ -264,6 +265,23 @@ Three more speech-to-text models run only on a live voice session, selected with
 `inworld-stt-1` is Inworld's low-cost streaming model and hears English only. For any other language use `assemblyai-universal-3.6-pro`, `saaras:v4` or `deepgram-nova-3`.
 
 `microsoft-speech-stt` is Microsoft's real-time streaming recognizer, processed in India. It hears 81 languages (148 locales), including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu, Bhojpuri and Indian English. It recognises one language per call: it does not auto-detect or follow a caller who switches language, so set the agent's language to the one the caller speaks. It has no turn detection of its own, so the agent's turn detection applies. Keyterms you set on the agent (`stt_keyterms`) are applied as a phrase list.
+
+## `mai-transcribe-2` (preview)
+
+`mai-transcribe-2` is Microsoft AI's MAI-Transcribe-2, $0.375 / hour. **It is preview.** It transcribes files on `POST /v1/audio/transcriptions` only: it is not available in voice sessions, and `POST /v1/audio/translations` refuses it.
+
+- **Languages.** 60: `af`, `ar`, `as`, `az`, `bg`, `bn`, `bs`, `ca`, `cs`, `da`, `de`, `el`, `en`, `es`, `et`, `fa`, `fi`, `fil`, `fr`, `gl`, `gu`, `he`, `hi`, `hu`, `hy`, `id`, `is`, `it`, `ja`, `kk`, `kn`, `ko`, `lt`, `lv`, `mk`, `ml`, `mr`, `ms`, `nb`, `ne`, `nl`, `or`, `pa`, `pl`, `pt`, `ro`, `ru`, `sk`, `sl`, `sv`, `sw`, `ta`, `te`, `th`, `tr`, `uk`, `ur`, `vi`, `yue`, `zh`.
+- **Language detection.** Leave `language` out and the language is detected automatically, including Hinglish and other code-switching. `language` takes one code; `hi` and `hi-IN` both work. A language not in the list returns `400`.
+- **Files.** Up to 2 hours of audio per file and the route's 25 MB upload limit. WAV, MP3, FLAC and Ogg are accepted. `response_format` is `json`, `text` or `verbose_json`.
+- **Plan and hosting.** Paid plans only, never a default, and not processed in India.
+- **Preview.** Microsoft ships this model as a public preview with no SLA, and may change or retire it at short notice. If it is retired, the ID keeps working and is answered by a named successor, as described in [Retired and deprecated models](/docs/models#retired-and-deprecated-models), so the transcript may differ. Use a generally available model for production-critical workloads.
+
+```bash
+curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
+  -H "Authorization: Bearer cm_your_key" \
+  -F "model=mai-transcribe-2" \
+  -F "file=@meeting.mp3"
+```
 
 ## Deepgram feature parameters
 

@@ -18,7 +18,7 @@ Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, fi
 
 ## Overview
 
-134 models, one OpenAI-compatible API. Same auth, same request shape — change
+137 models, one OpenAI-compatible API. Same auth, same request shape — change
 the `model` field and nothing else.
 
 | Group | What it is |
@@ -50,7 +50,7 @@ curl https://api.callmissed.com/api/v1/models/sarvam-105b
 curl https://api.callmissed.com/api/v1/models/access
 ```
 
-Each entry includes `id`, `name`, `description`, `category`, `owned_by`, `context_window`, `max_output_tokens` (only where the model documents an output limit), `pricing` (US$), `free`, `supports_streaming`, `supports_tools`, `supports_reasoning`, `supports_vision`, `zero_data_retention`, `hosted_in_india` (processed in India on every request), `voice_capable` (valid for `POST /v1/voice/sessions`), `voice_agent_only`, and `speed_tier`. A model that is temporarily unavailable also carries `status: "maintenance"` and a `status_message` naming the alternative. Embedding models add `dimensions`; TTS models add their voice list. The response is `{object: "list", total, data}`.
+Each entry includes `id`, `name`, `description`, `category`, `owned_by`, `context_window`, `max_output_tokens` (only where the model documents an output limit), `pricing` (US$), `free`, `supports_streaming`, `supports_tools`, `supports_reasoning`, `supports_vision`, `zero_data_retention`, `processing` (`"india"`, `"india_preferred"` or `"outside_india"`; see [Data residency](/docs/data-residency)), `hosted_in_india` (kept for compatibility; `true` only when `processing` is `"india"`), `voice_capable` (valid for `POST /v1/voice/sessions`), `voice_agent_only`, and `speed_tier`. A preview model also carries `preview: true`; the field is absent on generally available models. A model that is temporarily unavailable also carries `status: "maintenance"` and a `status_message` naming the alternative. Embedding models add `dimensions`; TTS models add their voice list. The response is `{object: "list", total, data}`.
 
 The OpenAI-compatible listing at `GET /v1/models` (requires `Authorization: Bearer cm_*`) returns the same capability fields plus `context_length` (an alias of `context_window` for OpenAI-style clients), but a **shorter list**: it hides models that are only valid for voice sessions (`gpt-realtime*`, `gpt-live-1`, `deepgram-voice-*`). Use `GET /api/v1/models` for the full catalog. The Anthropic-shape listing at `GET /anthropic/v1/models` returns the same set inside Anthropic's `{data, has_more, first_id, last_id}` envelope.
 
@@ -98,9 +98,9 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 | Model | Input / 1M tokens | Output / 1M tokens |
 |-------|-------------------|-------------------|
 | `kimi-k2.5-fast` | $0.8438 | $4.219 |
-| `sarvam-105b` | $0.3646 (₹35) | $0.3646 (₹35) |
-| `sarvam-105b-conversations` | $0.3646 (₹35) | $0.3646 (₹35) |
-| `gpt-5.6-sol` | $5.208 | $31.25 |
+| `sarvam-105b` | $0.1563 (₹15) | $0.625 (₹60) |
+| `sarvam-105b-conversations` | $0.1563 (₹15) | $0.625 (₹60) |
+| `gpt-5.6-sol` | $4.167 | $20.83 |
 | `gpt-5.6-terra` | $2.083 | $12.5 |
 | `gpt-5.6-luna` | $0.2083 | $1.25 |
 | `gpt-6-sol` | $2.083 | $10.42 |
@@ -127,6 +127,7 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 | `assemblyai-universal-3.6-pro` | $0.4688 / hour *(voice sessions only)* |
 | `inworld-stt-1` | $0.1563 / hour *(voice sessions only)* |
 | `microsoft-speech-stt` | $1.0417 / hour *(voice sessions only)* |
+| `mai-transcribe-2` | $0.375 / hour *(preview)* |
 | `deepgram-nova-3` | $0.3021 / hour |
 | `deepgram-nova-3-medical` | $0.3021 / hour |
 | `deepgram-flux-general-en` | $0.4063 / hour |
@@ -151,6 +152,8 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 | `fish-audio-drama-3` | $0.5208 / 10K chars *(voice sessions only)* |
 | `gradium-tts-beta` | $0.50 / 10K chars *(voice sessions only)* |
 | `microsoft-neural-tts` | $0.1563 / 10K chars *(voice sessions only)* |
+| `mai-voice-2.1` | $0.2292 / 10K chars *(preview)* |
+| `mai-voice-2.1-flash` | $0.1563 / 10K chars *(preview)* |
 
 | Intelligence feature (not a model ID) | Price |
 |-------------------------------|-------|
@@ -241,6 +244,7 @@ See the [Pricing](/docs/pricing) page for current rates.
 | `gpt-4o-transcribe` | Streaming | Higher-accuracy OpenAI transcription | $0.4167 / hour |
 | `gpt-4o-mini-transcribe` | Streaming | Low-cost OpenAI transcription | $0.25 / hour |
 | `gpt-4o-transcribe-diarize` | File transcription with speaker labels (not available for voice sessions) | Multi-speaker meetings / calls | $0.4167 / hour |
+| `mai-transcribe-2` **Preview** | 60 with auto-detect, Hinglish code-switching (file transcription only) | Microsoft AI file transcription, up to 2 hours per file | $0.375 / hour |
 
 **Deepgram (direct)** — the full Deepgram speech-to-text line, billed per audio hour at the rates below:
 
@@ -264,6 +268,10 @@ See the [Pricing](/docs/pricing) page for current rates.
 | `deepgram-aura-2` | en/es/de/fr/nl/it/ja | 90+ (thalia default) | $0.3125 / 10K chars |
 | `deepgram-aura-1` | English | 12 (asteria default) | $0.1563 / 10K chars |
 | `gpt-4o-mini-tts` | Multilingual steerable | 6 OpenAI voices | $0.2083 / 10K chars |
+| `mai-voice-2.1` **Preview** | 23 languages | 97 (en-in-priya default; `hi-in-arjun` for Hindi) | $0.2292 / 10K chars |
+| `mai-voice-2.1-flash` **Preview** | 23 languages | 97, low latency for live calls | $0.1563 / 10K chars |
+
+The `mai-*` models are **preview**: Microsoft ships them without an SLA and may change or retire them at short notice. If one is retired, the ID keeps working and is answered by a named successor, as in [Retired and deprecated models](#retired-and-deprecated-models), so an agent that uses it keeps working but may sound different. Use a generally available model for production-critical agents. Preview models are paid-plan only, are never a default, and are not processed in India.
 
 Aura 2 returns linear16 PCM streamed at 24 kHz for low-latency playback. Output formats may vary as models are updated.
 
@@ -384,7 +392,7 @@ Where a successor costs more (for example `gpt-4.1` output, `gemini-3.1-flash-li
 
 ## Models on Demand
 
-`GET /api/v1/models` lists everything in the catalogue today: **134** model IDs.
+`GET /api/v1/models` lists everything in the catalogue today: **137** model IDs.
 Models marked `status: "maintenance"` return `503` until they are back.
 
 Beyond that we deploy **300+ further models on demand** on CallMissed
@@ -436,14 +444,14 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TTS · 9 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **137** models (64 LLM · 46 STT · 16 TTS · 9 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
 ### LLM (40 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
-| `sarvam-105b` | 105B MoE. Complex reasoning, agentic tasks, long documents. | 131K | Yes | $0.3646 in / $0.3646 out per 1M |
-| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. Tool calling. | 32K | Yes | $0.3646 in / $0.3646 out per 1M |
+| `sarvam-105b` | 105B MoE. Complex reasoning, agentic tasks, long documents. | 131K | Yes | $0.1563 in / $0.625 out per 1M |
+| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. Tool calling. | 32K | Yes | $0.1563 in / $0.625 out per 1M |
 | `gpt-4o` | Multimodal text + vision. | 128K | No | $2.604 in / $10.42 out per 1M |
 | `gemini-3.8-flash` | Fast multimodal flagship. Thinking low/medium/high. | 1M | No | $1.563 in / $7.813 out per 1M |
 | `gemini-3.7-flash` | Fast multimodal. Thinking low/medium/high. | 1M | No | $1.563 in / $7.813 out per 1M |
@@ -455,7 +463,7 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `gpt-4.1` | Long-context multimodal. Strong instruction following. | 300K | No | $2.083 in / $8.333 out per 1M |
 | `gpt-5-mini` | Fast, affordable reasoning. | 400K | No | $0.2604 in / $2.083 out per 1M |
 | `gpt-5.5` | Reasoning flagship. Vision, tools, prompt caching. | 1.05M | No | $5.208 in / $31.25 out per 1M |
-| `gpt-5.6-sol` | Frontier model for complex professional work. Vision, reasoning, tools. | 1.05M | No | $5.208 in / $31.25 out per 1M |
+| `gpt-5.6-sol` | Frontier model for complex professional work. Vision, reasoning, tools. | 1.05M | No | $4.167 in / $20.83 out per 1M |
 | `gpt-5.6-terra` | Balances intelligence and cost. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $12.5 out per 1M |
 | `gpt-5.6-luna` | Cost-sensitive, high-volume workloads. Vision, reasoning, tools. | 1.05M | No | $0.2083 in / $1.25 out per 1M |
 | `gpt-6-sol` | Frontier reasoning for enterprise agents, coding and complex knowledge work. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $10.42 out per 1M |
@@ -474,7 +482,7 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `glm-5.3` | Z.ai GLM 5.3. Tools + reasoning (low / high / max). Text-only. | 1M | No | $2.125 in / $6.667 out per 1M |
 | `deepseek-v4.1-flash` | DeepSeek V4.1 Flash. Tools + reasoning (low / high / max). Text-only. | 1M | No | $0.427 in / $1.771 out per 1M |
 | `gpt-oss-120b` | Open-weight 120B MoE. Reasoning-grade at lower cost. | 131K | Yes | $1.042 in / $4.167 out per 1M |
-| `gemma-4-31b` | Gemma 4 31B instruct. Fast with thinking off, vision, tools. | 128K | No | $0.6146 in / $1.542 out per 1M |
+| `gemma-4-31b` | Gemma 4 31B instruct. Fast with thinking off, vision, tools. | 128K | No | $0.3646 in / $0.9375 out per 1M |
 | `gpt-realtime` | OpenAI flagship realtime speech-to-speech model — STT + reasoning + function calling + TTS in one. 10 concurrent. | 32K | No | $4.167 in / $16.67 out per 1M • $0.3906/min |
 | `gpt-realtime-mini` | Lowest-cost realtime — same single-model shape as gpt-realtime, ~3× cheaper. 20 concurrent. | 32K | No | $0.625 in / $2.5 out per 1M • $0.1229/min |
 | `gpt-realtime-2` | Newest realtime with stronger tool calling. 32K input, 4K output. | 32K | No | $4.167 in / $25 out per 1M • $0.3906/min |
@@ -483,7 +491,7 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `gpt-realtime-2.1-mini` | Distilled, lower-cost realtime for faster voice interactions. Voice-agent only. | 32K | No | $0.625 in / $2.5 out per 1M • $0.1219/min |
 | `gpt-live-1` | GPT Live speech-to-speech — audio + text in and out, function calling, 14 voices (default `marin`). No image or video input. Voice-agent only. | — | No | $0.05208/min (billed per second) |
 
-### Speech to Text (11 models)
+### Speech to Text (12 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
@@ -493,13 +501,14 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `ink-2` | Cartesia Ink 2 — top-ranked for voice agents (8% WER on AppTek's 14-accent call-centre benchmark, vs 10% Deepgram Flux and 12% ElevenLabs). Self-detects turns. **Languages: `en`, `fr`, `hi`, `ja`, `es`. Voice sessions only — not available for file transcription.** | — | No | $0.5625 / hr |
 | `assemblyai-universal-3.6-pro` | AssemblyAI Universal-3.6 Pro — newest streaming STT with built-in turn detection. 32 languages including Hindi, Marathi, Urdu and Indian English. **Voice sessions only — not available for file transcription.** | — | No | $0.4688 / hr |
 | `inworld-stt-1` | Inworld STT 1 — low-cost streaming STT, English only. **Voice sessions only — not available for file transcription.** | — | No | $0.1563 / hr |
+| `mai-transcribe-2` | **Preview.** Microsoft AI MAI-Transcribe-2 — file transcription in 60 languages with automatic detection and Hinglish code-switching, up to 2 hours per file. `POST /v1/audio/transcriptions` only: not available in voice sessions or translation. Not processed in India. | — | No | $0.375 / hr |
 | `microsoft-speech-stt` | Microsoft Speech — real-time streaming STT, processed in India. 81 languages (148 locales) including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu, Bhojpuri and Indian English; one language per call. **Voice sessions only — not available for file transcription.** | — | No | $1.0417 / hr |
 | `whisper` | 99 languages. Transcription + translation to English. | — | No | $0.4167 / hr |
 | `gpt-4o-transcribe` | Higher accuracy than Whisper. Streaming. | — | No | $0.4167 / hr |
 | `gpt-4o-mini-transcribe` | Cheaper, faster streaming transcription. | — | No | $0.25 / hr |
 | `gpt-4o-transcribe-diarize` | File transcription with speaker labels. Not available for voice sessions. | — | No | $0.4167 / hr |
 
-### Text to Speech (12 models)
+### Text to Speech (14 models)
 
 | Model ID | Description | Voices | Free | Pricing |
 |----------|-------------|--------|------|---------|
@@ -515,6 +524,8 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `gradium-tts-beta` | Gradium TTS beta — English, French, German, Spanish and Portuguese. **Voice sessions only.** | 13 | No | $0.50 / 10K chars |
 | `microsoft-neural-tts` | Microsoft Neural voices — neural TTS, processed in India. 13 languages including 12 Indian languages, plain text only. **Voice sessions only.** | 57 | No | $0.1563 / 10K chars |
 | `gpt-4o-mini-tts` | Steerable — takes an `instructions` field to direct tone. | 6 | No | $0.2083 / 10K chars |
+| `mai-voice-2.1` | **Preview.** Microsoft AI MAI-Voice-2.1 — the most expressive MAI voice model, for narration and long-form audio. 23 languages, plain text only. `POST /v1/audio/speech` and voice agents. Not processed in India. | 97 | No | $0.2292 / 10K chars |
+| `mai-voice-2.1-flash` | **Preview.** Microsoft AI MAI-Voice-2.1-Flash — low latency, built for real-time voice agents. Same 97 voices and 23 languages, plain text only. `POST /v1/audio/speech` and voice agents. Not processed in India. | 97 | No | $0.1563 / 10K chars |
 
 ### Image Generation (9 models)
 
