@@ -242,16 +242,17 @@ The AI cost of a session, one line per `(service, model)` pair it actually used 
 ```json
 {
   "session_id": "7c2b9e30-1d8a-4c5f-9b3d-2f4a6e8b1c2d",
-  "total_credits": 1.84,
+  "total_credits": 2.84,
   "items": [
     { "service": "stt", "model": "saaras:v4", "credits": 0.42, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 50.3 },
     { "service": "llm", "model": "kimi-k2.5", "credits": 0.61, "input_tokens": 5120, "output_tokens": 410, "audio_seconds": 0.0 },
-    { "service": "tts", "model": "bulbul:v3", "credits": 0.81, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 38.9 }
+    { "service": "tts", "model": "bulbul:v3", "credits": 0.81, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 38.9 },
+    { "service": "voice_platform_fee", "model": "voice_platform_fee", "credits": 1.0, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 60.0 }
   ]
 }
 ```
 
-Items are ordered STT, LLM, TTS. This covers the AI layer only; phone-carrier charges for a call on a rented number are billed separately.
+Items are ordered STT, LLM, TTS. A metered call also carries a `voice_platform_fee` line, listed last, whose `audio_seconds` are the billed call seconds: the flat ₹1 a minute [platform fee](/docs/voice-tiers#custom-stack-billing) on a metered call. This covers the AI layer only; phone-carrier charges for a call on a rented number are billed separately.
 
 ## WhatsApp Messages
 
