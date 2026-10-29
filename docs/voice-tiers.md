@@ -1,29 +1,29 @@
 ---
 title: "Voice Agent Plans"
-description: "Run a voice agent on a flat per-minute plan — ₹4, ₹5 or ₹6 a minute for listening, the language model and the voice — instead of choosing and paying for each model yourself."
+description: "Run a voice agent on a flat per-minute plan — ₹4, ₹5 or ₹6 a minute (₹8 for Best latency from 30 November 2026) for listening, the language model and the voice — instead of choosing and paying for each model yourself."
 slug: "voice-tiers"
 breadcrumb: "Voice Agents"
 ---
 
 # Voice Agent Plans
 
-Run a voice agent on a flat per-minute plan — ₹4, ₹5 or ₹6 a minute for listening, the language model and the voice — instead of choosing and paying for each model yourself.
+Run a voice agent on a flat per-minute plan — ₹4, ₹5 or ₹6 a minute (₹8 for Best latency from 30 November 2026) for listening, the language model and the voice — instead of choosing and paying for each model yourself.
 
 ## Overview
 
 A **voice agent plan** (a *tier*) is a priced product: you choose the plan and a voice, and the platform chooses the speech recognition, the language model and the voice model. The whole AI layer of the call bills at **one flat rate a minute**.
 
-The alternative is a **custom stack**: you set `stt_model`, `voice_model` and `tts_model` yourself, and each one bills at its own published rate, by the second, with no minimum.
+The alternative is a **custom stack**: you set `stt_model`, `voice_model` and `tts_model` yourself, and each one bills at its own published rate, by the second, plus a flat **₹1 a minute platform fee** on the call (see [Custom stack billing](#custom-stack-billing)).
 
 | Plan | `voice_tier` | Per minute | Listening options | Best for |
 | --- | --- | --- | --- | --- |
 | Standard | `t1` | ₹4 (4 credits) | `multilingual` | Natural Indian-language voices at the lowest price |
 | Expressive | `t2` | ₹5 (5 credits) | `multilingual` | Richer, more expressive voices across Indian and world languages |
-| Best latency | `t3` | ₹6 (6 credits) | `multilingual`, `english` | The fastest replies and the best-sounding voices |
+| Best latency | `t3` | ₹6 (6 credits); ₹8 (8 credits) for calls that start on or after 30 November 2026, 00:00 IST | `multilingual`, `english` | The fastest replies and the best-sounding voices |
 
 Standard speaks with Gnani Timbre v3, with 12 voices that each speak every supported language. See [Voices](/docs/tts-voices).
 
-1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96). Always read the live list from [`GET /api/v1/bots/config-schema`](/docs/bots) (the `voice_tiers` array) rather than hard-coding it.
+1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96). Always read the live list from [`GET /api/v1/bots/config-schema`](/docs/bots) (the `voice_tiers` array) rather than hard-coding it. Each tier's `price_credits_per_minute` is the price a call starting now pays; `scheduled_price_change` (`{ "effective_at", "price_credits_per_minute" }`, or `null`) announces a price change that has not started yet.
 
 ## How a plan call is billed
 
@@ -31,6 +31,7 @@ Standard speaks with Gnani Timbre v3, with 12 voices that each speak every suppo
 - **30-second minimum per call.** A 10-second call bills 30 seconds; a 2-minute call on Standard bills ₹8.
 - **A call that never connects costs nothing.** A zero-length call does not reach the minimum.
 - **No per-component charges.** A plan call is not also billed per speech-recognition second, per token or per character.
+- **No platform fee.** The ₹1 a minute platform fee applies only to calls on a custom stack, never to a plan call.
 - **Phone carriage is separate.** A rented number, or Meta's fee on a business-initiated WhatsApp call, is billed the same way as on a custom stack.
 - **The call ends when your credits run out.** The running cost is checked against your balance during the call, and the call is stopped once your balance can no longer cover the minutes already spoken.
 
@@ -47,7 +48,7 @@ curl -X PATCH https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-123
 
 | Key | Values | If omitted |
 | --- | --- | --- |
-| `voice_tier` | `t1`, `t2`, `t3` | The agent runs its own models and bills per component |
+| `voice_tier` | `t1`, `t2`, `t3` | The agent runs its own models and bills per component, plus the ₹1 a minute platform fee |
 | `voice_tier_speech_input` | A listening option the plan offers (see the table above) | The plan's first listening option |
 | `voice` | One of the plan's voices, listed per plan in `voice_tiers[].voices` | The plan's voice model uses its own default speaker |
 | `language` | `multi` (Multilingual, auto-detect) or one of the plan's languages in `voice_tiers[].languages` | The stack's own default (English) |
@@ -62,6 +63,17 @@ curl -X PATCH https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-123
   -H "Content-Type: application/json" \
   -d '{ "unset": ["voice_tier", "voice_tier_speech_input"] }'
 ```
+
+## Custom stack billing
+
+A call that is not on a plan is **metered**: each component bills at its published rate (speech recognition by the second, the language model per token, the voice per character), and the call adds one more line, the **platform fee**:
+
+- **₹1 a minute** (1 credit), charged once when the call ends, per second above the same 30-second minimum a plan call uses.
+- It applies to every metered voice call: web and API voice sessions, the managed voice agent, and phone and WhatsApp calls whose agent bills per component.
+- It appears as its own `voice_platform_fee` line in the call's cost breakdown and in your usage history.
+- Component rates are the published list prices and do not change. Phone and WhatsApp network carriage is billed separately, as before.
+
+Your per-minute total is the sum of the component lines for the models you chose, plus the ₹1 platform fee.
 
 ## Languages
 
