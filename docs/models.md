@@ -18,7 +18,7 @@ Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, fi
 
 ## Overview
 
-134 models, one OpenAI-compatible API. Same auth, same request shape — change
+144 models, one OpenAI-compatible API. Same auth, same request shape — change
 the `model` field and nothing else.
 
 | Group | What it is |
@@ -50,7 +50,7 @@ curl https://api.callmissed.com/api/v1/models/sarvam-105b
 curl https://api.callmissed.com/api/v1/models/access
 ```
 
-Each entry includes `id`, `name`, `description`, `category`, `owned_by`, `context_window`, `max_output_tokens` (only where the model documents an output limit), `pricing` (US$), `free`, `supports_streaming`, `supports_tools`, `supports_reasoning`, `supports_vision`, `zero_data_retention`, `hosted_in_india` (processed in India on every request), `voice_capable` (valid for `POST /v1/voice/sessions`), `voice_agent_only`, and `speed_tier`. A model that is temporarily unavailable also carries `status: "maintenance"` and a `status_message` naming the alternative. Embedding models add `dimensions`; TTS models add their voice list. The response is `{object: "list", total, data}`.
+Each entry includes `id`, `name`, `description`, `category`, `owned_by`, `context_window`, `max_output_tokens` (only where the model documents an output limit), `pricing` (US$), `free`, `supports_streaming`, `supports_tools`, `supports_reasoning`, `supports_vision`, `zero_data_retention`, `processing` (`"india"`, `"india_preferred"` or `"outside_india"`; see [Data residency](/docs/data-residency)), `hosted_in_india` (kept for compatibility; `true` only when `processing` is `"india"`), `voice_capable` (valid for `POST /v1/voice/sessions`), `voice_agent_only`, and `speed_tier`. A preview model also carries `preview: true`; the field is absent on generally available models. A model that is temporarily unavailable also carries `status: "maintenance"` and a `status_message` naming the alternative. Embedding models add `dimensions`; TTS models add their voice list. The response is `{object: "list", total, data}`.
 
 The OpenAI-compatible listing at `GET /v1/models` (requires `Authorization: Bearer cm_*`) returns the same capability fields plus `context_length` (an alias of `context_window` for OpenAI-style clients), but a **shorter list**: it hides models that are only valid for voice sessions (`gpt-realtime*`, `gpt-live-1`, `deepgram-voice-*`). Use `GET /api/v1/models` for the full catalog. The Anthropic-shape listing at `GET /anthropic/v1/models` returns the same set inside Anthropic's `{data, has_more, first_id, last_id}` envelope.
 
@@ -89,7 +89,7 @@ A free-plan key calling a paid model gets `403 model_not_available` — it is no
 
 The Claude models (`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`) are the exception: they need the Pro plan or higher. A free or Starter key gets `403 model_not_available` with the message `Model '<id>' requires the Pro plan or higher. Upgrade at https://console.callmissed.com/org/plans`.
 
-All other models — including `kimi-k2.5-fast`, `glm-5.3`, `deepseek-v4.1-flash`, `gemma-4-31b`, the `gemini-*` chat models, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `gpt-6-*`, `gpt-6.1-sol`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `gpt-live-1`, first-party STT/TTS), the other speech models (`gnani-*`, `ink-*`, `sonic-3.6`, `assemblyai-*`, `inworld-*`, `rime-coda`, `fish-audio-*`, `gradium-*`, `deepgram-flux-tts`, `microsoft-*`), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`, `gemini-3.1-flash-lite-image`) — require Starter, Pro, or Enterprise.
+All other models — including `kimi-k2.5-fast`, `glm-5.3`, `deepseek-v4.1-flash`, `gemma-4-31b`, `deepgram-think-fast`, `deepgram-phonellm-mini`, the `gemini-*` chat models, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `gpt-6-*`, `gpt-6.1-sol`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `gpt-live-1`, first-party STT/TTS), the other speech models (`gnani-*`, `ink-*`, `sonic-3.6`, `assemblyai-*`, `inworld-*`, `rime-coda`, `fish-audio-*`, `gradium-*`, `deepgram-flux-tts`, `microsoft-*`), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`, `gemini-3.1-flash-lite-image`) — require Starter, Pro, or Enterprise.
 
 ### Pricing
 
@@ -98,9 +98,9 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 | Model | Input / 1M tokens | Output / 1M tokens |
 |-------|-------------------|-------------------|
 | `kimi-k2.5-fast` | $0.8438 | $4.219 |
-| `sarvam-105b` | $0.3646 (₹35) | $0.3646 (₹35) |
-| `sarvam-105b-conversations` | $0.3646 (₹35) | $0.3646 (₹35) |
-| `gpt-5.6-sol` | $5.208 | $31.25 |
+| `sarvam-105b` | $0.1563 (₹15) | $0.625 (₹60) |
+| `sarvam-105b-conversations` | $0.1563 (₹15) | $0.625 (₹60) |
+| `gpt-5.6-sol` | $4.167 | $20.83 |
 | `gpt-5.6-terra` | $2.083 | $12.5 |
 | `gpt-5.6-luna` | $0.2083 | $1.25 |
 | `gpt-6-sol` | $2.083 | $10.42 |
@@ -121,15 +121,17 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 | STT Model | Price |
 |-----------|-------|
 | `saaras:v4` | $0.3125 / hour (₹30/hr) |
-| `gnani-prisma-v2.5` | $0.2813 / hour |
+| `gnani-prisma-v3.0` | $0.2813 / hour |
 | `ink-whisper` | $0.1875 / hour |
 | `ink-2` | $0.5625 / hour *(voice sessions only)* |
 | `assemblyai-universal-3.6-pro` | $0.4688 / hour *(voice sessions only)* |
 | `inworld-stt-1` | $0.1563 / hour *(voice sessions only)* |
 | `microsoft-speech-stt` | $1.0417 / hour *(voice sessions only)* |
-| `deepgram-nova-3` | $0.3021 / hour |
-| `deepgram-nova-3-medical` | $0.3021 / hour |
-| `deepgram-flux-general-en` | $0.4063 / hour |
+| `mai-transcribe-2` | $0.375 / hour *(preview)* |
+| `deepgram-nova-3` | $0.325 / hour (files); live voice sessions $0.4792 / hour, or $0.5729 / hour with `multi` |
+| `deepgram-nova-3-medical` | $0.325 / hour (files); live voice sessions $0.4792 / hour, or $0.5729 / hour with `multi` |
+| `deepgram-nova-3-pharma` | $0.325 / hour (files), $0.4792 / hour (live voice sessions) |
+| `deepgram-flux-general-en` | $0.4792 / hour |
 | `deepgram-flux-general-multi` | $0.4896 / hour |
 | `deepgram-nova-2` (+ domain variants) | $0.3646 / hour |
 | `deepgram-nova` / `deepgram-whisper-*` | $0.3646 / hour |
@@ -144,13 +146,15 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 | `deepgram-aura-2` | $0.3125 / 10K chars |
 | `deepgram-aura-1` | $0.1563 / 10K chars |
 | `sonic-3.6` | $0.5208 / 10K chars |
-| `deepgram-flux-tts` | $0.4688 / 10K chars *(voice sessions only)* |
+| `deepgram-flux-tts` | $0.4688 / 10K chars |
 | `rime-coda` | $0.5208 / 10K chars *(voice sessions only)* |
 | `inworld-tts-2` | $0.2604 / 10K chars *(voice sessions only)* |
 | `inworld-tts-2-flash` | $0.1563 / 10K chars *(voice sessions only)* |
 | `fish-audio-drama-3` | $0.5208 / 10K chars *(voice sessions only)* |
 | `gradium-tts-beta` | $0.50 / 10K chars *(voice sessions only)* |
 | `microsoft-neural-tts` | $0.1563 / 10K chars *(voice sessions only)* |
+| `mai-voice-2.1` | $0.2292 / 10K chars *(preview)* |
+| `mai-voice-2.1-flash` | $0.1563 / 10K chars *(preview)* |
 
 | Intelligence feature (not a model ID) | Price |
 |-------------------------------|-------|
@@ -195,7 +199,7 @@ response = client.chat.completions.create(
 | Model | Description | Languages |
 |-------|-------------|-----------|
 | `saaras:v4` | Five output modes on one model — transcribe, translate, verbatim, transliterate, code-mix | 23 languages (22 Indic + English) |
-| `gnani-prisma-v2.5` | India-first telephony STT — code-switching, sub-4% WER on Indian English | 10 Indian languages |
+| `gnani-prisma-v3.0` | Gnani's newest India-first telephony STT — automatic language detection (`indic-auto`), mixed-language speech, keyterm boosting | English + 9 Indian languages (10 total) |
 
 For 99-language general-purpose transcription and translation, see `whisper`. For diarization + smart-format on calls, see `deepgram-nova-3`. Both live under the [audio model routes](#audio-models).
 
@@ -224,6 +228,8 @@ For low-latency English / Spanish voice agents, see `deepgram-aura-2`. For steer
 | `glm-5.3` | Z.ai GLM 5.3 | 1M tokens | Long-context reasoning, tool calling (text only) |
 | `deepseek-v4.1-flash` | DeepSeek V4.1 Flash | 1M tokens | Long-document analysis, agentic workflows, tool calling (text only) |
 | `gemma-4-31b` | Google Gemma 4 31B | 128K tokens | Fast answers with thinking off, image input, tool calling, voice agents |
+| `deepgram-think-fast` | Deepgram Think-Fast (early access) | 32K tokens | Voice agents: follows a system prompt, calls tools, writes replies meant to be spoken (text only) |
+| `deepgram-phonellm-mini` | phoneLLM mini by Pipecat (early access) | 32K tokens | Voice pipelines where speed matters most, tool calling (text only) |
 
 `glm-5.3` and `deepseek-v4.1-flash` always reason. `reasoning_effort` takes `"low"`, `"high"` or `"max"` (the default when omitted); `"none"` and `"minimal"` map to `"low"`, `"medium"` to `"high"` and `"xhigh"` to `"max"`. Reasoning tokens bill as output. `gemma-4-31b` answers without thinking by default. `reasoning_effort: "low"`, `"medium"` or `"high"` switch thinking on; the level does not reliably change how much it thinks. `"none"` and `"minimal"` keep it off. Both are paid-plan models.
 
@@ -241,15 +247,17 @@ See the [Pricing](/docs/pricing) page for current rates.
 | `gpt-4o-transcribe` | Streaming | Higher-accuracy OpenAI transcription | $0.4167 / hour |
 | `gpt-4o-mini-transcribe` | Streaming | Low-cost OpenAI transcription | $0.25 / hour |
 | `gpt-4o-transcribe-diarize` | File transcription with speaker labels (not available for voice sessions) | Multi-speaker meetings / calls | $0.4167 / hour |
+| `mai-transcribe-2` **Preview** | 60 with auto-detect, Hinglish code-switching (file transcription only) | Microsoft AI file transcription, up to 2 hours per file | $0.375 / hour |
 
 **Deepgram (direct)** — the full Deepgram speech-to-text line, billed per audio hour at the rates below:
 
 | Model | Languages | Best for | Price |
 |-------|-----------|----------|-------|
-| `deepgram-flux-general-en` | English | Conversational voice agents — model-native turn detection, ultra-low latency | $0.4063 / hour |
+| `deepgram-flux-general-en` | English | Conversational voice agents — model-native turn detection, ultra-low latency | $0.4792 / hour |
 | `deepgram-flux-general-multi` | 10 (multilingual) | Multilingual voice agents with code-switching | $0.4896 / hour |
-| `deepgram-nova-3` | 45+ incl. `multi` | Flagship general-purpose ASR, keyterm prompting, PII redaction | $0.3021 / hour |
-| `deepgram-nova-3-medical` | English | Clinical / medical terminology | $0.3021 / hour |
+| `deepgram-nova-3` | 45+ incl. `multi` | Flagship general-purpose ASR, keyterm prompting, PII redaction | $0.325 / hour (files); live voice sessions $0.4792 / hour, or $0.5729 / hour with `multi` |
+| `deepgram-nova-3-medical` | English, or `multi` (10 languages) | Clinical / medical terminology | $0.325 / hour (files); live voice sessions $0.4792 / hour, or $0.5729 / hour with `multi` |
+| `deepgram-nova-3-pharma` | English | Drug names and pharmaceutical terminology, keyterm prompting | $0.325 / hour (files), $0.4792 / hour (live voice sessions) |
 | `deepgram-nova-2` | 36 incl. `multi` | High-accuracy ASR + filler-word detection | $0.3646 / hour |
 | `deepgram-nova-2-{meeting,phonecall,finance,conversationalai,voicemail,video,medical,drivethru,automotive,atc}` | English | Domain-tuned Nova-2 variants | $0.3646 / hour |
 | `deepgram-nova` / `-phonecall` / `-medical` | en/es/hi | Legacy Nova-1 | $0.3646 / hour |
@@ -263,11 +271,16 @@ See the [Pricing](/docs/pricing) page for current rates.
 |-------|-----------|--------|-------|
 | `deepgram-aura-2` | en/es/de/fr/nl/it/ja | 90+ (thalia default) | $0.3125 / 10K chars |
 | `deepgram-aura-1` | English | 12 (asteria default) | $0.1563 / 10K chars |
+| `deepgram-flux-tts` | 42 (149 GA voices in 10 languages, 117 Early Access voices in 32) | 266 (priya default) | $0.4688 / 10K chars |
 | `gpt-4o-mini-tts` | Multilingual steerable | 6 OpenAI voices | $0.2083 / 10K chars |
+| `mai-voice-2.1` **Preview** | 23 languages | 97 (en-in-priya default; `hi-in-arjun` for Hindi) | $0.2292 / 10K chars |
+| `mai-voice-2.1-flash` **Preview** | 23 languages | 97, low latency for live calls | $0.1563 / 10K chars |
+
+The `mai-*` models are **preview**: Microsoft ships them without an SLA and may change or retire them at short notice. If one is retired, the ID keeps working and is answered by a named successor, as in [Retired and deprecated models](#retired-and-deprecated-models), so an agent that uses it keeps working but may sound different. Use a generally available model for production-critical agents. Preview models are paid-plan only, are never a default, and are not processed in India.
 
 Aura 2 returns linear16 PCM streamed at 24 kHz for low-latency playback. Output formats may vary as models are updated.
 
-Deepgram Flux TTS is a voice-agent-first model and is **not** available on this `/v1/audio/speech` endpoint. It runs in two places: as `deepgram-flux-tts` on voice agents and voice sessions (see [Voice-session-only models](#voice-session-only-models)), and in the managed Voice Agent (see the Voice Sessions API), selectable with `tts_engine: "flux"`, where it is billed inside the per-minute voice rate.
+Deepgram Flux TTS (`deepgram-flux-tts`) is served on this endpoint, in voice agents and voice sessions, and in the managed Voice Agent (selectable with `tts_engine: "flux"`, billed inside the per-minute voice rate). It has 266 voices in 42 languages. Without `stream`, the input is limited to 400 characters; set `"stream": true` with `pcm`, `wav`, `mulaw` or `alaw` for up to 2000. See [Text to Speech](/docs/text-to-speech#deepgram-flux-tts) and [Voices](/docs/tts-voices#flux-tts-voices-by-language).
 
 ### Voice-session-only models
 
@@ -278,13 +291,46 @@ These models run inside voice agents and [voice sessions](/docs/voice-sessions-a
 | `assemblyai-universal-3.6-pro` | STT, built-in turn detection | 50, including Hindi, Marathi, Urdu and Indian English | $0.4688 / hour |
 | `inworld-stt-1` | STT | English only | $0.1563 / hour |
 | `microsoft-speech-stt` | STT, processed in India | 81 (148 locales), including 13 Indian languages, one per call | $1.0417 / hour |
-| `deepgram-flux-tts` | TTS, 16 voices | English only | $0.4688 / 10K chars |
 | `rime-coda` | TTS, 13 voices | 8, including Hindi | $0.5208 / 10K chars |
 | `inworld-tts-2` | TTS, 14 voices | 94, including 11 Indian languages | $0.2604 / 10K chars |
 | `inworld-tts-2-flash` | TTS, 14 voices, faster | 94, including 11 Indian languages | $0.1563 / 10K chars |
 | `fish-audio-drama-3` | TTS, 7 voices | 13, no Indian languages | $0.5208 / 10K chars |
 | `gradium-tts-beta` | TTS, 13 voices | 5, no Indian languages | $0.50 / 10K chars |
 | `microsoft-neural-tts` | TTS, 57 voices, processed in India | 13, including 12 Indian languages | $0.1563 / 10K chars |
+
+### Deepgram managed voice-agent models
+
+The `deepgram-voice-*` models run the whole conversation (language model, speech recognition and voice) inside Deepgram's managed Voice Agent and bill one per-minute rate: Standard $0.07813/min, Advanced $0.1698/min. They are valid on voice agents and [voice sessions](/docs/voice-sessions-api) only, not on `POST /v1/chat/completions`. Four were added on 2026-10-30:
+
+| Model | Tier | Notes |
+|-------|------|-------|
+| `deepgram-voice-anthropic-claude-sonnet-5-5` | Advanced | Strongest reasoning of the four |
+| `deepgram-voice-anthropic-claude-haiku-5-5` | Standard | Fast, low cost |
+| `deepgram-voice-deepgram-think-fast` | Standard | Early access. **Conversations on this model are used by the provider to improve its models** (the account's usual data-sharing opt-out does not apply to it) |
+| `deepgram-voice-deepgram-phonellm-mini-alpha-2-fp8` | Standard | Early access |
+
+### Deepgram Think-Fast and phoneLLM mini (early access)
+
+`deepgram-think-fast` and `deepgram-phonellm-mini` are chat models for voice agents, called on `POST /v1/chat/completions` like any other model and selectable as the `llm_model` of a voice agent (speech-to-text, language model, text-to-speech). They are not the managed `deepgram-voice-*` bundle above, which bills one per-minute rate and has no chat endpoint. Both are $0.3646 per 1M input tokens and $0.9375 per 1M output tokens, with no cached-input price, and are paid-plan only.
+
+| | `deepgram-think-fast` | `deepgram-phonellm-mini` |
+|---|---|---|
+| Maker | Deepgram | Pipecat |
+| Context window | 32,768 tokens | 32,768 tokens |
+| Tool calling, streaming | Yes | Yes |
+| Vision | No (text only) | No (text only) |
+| Reasoning | Yes, via `reasoning_effort` (`none` is the default); trace in `reasoning_content` | No |
+| Training on your data | **Conversations on this model are used by the provider to improve its models; the opt-out does not apply to it.** | Excluded from the provider's model training |
+
+`deepgram-think-fast` follows a system prompt, calls tools, and writes replies meant to be spoken: it often says a short line such as "Sure, booking that now" alongside a tool call. Keep reasoning off for voice. In our tests `"minimal"` to `"high"` took 2 to 5 seconds to answer, against about 0.3 seconds with `"none"`. `deepgram-phonellm-mini` is an open-weights model based on NVIDIA Nemotron 3 Nano (30B mixture-of-experts, 3.5B active parameters), trained on synthetic voice-agent sessions; use temperature `0.0`, which voice agents use by default. Measured from our India servers, a one-sentence reply takes 0.3 to 0.8 seconds on `deepgram-think-fast` and 0.3 to 0.4 seconds on `deepgram-phonellm-mini`. Hindi is good on `deepgram-think-fast` and adequate but terse on `deepgram-phonellm-mini`; Tamil is weak on both.
+
+Early access: the provider says request fields and limits may change, and there is no SLA. Limits on these two models:
+
+- **Processed outside India.** An India-only key or account gets `400 region_unavailable`, and a voice agent with `hosting: "india"` cannot select them. See [Data residency](/docs/data-residency).
+- **Accepted fields:** `model`, `messages`, `temperature` (0 to 2), `reasoning_effort`, `tools` (function tools), `tool_choice` (`"auto"` or `"none"` only; any other value returns `400 unsupported_parameter`), `stream` and `stream_options`.
+- **`response_format`** (JSON mode, structured outputs) returns `400 unsupported_parameter`.
+- **Ignored, not sent to the model:** `max_tokens`, `top_p`, `stop`, `seed`, `frequency_penalty`, `presence_penalty`, `logprobs`, `n` and `parallel_tool_calls`.
+- Image and file content parts are not supported.
 
 ### Audio Intelligence (Deepgram)
 
@@ -332,7 +378,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 ## Retired and Deprecated Models
 
-**Retired on 2026-10-17.** These IDs still work. Each one is answered by the
+**Retired on 2026-10-17 and 2026-10-30.** These IDs still work. Each one is answered by the
 model in the second column, and the response `model` field keeps the ID you
 sent. They are no longer listed by `GET /api/v1/models`. Requests are billed
 at the price shown.
@@ -350,6 +396,7 @@ at the price shown.
 | `aura-2-en`, `aura-2-es` | `deepgram-aura-2` (same voices) | Unchanged ($0.4167 / 10K chars) |
 | `melotts` | `gpt-4o-mini-tts` | `gpt-4o-mini-tts` price ($0.2083 / 10K chars) |
 | `nova-3` | `deepgram-nova-3` | Unchanged ($0.5208 / hour) |
+| `gnani-prisma-v2.5` (retired 2026-10-30) | `gnani-prisma-v3.0` | Keeps its price ($0.2813 / hour) |
 | `whisper-large-v3-turbo` | `whisper` (also translates) | `whisper` price ($0.4167 / hour) |
 
 The retired LLM, speech-to-text and text-to-speech IDs stay on the free plan.
@@ -384,7 +431,7 @@ Where a successor costs more (for example `gpt-4.1` output, `gemini-3.1-flash-li
 
 ## Models on Demand
 
-`GET /api/v1/models` lists everything in the catalogue today: **134** model IDs.
+`GET /api/v1/models` lists everything in the catalogue today: **144** model IDs.
 Models marked `status: "maintenance"` return `503` until they are back.
 
 Beyond that we deploy **300+ further models on demand** on CallMissed
@@ -436,14 +483,14 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TTS · 9 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **144** models (70 LLM · 47 STT · 16 TTS · 9 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
 ### LLM (40 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
-| `sarvam-105b` | 105B MoE. Complex reasoning, agentic tasks, long documents. | 131K | Yes | $0.3646 in / $0.3646 out per 1M |
-| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. Tool calling. | 32K | Yes | $0.3646 in / $0.3646 out per 1M |
+| `sarvam-105b` | 105B MoE. Complex reasoning, agentic tasks, long documents. | 131K | Yes | $0.1563 in / $0.625 out per 1M |
+| `sarvam-105b-conversations` | 105B MoE tuned for conversation and voice. Tool calling. | 32K | Yes | $0.1563 in / $0.625 out per 1M |
 | `gpt-4o` | Multimodal text + vision. | 128K | No | $2.604 in / $10.42 out per 1M |
 | `gemini-3.8-flash` | Fast multimodal flagship. Thinking low/medium/high. | 1M | No | $1.563 in / $7.813 out per 1M |
 | `gemini-3.7-flash` | Fast multimodal. Thinking low/medium/high. | 1M | No | $1.563 in / $7.813 out per 1M |
@@ -455,7 +502,7 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `gpt-4.1` | Long-context multimodal. Strong instruction following. | 300K | No | $2.083 in / $8.333 out per 1M |
 | `gpt-5-mini` | Fast, affordable reasoning. | 400K | No | $0.2604 in / $2.083 out per 1M |
 | `gpt-5.5` | Reasoning flagship. Vision, tools, prompt caching. | 1.05M | No | $5.208 in / $31.25 out per 1M |
-| `gpt-5.6-sol` | Frontier model for complex professional work. Vision, reasoning, tools. | 1.05M | No | $5.208 in / $31.25 out per 1M |
+| `gpt-5.6-sol` | Frontier model for complex professional work. Vision, reasoning, tools. | 1.05M | No | $4.167 in / $20.83 out per 1M |
 | `gpt-5.6-terra` | Balances intelligence and cost. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $12.5 out per 1M |
 | `gpt-5.6-luna` | Cost-sensitive, high-volume workloads. Vision, reasoning, tools. | 1.05M | No | $0.2083 in / $1.25 out per 1M |
 | `gpt-6-sol` | Frontier reasoning for enterprise agents, coding and complex knowledge work. Vision, reasoning, tools. | 1.05M | No | $2.083 in / $10.42 out per 1M |
@@ -474,7 +521,9 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `glm-5.3` | Z.ai GLM 5.3. Tools + reasoning (low / high / max). Text-only. | 1M | No | $2.125 in / $6.667 out per 1M |
 | `deepseek-v4.1-flash` | DeepSeek V4.1 Flash. Tools + reasoning (low / high / max). Text-only. | 1M | No | $0.427 in / $1.771 out per 1M |
 | `gpt-oss-120b` | Open-weight 120B MoE. Reasoning-grade at lower cost. | 131K | Yes | $1.042 in / $4.167 out per 1M |
-| `gemma-4-31b` | Gemma 4 31B instruct. Fast with thinking off, vision, tools. | 128K | No | $0.6146 in / $1.542 out per 1M |
+| `gemma-4-31b` | Gemma 4 31B instruct. Fast with thinking off, vision, tools. | 128K | No | $0.3646 in / $0.9375 out per 1M |
+| `deepgram-think-fast` | Deepgram Think-Fast. Early access, built for voice agents. Tools + reasoning (none / minimal / low / medium / high). Text-only. | 32K | No | $0.3646 in / $0.9375 out per 1M |
+| `deepgram-phonellm-mini` | phoneLLM mini (Pipecat). Early access, open-weights, built for voice pipelines. Tools. Text-only. | 32K | No | $0.3646 in / $0.9375 out per 1M |
 | `gpt-realtime` | OpenAI flagship realtime speech-to-speech model — STT + reasoning + function calling + TTS in one. 10 concurrent. | 32K | No | $4.167 in / $16.67 out per 1M • $0.3906/min |
 | `gpt-realtime-mini` | Lowest-cost realtime — same single-model shape as gpt-realtime, ~3× cheaper. 20 concurrent. | 32K | No | $0.625 in / $2.5 out per 1M • $0.1229/min |
 | `gpt-realtime-2` | Newest realtime with stronger tool calling. 32K input, 4K output. | 32K | No | $4.167 in / $25 out per 1M • $0.3906/min |
@@ -483,23 +532,24 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `gpt-realtime-2.1-mini` | Distilled, lower-cost realtime for faster voice interactions. Voice-agent only. | 32K | No | $0.625 in / $2.5 out per 1M • $0.1219/min |
 | `gpt-live-1` | GPT Live speech-to-speech — audio + text in and out, function calling, 14 voices (default `marin`). No image or video input. Voice-agent only. | — | No | $0.05208/min (billed per second) |
 
-### Speech to Text (11 models)
+### Speech to Text (12 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
 | `saaras:v4` | 23 languages (22 Indic + English). Five output modes: transcribe, translate, verbatim, transliterate, code-mix. | — | Yes | $0.3125 / hr |
-| `gnani-prisma-v2.5` | India-first telephony STT. 10 Indian languages, code-switching. | — | No | $0.2813 / hr |
+| `gnani-prisma-v3.0` | India-first telephony STT. English + 9 Indian languages, automatic language detection, mixed-language speech, keyterm boosting. Real-time and batch. | — | No | $0.2813 / hr |
 | `ink-whisper` | Cartesia Ink Whisper — 100 languages including Hindi, Urdu and Tamil. Dynamic chunking reduces hallucination across pauses and silence. File transcription + streaming. | — | No | $0.1875 / hr |
 | `ink-2` | Cartesia Ink 2 — top-ranked for voice agents (8% WER on AppTek's 14-accent call-centre benchmark, vs 10% Deepgram Flux and 12% ElevenLabs). Self-detects turns. **Languages: `en`, `fr`, `hi`, `ja`, `es`. Voice sessions only — not available for file transcription.** | — | No | $0.5625 / hr |
 | `assemblyai-universal-3.6-pro` | AssemblyAI Universal-3.6 Pro — newest streaming STT with built-in turn detection. 32 languages including Hindi, Marathi, Urdu and Indian English. **Voice sessions only — not available for file transcription.** | — | No | $0.4688 / hr |
 | `inworld-stt-1` | Inworld STT 1 — low-cost streaming STT, English only. **Voice sessions only — not available for file transcription.** | — | No | $0.1563 / hr |
+| `mai-transcribe-2` | **Preview.** Microsoft AI MAI-Transcribe-2 — file transcription in 60 languages with automatic detection and Hinglish code-switching, up to 2 hours per file. `POST /v1/audio/transcriptions` only: not available in voice sessions or translation. Not processed in India. | — | No | $0.375 / hr |
 | `microsoft-speech-stt` | Microsoft Speech — real-time streaming STT, processed in India. 81 languages (148 locales) including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu, Bhojpuri and Indian English; one language per call. **Voice sessions only — not available for file transcription.** | — | No | $1.0417 / hr |
 | `whisper` | 99 languages. Transcription + translation to English. | — | No | $0.4167 / hr |
 | `gpt-4o-transcribe` | Higher accuracy than Whisper. Streaming. | — | No | $0.4167 / hr |
 | `gpt-4o-mini-transcribe` | Cheaper, faster streaming transcription. | — | No | $0.25 / hr |
 | `gpt-4o-transcribe-diarize` | File transcription with speaker labels. Not available for voice sessions. | — | No | $0.4167 / hr |
 
-### Text to Speech (12 models)
+### Text to Speech (14 models)
 
 | Model ID | Description | Voices | Free | Pricing |
 |----------|-------------|--------|------|---------|
@@ -507,7 +557,7 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `bulbul:v4-flash` | Low-latency Indic TTS: 9 Indian languages + Hinglish. | 222 | Yes | $0.2083 / 10K chars |
 | `gnani-timbre-v3.0` | Gnani Timbre v3 — India-first neural TTS, 10 Indian languages + Hinglish, streaming, expressive audio tags. | 12 | No | $0.2813 / 10K chars |
 | `sonic-3.6` | Cartesia Sonic 3.6 — most natural conversational TTS. 44 languages, native-quality Hindi + Hinglish, sub-90ms first audio. | Searchable library | No | $0.5208 / 10K chars |
-| `deepgram-flux-tts` | Deepgram Flux TTS — conversational, English only. **Voice sessions only.** | 16 | No | $0.4688 / 10K chars |
+| `deepgram-flux-tts` | Deepgram Flux TTS — conversational, built for voice agents. 42 languages including Hindi, Tamil, Telugu, Kannada, Marathi, Gujarati, Bengali and Urdu; 32 are early access. | 266 | No | $0.4688 / 10K chars |
 | `rime-coda` | Rime Coda — 8 languages including Hindi, two native Hindi voices. **Voice sessions only.** | 13 | No | $0.5208 / 10K chars |
 | `inworld-tts-2` | Inworld TTS-2 — 94 languages including 11 Indian languages. **Voice sessions only.** | 14 | No | $0.2604 / 10K chars |
 | `inworld-tts-2-flash` | Inworld TTS-2 Flash — faster, lower-cost TTS-2, same voices and languages. **Voice sessions only.** | 14 | No | $0.1563 / 10K chars |
@@ -515,6 +565,8 @@ A curated, representative slice of the **134** models (64 LLM · 45 STT · 14 TT
 | `gradium-tts-beta` | Gradium TTS beta — English, French, German, Spanish and Portuguese. **Voice sessions only.** | 13 | No | $0.50 / 10K chars |
 | `microsoft-neural-tts` | Microsoft Neural voices — neural TTS, processed in India. 13 languages including 12 Indian languages, plain text only. **Voice sessions only.** | 57 | No | $0.1563 / 10K chars |
 | `gpt-4o-mini-tts` | Steerable — takes an `instructions` field to direct tone. | 6 | No | $0.2083 / 10K chars |
+| `mai-voice-2.1` | **Preview.** Microsoft AI MAI-Voice-2.1 — the most expressive MAI voice model, for narration and long-form audio. 23 languages, plain text only. `POST /v1/audio/speech` and voice agents. Not processed in India. | 97 | No | $0.2292 / 10K chars |
+| `mai-voice-2.1-flash` | **Preview.** Microsoft AI MAI-Voice-2.1-Flash — low latency, built for real-time voice agents. Same 97 voices and 23 languages, plain text only. `POST /v1/audio/speech` and voice agents. Not processed in India. | 97 | No | $0.1563 / 10K chars |
 
 ### Image Generation (9 models)
 

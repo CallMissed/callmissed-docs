@@ -110,6 +110,8 @@ Behaviour per model, as the gateway applies it. Each model's accepted values com
 | `glm-5.3` | ↓ `"low"` | ✅ | ↓ `"high"` | ✅ | ↓ `"max"` | ↓ `"low"` |
 | `deepseek-v4.1-flash` | ↓ `"low"` | ✅ | ↓ `"high"` | ✅ | ↓ `"max"` | ↓ `"low"` |
 | `gemma-4-31b` | ✅ off | ✅ | ✅ | ✅ | ↓ `"high"` | ↓ `"none"` |
+| `deepgram-think-fast` | ✅ off | ✅ | ✅ | ✅ | ↓ `"high"` | ✅ |
+| `deepgram-phonellm-mini` | ↓ `"none"` | ↓ `"none"` | ↓ `"none"` | ↓ `"none"` | ↓ `"none"` | ↓ `"none"` |
 
 Legend: ✅ = sent to the model as-is · ✅ off = thinking is switched off · ↓ = mapped to the listed value before forwarding · ⊘ = dropped from the request; the model runs at its default thinking behaviour and the request still succeeds.
 
@@ -122,6 +124,7 @@ Notes worth reading before you rely on a value:
 - `sarvam-105b` and `sarvam-105b-conversations` switch thinking fully off for `"none"` and `"minimal"`. Their levels are `"low"`, `"high"` and `"max"`; `"medium"` is not one of them, so it is dropped and the model runs at its own default. When you omit `max_tokens` on a Sarvam model we send 4,096 (16,384 for `glm-5.3`), because thinking tokens count toward the limit and the upstream default of 2,048 cut answers short.
 - `deepseek-v4.1-flash` always reasons and defaults to its highest level, `"max"`. Its levels are `"low"`, `"high"` and `"max"`, mapped as in the table. Reasoning tokens share the `max_tokens` budget, so raise `max_tokens` or lower the effort if answers come back short.
 - `glm-5.3` always reasons and defaults to its highest level, `"max"`. Send `"low"` when latency matters: in our tests it cut time to first word from about 3.5s to about 0.9s. `gemma-4-31b` does not think unless asked. Any of `"low"`, `"medium"` or `"high"` switches thinking on (in our tests it did not track the level), and `"none"` or `"minimal"` keep it off at about 0.25s to first word.
+- `deepgram-think-fast` accepts `"none"` (the default, thinking off), `"minimal"`, `"low"`, `"medium"` and `"high"`; `"xhigh"` and `"max"` run as `"high"`. The trace comes back as `reasoning_content`. In our tests every level above `"none"` took 2 to 5 seconds to answer, against about 0.3 seconds with `"none"`, so keep it off for voice. `deepgram-phonellm-mini` does not reason: every value is sent as `"none"`, because otherwise it would put its reasoning in the spoken answer.
 - `gpt-4o`, `gpt-4.1` and `grok-4.3` take no reasoning control through this API. Every value is dropped and the request still returns 200.
 - The `gemini-*` models map `reasoning_effort` onto their own thinking levels. They have no full off switch: `"none"` gives the lowest level the model accepts.
 - The GPT-5.5 / GPT-5.6 / GPT-6 family accepts the full `none`/`low`/`medium`/`high`/`xhigh` ladder. `"minimal"` is rejected upstream, so we map it to `"low"`. Send `xhigh`, not `max` or `ultra`. `gpt-5-mini` is an original GPT-5 model: its ladder is `minimal`/`low`/`medium`/`high`, so `"none"` is sent as `"minimal"` and `"xhigh"` as `"high"`.
