@@ -110,7 +110,7 @@ Send as `multipart/form-data`.
 Two parts, charged together on each request:
 
 - **Analysis:** billed per token, summed across the features you request: $0.0003125 per 1K input tokens plus $0.000625 per 1K output tokens.
-- **Transcription:** the audio duration, billed at the per-hour rate of the matching `deepgram-*` STT model. For example, `model=nova-3` bills at the `deepgram-nova-3` rate ($0.3021 / hour).
+- **Transcription:** the audio duration, billed at the per-hour rate of the matching `deepgram-*` STT model. For example, `model=nova-3` bills at the `deepgram-nova-3` rate ($0.325 / hour).
 
 See [Models](/docs/models).
 
