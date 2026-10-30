@@ -219,9 +219,32 @@ gemma · archie · riya · arushi · siya · parvati · kabir
 
 > **Other TTS providers** also expose voices via the same `POST /v1/audio/speech` endpoint — **deepgram-aura-2** (90 voices across English, Spanish, German, French, Dutch, Italian, and Japanese, default `thalia`), **deepgram-aura-1** (12 legacy English voices at half the Aura-2 rate, default `asteria`), and **gpt-4o-mini-tts** (`alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `nova`, `onyx`, `sage`, `shimmer`, `verse`, `marin`, `cedar`). See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model pricing.
 
+## MAI Voice (preview)
+
+`mai-voice-2.1` ($0.2292 / 10K chars) and `mai-voice-2.1-flash` ($0.1563 / 10K chars) are Microsoft AI's text-to-speech models. **Both are preview.** They share the same 97 voices across 23 languages: `cs`, `da`, `de`, `en`, `es`, `fi`, `fr`, `hi`, `hu`, `id`, `it`, `ko`, `nb`, `nl`, `pl`, `pt`, `ro`, `ru`, `sv`, `th`, `tr`, `vi`, `zh`. They work on `POST /v1/audio/speech` and in voice agents and voice sessions (`tts_model`). `mai-voice-2.1-flash` is built for low latency and is the pick for live calls; `mai-voice-2.1` is the most expressive and suits narration and long-form audio.
+
+Voice handles are lowercase `<locale>-<name>` (for example `hi-in-kavya`) and case-insensitive. A voice speaks only its own locale. With no `voice`, the first voice for the request `language` is used (`hi` gives `hi-in-arjun`), otherwise `en-in-priya`. Input is plain text: SSML and tags are not supported, and the text is read as written. The one voice-agent control is `tts_speed`, 0.5 to 2.0. `GET /api/v1/models?category=tts` returns every voice in `voice_names` and `voice_details`.
+
+| Voice | Gender | Locale |
+|-------|--------|--------|
+| `hi-in-arjun` (Hindi default) | Masculine | Hindi |
+| `hi-in-dhruv` | Masculine | Hindi |
+| `hi-in-grant` | Masculine | Hindi |
+| `hi-in-harper` | Feminine | Hindi |
+| `hi-in-kavya` | Feminine | Hindi |
+| `hi-in-priya` | Feminine | Hindi |
+| `en-in-priya` (default) | Feminine | English (India) |
+| `en-in-dhruv` | Masculine | English (India) |
+
+They are not processed in India, so an agent with `hosting: "india"` cannot use them. They are paid-plan only, are never a default, cannot be used in `tts_fallbacks`, and are not offered on the public voice demo.
+
+:::note
+Preview models may change or be retired at short notice. If one is retired, its ID keeps working and is answered by a named successor, as described in [Retired and deprecated models](/docs/models#retired-and-deprecated-models), so an agent that uses it keeps working but may sound different. Use a generally available model for production-critical agents.
+:::
+
 ## Voice session voices
 
-Seven more text-to-speech models speak only inside a voice agent: set one as `tts_model` on an agent or a [voice session](/docs/voice-sessions-api). `POST /v1/audio/speech` returns `400` for them. Pass the voice as `voice` (a handle from the tables below, case-insensitive) and a base ISO code as `language`.
+Six more text-to-speech models speak only inside a voice agent: set one as `tts_model` on an agent or a [voice session](/docs/voice-sessions-api). `POST /v1/audio/speech` returns `400` for them. The section also covers `deepgram-flux-tts`, which is valid on `POST /v1/audio/speech` as well. Pass the voice as `voice` (a handle from the tables below, case-insensitive) and a base ISO code as `language`.
 
 Prices are per 10K characters. `GET /api/v1/models?category=tts` returns `voice_details` (gender, accent and description per voice), `language_codes`, `supports_ssml`, `supports_delivery_tags` and `audio_tags` for each of them, so a picker can be built from the API.
 
@@ -241,7 +264,56 @@ On `fish-audio-drama-3`, `gradium-tts-beta`, `rime-coda` and `deepgram-flux-tts`
 
 ### `deepgram-flux-tts` — Deepgram Flux TTS
 
-Deepgram's conversational TTS built for voice agents, $0.4688 / 10K chars. English only (`en`), 16 voices. The default is `priya`.
+Deepgram's conversational TTS built for voice agents, $0.4688 / 10K chars. **266 voices in 42 languages**, and the only Deepgram model here that is also valid on `POST /v1/audio/speech` (see [Text to Speech](/docs/text-to-speech#deepgram-flux-tts)). 149 voices in 10 languages (including Hindi) are generally available; 117 voices in 32 languages (including Tamil, Telugu, Kannada, Marathi, Gujarati, Bengali and Urdu) are **Early Access**. Pass the voice as a bare name (`ajay`); each voice belongs to one language, so the voice sets the language. Leave `voice` out to get the default for `language` (`priya` for English, or a language Flux has no voice for).
+
+Early Access languages read numbers and dates as written, so spell them out ("two thousand twenty-six", not "2026"); the speed control works for English voices only. Every voice in `GET /v1/models/deepgram-flux-tts` carries a `language` field.
+
+| Code | Language | Voices | Status | Default voice |
+|------|----------|--------|--------|---------------|
+| `en` | English | 36 | GA | `priya` |
+| `nl` | Dutch | 13 | GA | `anouk` |
+| `fr` | French | 12 | GA | `arnaud` |
+| `de` | German | 13 | GA | `benjamin` |
+| `hi` | Hindi | 14 | GA | `ajay` |
+| `it` | Italian | 11 | GA | `angela` |
+| `ja` | Japanese | 4 | GA | `ayumi` |
+| `pt` | Portuguese (Brazil) | 18 | GA | `bianca` |
+| `ru` | Russian | 9 | GA | `andrei` |
+| `es` | Spanish | 19 | GA | `aina` |
+| `bn` | Bengali | 6 | Early Access | `afsana` |
+| `bg` | Bulgarian | 2 | Early Access | `desislava` |
+| `ca` | Catalan | 2 | Early Access | `jordi` |
+| `zh` | Chinese (Mandarin) | 14 | Early Access | `bo` |
+| `hr` | Croatian | 7 | Early Access | `dalibor` |
+| `cs` | Czech | 1 | Early Access | `jakub` |
+| `da` | Danish | 3 | Early Access | `pernille` |
+| `et` | Estonian | 1 | Early Access | `triin` |
+| `fi` | Finnish | 2 | Early Access | `kirsi` |
+| `el` | Greek | 1 | Early Access | `kostas` |
+| `gu` | Gujarati | 3 | Early Access | `bhavna` |
+| `hu` | Hungarian | 4 | Early Access | `bence` |
+| `id` | Indonesian | 5 | Early Access | `dewi` |
+| `kn` | Kannada | 1 | Early Access | `manjunath` |
+| `ko` | Korean | 6 | Early Access | `eunji` |
+| `lv` | Latvian | 2 | Early Access | `agnese` |
+| `lt` | Lithuanian | 2 | Early Access | `goda` |
+| `ms` | Malay | 2 | Early Access | `haziq` |
+| `mr` | Marathi | 3 | Early Access | `pooja` |
+| `no` | Norwegian | 6 | Early Access | `erlend` |
+| `pl` | Polish | 6 | Early Access | `bartosz` |
+| `ro` | Romanian | 2 | Early Access | `cosmin` |
+| `sk` | Slovak | 2 | Early Access | `dominika` |
+| `sl` | Slovenian | 2 | Early Access | `gregor` |
+| `sv` | Swedish | 7 | Early Access | `axel` |
+| `tl` | Tagalog | 5 | Early Access | `jerome` |
+| `ta` | Tamil | 4 | Early Access | `gokul` |
+| `te` | Telugu | 3 | Early Access | `pavan` |
+| `tr` | Turkish | 7 | Early Access | `dilek` |
+| `uk` | Ukrainian | 2 | Early Access | `denys` |
+| `ur` | Urdu | 2 | Early Access | `ambreen` |
+| `vi` | Vietnamese | 2 | Early Access | `hoa` |
+
+The English voices with a full description:
 
 | Voice | Gender | Accent | Description |
 |-------|--------|--------|-------------|
@@ -262,7 +334,7 @@ Deepgram's conversational TTS built for voice agents, $0.4688 / 10K chars. Engli
 | `sharon` | Feminine | Australian | Formal yet relaxed, with a calm, self-assured manner |
 | `kai` | Masculine | Singaporean | Knowledgeable and calm, with a caring, precise professional style |
 
-This is the standalone voice for custom agents. The managed Voice Agent keeps its own Flux voices, listed in the next section.
+All 266 voice names are listed under [Flux TTS voices by language](#flux-tts-voices-by-language).
 
 ### `rime-coda` — Rime Coda
 
@@ -405,9 +477,11 @@ A voice speaks only its own locale (the handle starts with it, for example `hi-i
 | `en-gb-libby` | Feminine | English (UK) | Crisp, Bright, Clear. Suited to news, e-learning |
 | `en-gb-maisie` | Feminine | English (UK) | Crisp, Cheerful, Bright. Suited to audiobook, narration |
 
-## Flux TTS Voices (managed Voice Agent only)
+## Flux TTS voices by language
 
-The managed Voice Agent has its own Flux engine, separate from `deepgram-flux-tts` above. It is **not** available on the `POST /v1/audio/speech` endpoint — it is offered through the managed Voice Agent (see the Voice Sessions API), selectable with `tts_engine: "flux"`, where synthesis is turn-based, prosody carries across turns, and it is billed inside the per-minute voice rate. It provides **36 English voices** (American, British, Indian, Irish, Australian, Singaporean and Filipino accents); the default is `priya`, an Indian-accented English voice, and an unrecognized voice falls back to the default.
+The managed Voice Agent's Flux engine (`tts_engine: "flux"`) uses the same 266 voices as `deepgram-flux-tts`, in all 42 languages; it is billed inside the per-minute voice rate. Synthesis is turn-based and prosody carries across turns. The default is `priya`, an Indian-accented English voice, and with no voice set a call speaks its own language's default voice. An unrecognized voice falls back to that default.
+
+English (36):
 
 ```text
 alexis · bree · brittany · brooke · bruce · cliff · cole · colin · conor
@@ -416,4 +490,50 @@ kelsey · kit · maeve · marcelo · marcus · meena · meghan · miles · navee
 paige · priya · rufus · sean · sharon · sienna · tanner · wade · wes
 ```
 
-English only — a multilingual voice set is planned for a later release. The model exposes no expressive/emotion/style controls and does not interpret SSML.
+Other languages (language code, then voices):
+
+```text
+nl: anouk · bram · dirk · fleur · irene · lotte · luuk · monique · niels · ruben · sanne · veerle · yvonne
+fr: arnaud · benoit · brigitte · camille · chloe · florian · julien · mathieu · pierre · thierry · veronique · yasmine
+de: benjamin · christian · janine · leonie · magdalena · moritz · nadine · rolf · sonja · sven · tobias · verena · yannick
+hi: ajay · anjali · arjun · divya · jyoti · nikhil · pallavi · prachi · rahul · rajesh · ritu · shreya · sunita · vikram
+it: angela · chiara · federico · giorgio · matteo · paola · rocco · sofia · stefano · vincenzo · vito
+ja: ayumi · hayato · nozomi · sayaka
+pt: artur · benedita · bianca · bruno · catarina · claudia · hugo · leandro · marcia · mariana · marta · mateus · miguel · pedro · renato · ricardo · roberto · rodrigo
+ru: andrei · kirill · maxim · mikhail · natalia · nikolai · olga · polina · vladimir
+es: aina · alfredo · carmen · cecilia · duvan · eduardo · ernesto · fernanda · fiorella · gustavo · jaime · martin · mauricio · patricia · pilar · rafael · tomas · valentina · ysabel
+bn: afsana · ishrat · mamun · sabbir · shuvo · sumaiya
+bg: desislava · gergana
+ca: jordi · judit
+zh: bo · chiaying · haoran · jian · jie · kuanyu · lijuan · manlok · shufen · wenbo · wenjing · yawen · yuting · zhen
+hr: dalibor · danijela · domagoj · jasna · josipa · mihaela · vedran
+cs: jakub
+da: pernille · rasmus · rikke
+et: triin
+fi: kirsi · teemu
+el: kostas
+gu: bhavna · hetal · jignesh
+hu: bence · eszter · kinga · tibor
+id: dewi · fajar · fitri · rizky · teguh
+kn: manjunath
+ko: eunji · hyunwoo · mikyung · minjun · soojin · sungmin
+lv: agnese · edgars
+lt: goda · neringa
+ms: haziq · izzah
+mr: pooja · pratik · sneha
+no: erlend · espen · ida · signe · silje · vegard
+pl: bartosz · ewa · justyna · kacper · konrad · zuzanna
+ro: cosmin · ioana
+sk: dominika · juraj
+sl: gregor · katja
+sv: axel · charlotta · frida · ludvig · oskar · pontus · wilma
+tl: jerome · jomar · liezel · noel · trisha
+ta: gokul · kavya · sowmya · vinoth
+te: pavan · ravi · sravani
+tr: dilek · ecem · emre · gizem · mehmet · serkan · zeynep
+uk: denys · solomiya
+ur: ambreen · usman
+vi: hoa · minh
+```
+
+The model exposes no expressive/emotion/style controls and does not interpret SSML.

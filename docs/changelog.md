@@ -11,6 +11,28 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## October 2026
 
+### Deepgram updates (2026-10-30)
+
+- **Managed voice-agent models.** `deepgram-voice-anthropic-claude-sonnet-5-5` (Advanced, $0.1698/min), `deepgram-voice-anthropic-claude-haiku-5-5` (Standard, $0.07813/min), and the early-access `deepgram-voice-deepgram-think-fast` and `deepgram-voice-deepgram-phonellm-mini-alpha-2-fp8` (Standard). Conversations on `deepgram-voice-deepgram-think-fast` are used by the provider to improve its models.
+- **Speech to text.** New `deepgram-nova-3-pharma` (English only) for drug names. `deepgram-nova-3-medical` now accepts `language=multi` (10 languages). `POST /v1/audio/transcriptions` takes a repeatable `language_hint` field for `deepgram-nova-3` with `language=multi`.
+- **Pricing by mode.** `deepgram-nova-3`, `-medical` and `-pharma` are $0.325 / hour for files and $0.4792 / hour on live voice sessions, or $0.5729 / hour when the session's language is `multi` (`-pharma` is English only, so always $0.4792) (previously $0.3021 / hour for both). `deepgram-flux-general-en` is $0.4792 / hour (previously $0.4063).
+- **Flux TTS on `/v1/audio/speech`.** `deepgram-flux-tts` ($0.4688 / 10K characters) now has 266 voices in 42 languages, including Hindi, Tamil, Telugu, Kannada, Marathi, Gujarati, Bengali and Urdu (32 languages are early access), and supports `stream: true`. Input is capped at 2000 characters, and at 400 without streaming.
+- The catalogue is now 142 models: 47 speech-to-text and 16 text-to-speech.
+
+### Preview: Microsoft AI speech models (2026-10-30)
+
+- **Text to speech.** `mai-voice-2.1` ($0.2292 / 10K characters) is Microsoft AI's most expressive voice model, for narration and long-form audio. `mai-voice-2.1-flash` ($0.1563 / 10K characters) is built for low latency and real-time voice agents. Both have 97 voices across 23 languages, including Hindi (`hi-in-arjun`, `hi-in-dhruv`, `hi-in-grant`, `hi-in-harper`, `hi-in-kavya`, `hi-in-priya`) and Indian English (`en-in-dhruv`, `en-in-priya`). Plain text only, speed 0.5 to 2.0. They work on `POST /v1/audio/speech` and in voice agents and voice sessions (`tts_model`). See [Voices](/docs/tts-voices#mai-voice-preview).
+- **Speech to text.** `mai-transcribe-2` ($0.375 / hour) transcribes files in 60 languages with automatic language detection and Hinglish code-switching, up to 2 hours per file, on `POST /v1/audio/transcriptions`. It is not available in voice sessions or translation. See [Speech to Text](/docs/speech-to-text#mai-transcribe-2-preview).
+- **All three are preview.** Microsoft ships them with no SLA and may change or retire them at short notice. If one is retired, its ID keeps working and is answered by a named successor, as in [Retired and deprecated models](/docs/models#retired-and-deprecated-models), so an agent that uses it keeps working but may sound different. Use generally available models for production-critical agents. They are paid-plan only, are never a default, are not processed in India, and the voices cannot be used in `tts_fallbacks`. `GET /api/v1/models` marks them with `preview: true`.
+- The catalogue is now 137 models: 46 speech-to-text and 16 text-to-speech.
+
+### API behaviour fixes
+
+- **Ending a voice session made by another key now needs `telephony:read`.** `DELETE /v1/voice/sessions/{id}` follows the same rule as reading a session: a key can always end the sessions it created, including calls it placed with `POST /api/v1/telephony/calls`, and needs `telephony:read` for sessions the console or another key created. Without it the call returns `403`.
+- **Key budget refusals say so.** When an API key's own spending budget, not the account balance, cannot cover a request, the response is now `budget_exceeded` instead of `insufficient_credits`.
+- **`n` > 1 near the time limit.** A non-streaming chat completion that reaches the request time limit after some of its `n` choices are finished now returns those choices, billed as delivered, instead of an error.
+- **Audio of unknown length.** Speech-to-text uploads whose duration cannot be read from the file are no longer refused up front for a worst-case estimate; they are billed on the duration actually processed.
+
 ### Hosted in India voice agents
 
 - **New `hosting` setting.** Set `hosting: "india"` in a voice agent's config, or **Where calls run → Hosted in India** in the console's Voice card. Speech recognition, the model, the voice, their backups, knowledge-base and memory search, and post-call analysis, notes, scoring and contact memory then all run in India.
@@ -168,7 +190,7 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ### New models — conversational Indic LLM, Saaras V4 STT, Flux TTS
 
-- **`sarvam-105b-conversations`** — 105B MoE tuned for conversation and voice. 128K context, tool calling, streaming, hybrid thinking. Free-tier, same $0.3646 in / $0.3646 out per 1M as `sarvam-105b`. See [Indic Models](/docs/models-indic).
+- **`sarvam-105b-conversations`** — 105B MoE tuned for conversation and voice. 128K context, tool calling, streaming, hybrid thinking. Free-tier, same $0.1563 in / $0.625 out per 1M as `sarvam-105b`. See [Indic Models](/docs/models-indic).
 - **`saaras:v4`** — Sarvam STT with five output modes (transcribe, translate, verbatim, transliterate, code-mix) across 24 languages. Free-tier at $0.3125 / hour. See [Speech to Text](/docs/speech-to-text).
 - **Deepgram Flux TTS** — streaming-first TTS built for voice agents: turn-based synthesis with prosody carried across turns. 36 English voices including `priya` (Indian-accented English, the default). English only, no expressive controls. Available only through the managed Voice Agent (`tts_engine: "flux"`), billed inside the per-minute voice rate. See [Voices](/docs/tts-voices).
 - **Free tier** — now 27 models (11 LLM, 4 STT, 4 TTS, 6 image, 2 embedding).
