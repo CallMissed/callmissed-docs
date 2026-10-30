@@ -237,6 +237,7 @@ Lines of one account run a few at a time so a large batch does not crowd out you
 | `400` | `invalid_input_file` | `input_file_id` is not a file uploaded with `purpose=batch` |
 | `400` | `unsupported_endpoint` / `invalid_completion_window` / `invalid_metadata` | Bad create parameters |
 | `400` | `zdr_unavailable` | [Zero data retention](/docs/gateway-controls) is on for the account or key, or a line sends `provider.zdr: true`. A batch stores its input and output files, so it cannot run under ZDR |
+| `400` | `region_unavailable` | [India-only processing](/docs/gateway-controls) is on for the account or key, or a line sends `provider.data_residency: "in"`, and the line's model is not processed in India |
 | `402` | `insufficient_credits` | No credit balance at create time |
 | `403` | `permission_denied` | The key lacks the LLM permission |
 | `403` | `api_key_required` | Batch create called without an API key |

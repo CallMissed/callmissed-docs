@@ -219,6 +219,29 @@ gemma · archie · riya · arushi · siya · parvati · kabir
 
 > **Other TTS providers** also expose voices via the same `POST /v1/audio/speech` endpoint — **deepgram-aura-2** (90 voices across English, Spanish, German, French, Dutch, Italian, and Japanese, default `thalia`), **deepgram-aura-1** (12 legacy English voices at half the Aura-2 rate, default `asteria`), and **gpt-4o-mini-tts** (`alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `nova`, `onyx`, `sage`, `shimmer`, `verse`, `marin`, `cedar`). See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model pricing.
 
+## MAI Voice (preview)
+
+`mai-voice-2.1` ($0.2292 / 10K chars) and `mai-voice-2.1-flash` ($0.1563 / 10K chars) are Microsoft AI's text-to-speech models. **Both are preview.** They share the same 97 voices across 23 languages: `cs`, `da`, `de`, `en`, `es`, `fi`, `fr`, `hi`, `hu`, `id`, `it`, `ko`, `nb`, `nl`, `pl`, `pt`, `ro`, `ru`, `sv`, `th`, `tr`, `vi`, `zh`. They work on `POST /v1/audio/speech` and in voice agents and voice sessions (`tts_model`). `mai-voice-2.1-flash` is built for low latency and is the pick for live calls; `mai-voice-2.1` is the most expressive and suits narration and long-form audio.
+
+Voice handles are lowercase `<locale>-<name>` (for example `hi-in-kavya`) and case-insensitive. A voice speaks only its own locale. With no `voice`, the first voice for the request `language` is used (`hi` gives `hi-in-arjun`), otherwise `en-in-priya`. Input is plain text: SSML and tags are not supported, and the text is read as written. The one voice-agent control is `tts_speed`, 0.5 to 2.0. `GET /api/v1/models?category=tts` returns every voice in `voice_names` and `voice_details`.
+
+| Voice | Gender | Locale |
+|-------|--------|--------|
+| `hi-in-arjun` (Hindi default) | Masculine | Hindi |
+| `hi-in-dhruv` | Masculine | Hindi |
+| `hi-in-grant` | Masculine | Hindi |
+| `hi-in-harper` | Feminine | Hindi |
+| `hi-in-kavya` | Feminine | Hindi |
+| `hi-in-priya` | Feminine | Hindi |
+| `en-in-priya` (default) | Feminine | English (India) |
+| `en-in-dhruv` | Masculine | English (India) |
+
+They are not processed in India, so an agent with `hosting: "india"` cannot use them. They are paid-plan only, are never a default, cannot be used in `tts_fallbacks`, and are not offered on the public voice demo.
+
+:::note
+Preview models may change or be retired at short notice. If one is retired, its ID keeps working and is answered by a named successor, as described in [Retired and deprecated models](/docs/models#retired-and-deprecated-models), so an agent that uses it keeps working but may sound different. Use a generally available model for production-critical agents.
+:::
+
 ## Voice session voices
 
 Seven more text-to-speech models speak only inside a voice agent: set one as `tts_model` on an agent or a [voice session](/docs/voice-sessions-api). `POST /v1/audio/speech` returns `400` for them. Pass the voice as `voice` (a handle from the tables below, case-insensitive) and a base ISO code as `language`.

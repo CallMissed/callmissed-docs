@@ -11,7 +11,7 @@ Where CallMissed stores your messages and your recipients' phone numbers and ema
 
 ## Where your data is stored
 
-CallMissed runs its production systems on Microsoft Azure data centres in India (Central India region). The data you send through the API is stored there, and that includes:
+CallMissed runs its primary production systems in data centres in India. The data you send through the API is stored there, and that includes:
 
 - **WhatsApp:** message content, recipient phone numbers, and each message's delivery status and timestamps.
 - **Email:** send records (sender, recipients, subject, status and timestamps), per-recipient delivery outcomes, inbound mail and suppressions.
@@ -25,7 +25,25 @@ Some processing happens outside India because of how a channel works or which fe
 
 - **WhatsApp.** Messages travel over the WhatsApp Business Platform, which Meta operates. While a message is in transit, and for whatever Meta keeps on its side, Meta's own terms apply. When you register a number you can choose where Meta stores its data at rest with [`data_localization_region`](/docs/whatsapp-numbers), for example `"IN"`.
 - **Email.** Outbound mail is handed to an email delivery partner, which carries it to your recipients' mail servers. Inbound mail reaches us the same way in reverse.
-- **AI features.** When you use a model, speech or voice feature, the content involved can go to an AI service partner that processes it outside India, and only to produce the output you asked for. For LLM requests, [zero data retention](/docs/gateway-controls) limits a request to routes where the provider keeps no prompt or response.
+- **AI features.** When you use a model, speech or voice feature, the content involved can go to an AI service partner that processes it outside India, and only to produce the output you asked for. Each model's `processing` field says where it is processed (below). For LLM requests, [zero data retention](/docs/gateway-controls) limits a request to routes where the provider keeps no prompt or response.
+
+## Where each model is processed
+
+Every model in `GET /v1/models` and `GET /api/v1/models` has a `processing` field:
+
+- `"india"` — processed in India.
+- `"india_preferred"` — served from India first, but may be processed outside India, including when a request is moved to another location after a capacity or upstream error on that model.
+- `"outside_india"` — processed outside India.
+
+`hosted_in_india` is kept for compatibility and is `true` only when `processing` is `"india"`. Read `processing` from the listing rather than relying on a copy of it, because it can change. No image model has `processing: "india"`: image generation has no India option.
+
+### India-only processing
+
+India-only processing is opt-in and off by default. Turn it on for a single request with `"provider": {"data_residency": "in"}`, for an API key in the console (Developer, API keys), or for the whole workspace in the console (Developer, Data controls). A request can switch the mode on, never off.
+
+While it is on, only models with `processing: "india"` are used, including for each model in a `models` fallback array, and they are not moved outside India when an upstream is busy. A request for any other model returns `400` with code `region_unavailable`. Endpoints whose models are all processed outside India, such as image generation, also return `region_unavailable`. Voice sessions follow the same rule. See [Gateway controls](/docs/gateway-controls) for the request shape and error body.
+
+This mode concerns where models process your content. It does not change the channel and delivery paths described above, such as WhatsApp and email.
 
 We send personal data only to countries the Government of India has not restricted, and only under a contract with each partner, as Section 16 of the Digital Personal Data Protection Act, 2023 requires.
 
