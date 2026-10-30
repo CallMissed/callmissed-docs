@@ -146,7 +146,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 | `reasoning_effort` | string | `"none"` / `"minimal"` / `"low"` / `"medium"` / `"high"` / `"xhigh"` — each model accepts a different subset and the gateway maps the rest; see the [per-model matrix](/docs/api-speed#3-reasoning-effort-by-model) |
 | `models` | array | Up to 32 fallback model ids, tried in order if `model` fails with a retryable error — see [Model substitution](#model-substitution) |
 | `user` | string | Your end user's id. Enforces that user's [monthly budget](/docs/gateway-controls) when one is set (caps apply to ids of at most 256 characters) |
-| `provider` | object | `{"zdr": true}` serves the request only on a [zero-data-retention route](/docs/gateway-controls), or fails with `zdr_unavailable` |
+| `provider` | object | `{"zdr": true}` serves the request only on a [zero-data-retention route](/docs/gateway-controls), or fails with `zdr_unavailable`. `{"data_residency": "in"}` serves it only on models whose `processing` is `"india"`, or fails with `region_unavailable` ([details](/docs/gateway-controls)) |
 | `prompt_cache_key` | string | Up to 1,024 characters. Reuse the same key for requests that share a long prompt prefix to raise the cache hit rate — see [Prompt caching](#prompt-caching) |
 | `bot_id` | string | ID of one of your [bots](/docs/bots). Its knowledge base is searched with the latest user message and the top matches are added to the prompt — see [Knowledge](/docs/knowledge) |
 | `knowledge_top_k` | integer | With `bot_id`: how many knowledge chunks to add, `1`–`50` (default `6`) |
@@ -288,6 +288,7 @@ Snapshot — `GET /v1/models` is authoritative:
 | `grok-4.3` | 200,000 |
 | `sarvam-105b`, `gpt-oss-120b`, `gemma-4-31b` | 131,072 |
 | `gpt-4o` | 128,000 |
+| `deepgram-think-fast`, `deepgram-phonellm-mini` | 32,768 |
 | `sarvam-105b-conversations` | 32,000 |
 
 Images, audio and files count toward the window by what the model reads, not
@@ -415,6 +416,7 @@ All errors return the OpenAI-compatible envelope:
 | `400` | `unsupported_content_part` | A content part that can't be passed on as sent (for example a `file_id` reference on `/v1/responses`) |
 | `400` | `voice_agent_only_model` | A realtime or managed-voice model id — use `POST /v1/voice/sessions` |
 | `400` | `zdr_unavailable` | Zero data retention is on and the model has no zero-retention route |
+| `400` | `region_unavailable` | India-only processing is on and the model is not processed in India |
 | `400` | `context_length_exceeded` | The prompt is longer than the model's context window |
 | `400` | `max_tokens_too_small` | `max_tokens` below 3 on `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna` or `gpt-6.1-sol`, or below 16 on `gpt-6.1-sol` when `tools` are sent |
 | `400` | `max_tokens_too_large` | `max_tokens` above the model's `max_output_tokens` (for example 65,536 on the `gemini-*` models, 16,384 on `gpt-4o`, 32,768 on `gpt-4.1`, 128,000 on the GPT-5 and GPT-6 models) |
