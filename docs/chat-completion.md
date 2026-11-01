@@ -146,7 +146,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 | `reasoning_effort` | string | `"none"` / `"minimal"` / `"low"` / `"medium"` / `"high"` / `"xhigh"` — each model accepts a different subset and the gateway maps the rest; see the [per-model matrix](/docs/api-speed#3-reasoning-effort-by-model) |
 | `models` | array | Up to 32 fallback model ids, tried in order if `model` fails with a retryable error — see [Model substitution](#model-substitution) |
 | `user` | string | Your end user's id. Enforces that user's [monthly budget](/docs/gateway-controls) when one is set (caps apply to ids of at most 256 characters) |
-| `provider` | object | `{"zdr": true}` serves the request only on a [zero-data-retention route](/docs/gateway-controls), or fails with `zdr_unavailable` |
+| `provider` | object | `{"zdr": true}` serves the request only on a [zero-data-retention route](/docs/gateway-controls), or fails with `zdr_unavailable`. `{"data_residency": "in"}` serves it only on models whose `processing` is `"india"`, or fails with `region_unavailable` ([details](/docs/gateway-controls)) |
 | `prompt_cache_key` | string | Up to 1,024 characters. Reuse the same key for requests that share a long prompt prefix to raise the cache hit rate — see [Prompt caching](#prompt-caching) |
 | `bot_id` | string | ID of one of your [bots](/docs/bots). Its knowledge base is searched with the latest user message and the top matches are added to the prompt — see [Knowledge](/docs/knowledge) |
 | `knowledge_top_k` | integer | With `bot_id`: how many knowledge chunks to add, `1`–`50` (default `6`) |
@@ -223,16 +223,16 @@ resp = client.chat.completions.create(
 Vision-capable models: `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`, `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
 `gpt-5.5`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `gemini-3.8-flash`,
 `gemini-3.7-flash`, `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3.5-flash-lite`,
-`gemini-3.1-pro-preview`, `gemini-3.1-flash-lite`, `gemma-4-31b`,
+`gemini-3.1-pro-preview`, `gemini-3.1-flash-lite`, `gemma-4-31b`, `glm-5.3-flash`, `deepseek-v4.1-flash-1017`,
 `kimi-k2.5`, `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code`.
 
 `GET /v1/models` is authoritative. Read `supports_vision` there rather than
 hard-coding this list.
 
-An `image_url` may be an `https://` URL or a base64 data URL. The Gemini models
-and `gemma-4-31b` only take image bytes, so CallMissed downloads a URL image
+An `image_url` may be an `https://` URL or a base64 data URL. The Gemini models,
+`gemma-4-31b`, `glm-5.3-flash` and `deepseek-v4.1-flash-1017` only take image bytes, so CallMissed downloads a URL image
 for them: it must be publicly reachable without redirects, return an image
-content type, and be at most 20 MB (10 MB for `gemma-4-31b`). Gemini accepts
+content type, and be at most 20 MB (10 MB for `gemma-4-31b`, `glm-5.3-flash` and `deepseek-v4.1-flash-1017`). Gemini accepts
 PNG, JPEG, WEBP, HEIC and HEIF. If a download fails the request returns `400`;
 send base64 to avoid the extra fetch.
 
@@ -279,7 +279,7 @@ Snapshot — `GET /v1/models` is authoritative:
 |-------|----------------|
 | `gpt-5.5`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna`, `gpt-6.1-sol` | 1,050,000 |
 | `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` | 1,000,000 |
-| `glm-5.3`, `deepseek-v4.1-flash` | 1,048,576 |
+| `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017` | 1,048,576 |
 | `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash` | 1,000,000 |
 | `gpt-4.1` | 300,000 |
 | `gpt-5-mini` | 400,000 |
@@ -288,6 +288,7 @@ Snapshot — `GET /v1/models` is authoritative:
 | `grok-4.3` | 200,000 |
 | `sarvam-105b`, `gpt-oss-120b`, `gemma-4-31b` | 131,072 |
 | `gpt-4o` | 128,000 |
+| `deepgram-think-fast`, `deepgram-phonellm-mini` | 32,768 |
 | `sarvam-105b-conversations` | 32,000 |
 
 Images, audio and files count toward the window by what the model reads, not
@@ -415,6 +416,7 @@ All errors return the OpenAI-compatible envelope:
 | `400` | `unsupported_content_part` | A content part that can't be passed on as sent (for example a `file_id` reference on `/v1/responses`) |
 | `400` | `voice_agent_only_model` | A realtime or managed-voice model id — use `POST /v1/voice/sessions` |
 | `400` | `zdr_unavailable` | Zero data retention is on and the model has no zero-retention route |
+| `400` | `region_unavailable` | India-only processing is on and the model is not processed in India |
 | `400` | `context_length_exceeded` | The prompt is longer than the model's context window |
 | `400` | `max_tokens_too_small` | `max_tokens` below 3 on `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna` or `gpt-6.1-sol`, or below 16 on `gpt-6.1-sol` when `tools` are sent |
 | `400` | `max_tokens_too_large` | `max_tokens` above the model's `max_output_tokens` (for example 65,536 on the `gemini-*` models, 16,384 on `gpt-4o`, 32,768 on `gpt-4.1`, 128,000 on the GPT-5 and GPT-6 models) |
