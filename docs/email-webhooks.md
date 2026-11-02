@@ -147,7 +147,9 @@ Every delivery is a POST with this envelope:
     "email_id": "9d0f8b3a-1c2e-4a5b-8f7d-6e2a1b0c9d4e",
     "message_id": "<1a2b3c4d@acme.com>",
     "recipient": "customer@example.com",
-    "detail": "550 5.1.1 recipient address rejected",
+    "detail": "Bounced: Address doesn't exist",
+    "reason": "Address doesn't exist",
+    "code": "5.1.1",
     "domain": "acme.com"
   }
 }
@@ -160,7 +162,9 @@ Every delivery is a POST with this envelope:
 | `data.email_id` | The send id from `POST /send`; `null` if the event could not be matched to a send |
 | `data.message_id` | The RFC 5322 `Message-ID` |
 | `data.recipient` | The address that bounced or complained |
-| `data.detail` | The reported reason, when one was given |
+| `data.reason` | Why it didn't land, in plain language (e.g. `Address doesn't exist`, `Recipient marked it as spam`) |
+| `data.code` | The receiving server's SMTP status code when it gave one (e.g. `5.1.1`), otherwise `bounced`, `suppressed`, `not_delivered`, `filtered_spam` or `complaint` |
+| `data.detail` | Deprecated: `reason`, prefixed with the outcome for delivery-report failures |
 | `data.domain` | Your sending domain the message went out on |
 
 `email.bounced` and `email.complained` carry the shape above.
@@ -201,7 +205,7 @@ Every delivery is a POST with this envelope:
 | Field | Notes |
 |-------|-------|
 | `data.recipients` | Every address the message was sent to (`to`, `cc` and `bcc`, minus suppressed addresses). Each message fires one event, not one per recipient. A message is accepted in one hand-off and has a single tracking pixel, so these events cannot be tied to an individual recipient |
-| `data.smtp_response` | Confirmation that the message was accepted for delivery, up to 512 characters |
+| `data.smtp_response` | `accepted for delivery` once the message was handed off for delivery |
 | `data.accepted_at` | When the message was accepted, the same value as `sent_at` on the send |
 | `data.opened_at` | When the first open was recorded |
 
@@ -218,7 +222,9 @@ In a `messageVersions` batch, each version that was handed to the mail server fi
     "message_id": "<1a2b3c4d@acme.com>",
     "recipient": "customer@example.com",
     "delivered_at": "2026-08-13T09:41:03.201000+00:00",
-    "detail": null
+    "detail": null,
+    "reason": null,
+    "code": null
   }
 }
 ```
@@ -227,7 +233,9 @@ In a `messageVersions` batch, each version that was handed to the mail server fi
 |-------|-------|
 | `data.recipient` | The one recipient this event is about. A message with three recipients can fire three `email.delivered` events |
 | `data.delivered_at` | When the recipient's mail server accepted the message |
-| `data.detail` | The receiving side's status message, when one is given |
+| `data.reason` | Always `null` on this event |
+| `data.code` | Always `null` on this event |
+| `data.detail` | Deprecated, always `null` on this event |
 
 #### Which outcome fires which event
 
@@ -240,7 +248,7 @@ In a `messageVersions` batch, each version that was handed to the mail server fi
 | Rejected as spam by the receiving side | `email.bounced` | No |
 | Quarantined by the receiving side | none, recorded in [delivery events](/docs/email-logs#per-recipient-delivery-events) | No |
 
-For these failures, `data.detail` on `email.bounced` starts with the outcome, for example `FilteredSpam: …`, so you can tell them apart.
+For these failures, `data.detail` on `email.bounced` starts with the outcome, for example `FilteredSpam: Blocked as spam by the recipient's server`, and `data.code` is `not_delivered`, `filtered_spam` or the receiving server's SMTP code.
 
 ### Headers
 
