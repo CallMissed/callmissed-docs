@@ -112,7 +112,7 @@ The retired LLM, speech-to-text and text-to-speech IDs (`glm-4.7-flash`, `glm-5.
 
 `restriction` is a human-readable note — branch on `models` / `by_category`, not on this text.
 
-Every other model — `kimi-k2.5-fast`, `glm-5.3`, `deepseek-v4.1-flash`, `gemma-4-31b`, the `gemini-*` chat models, the first-party OpenAI / xAI / DeepSeek IDs, the realtime voice models, the Deepgram direct line, the other paid speech models, and the paid image models — requires Starter, Pro, or Enterprise, except the Claude models, which need Pro or higher.
+Every other model — `kimi-k2.5-fast`, `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017`, `gemma-4-31b`, `deepgram-think-fast`, `deepgram-phonellm-mini`, the `gemini-*` chat models, the first-party OpenAI / xAI / DeepSeek IDs, the realtime voice models, the Deepgram direct line, the other paid speech models, and the paid image models — requires Starter, Pro, or Enterprise, except the Claude models, which need Pro or higher.
 
 ## Error Handling
 

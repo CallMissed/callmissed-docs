@@ -1,19 +1,20 @@
 ---
 title: "Data Retention & End-User Budgets"
-description: "Restrict requests to zero-data-retention routes, and cap what each of your own end users can spend per month."
+description: "Restrict requests to zero-data-retention routes or to India-processed models, and cap what each of your own end users can spend per month."
 slug: "gateway-controls"
 breadcrumb: "API Reference"
 ---
 
 # Data Retention & End-User Budgets
 
-Restrict requests to zero-data-retention routes, and cap what each of your own end users can spend per month.
+Restrict requests to zero-data-retention routes or to India-processed models, and cap what each of your own end users can spend per month.
 
 ## Overview
 
-Two controls apply to `POST /v1/chat/completions`, `POST /v1/responses`, `POST /v1/messages` and `POST /v1/embeddings`:
+Three controls apply to `POST /v1/chat/completions`, `POST /v1/responses`, `POST /v1/messages` and `POST /v1/embeddings`:
 
 - **Zero data retention (ZDR)** — serve a request only on a route whose model provider does not retain prompts or responses, and store no prompt or response content on our side.
+- **India-only processing** — serve a request only on a model whose `processing` is `"india"`.
 - **Per-end-user budgets** — a monthly credit cap per end user of your application, keyed on the `user` field you already send.
 
 ## Zero data retention
@@ -70,6 +71,61 @@ The [Batch API](/docs/batch) also returns `zdr_unavailable` under ZDR (at upload
 - **`Idempotency-Key`** (non-streaming requests): the response body is not stored. A retry with the same key returns `409` instead of a replay, so the call is not run or billed a second time.
 
 Usage metering (model, token counts, cost, latency) is still recorded so the call can be billed.
+
+## India-only processing
+
+Each model in `GET /v1/models` and `GET /api/v1/models` carries `processing`:
+
+| Value | Meaning |
+| --- | --- |
+| `"india"` | Processed in India |
+| `"india_preferred"` | Served from India first, but may be processed outside India, including when a request is moved to another location after a capacity or upstream error on that model |
+| `"outside_india"` | Processed outside India |
+
+India-only processing is opt-in and off by default. No image model has `processing: "india"`, so image generation has no India option.
+
+### Turning it on
+
+Send `provider.data_residency` in the request body:
+
+```json
+{
+  "model": "your-model-id",
+  "messages": [{ "role": "user", "content": "Summarise this contract." }],
+  "provider": { "data_residency": "in" }
+}
+```
+
+`"in"` is the only accepted value; any other value returns `422`. The field is accepted on `/v1/chat/completions`, `/v1/messages`, `/v1/responses` and `/v1/embeddings`, and on each line of a [Batch API](/docs/batch) file.
+
+It can also be turned on without the field:
+
+- **Per API key** — turn on *India-only processing* on the key in the console (Developer, API keys).
+- **Workspace-wide** — turn on the setting in the console (Developer, Data controls; owners and admins).
+
+When the key or workspace setting is on, every request is treated as India-only. A request can switch the mode on, never off.
+
+### What it covers
+
+While the mode is on, only models with `processing: "india"` can be used for chat completions, messages, responses, embeddings, speech-to-text, text-to-speech, image generation and voice sessions. This applies to the requested model and to every model in the request's `models` fallback array: fallback candidates that are not processed in India are skipped. India-processed models are not moved outside India when an upstream is busy.
+
+A request for any other model is rejected with `400` before any model is called and is not billed:
+
+```json
+{
+  "error": {
+    "message": "Model 'gpt-5.5' is not available with India-only processing. ...",
+    "type": "invalid_request_error",
+    "code": "region_unavailable"
+  }
+}
+```
+
+`/v1/messages` answers in its own error shape (`{"type": "error", "error": {"type": "invalid_request_error", "message": "..."}}`) with the same message. The message lists India-processed alternatives in the same category. Endpoints whose models are all processed outside India, such as image generation and audio or text intelligence, return `region_unavailable` while the mode is on.
+
+A voice session created with `POST /v1/voice/sessions` using an India-only key, or in an India-only workspace, runs like an agent with `hosting: "india"`. A session that names a model processed outside India is refused with `400` and a `detail` that starts with `region_unavailable:` and names each such model. On the managed voice agent WebSocket the same check runs when the session starts (an `INVALID_SETTINGS` error whose description starts with `region_unavailable:`), and a later switch to a model processed outside India is ignored with a warning.
+
+When the mode is off, `"india_preferred"` models may be moved between locations for availability. Read [Data residency](/docs/data-residency) for what else leaves India.
 
 ## Per-end-user budgets
 

@@ -160,6 +160,21 @@ Policy selection: only active policies (`is_active: true`) are considered. A pol
 
 `404 Ticket not found`.
 
+## GET `/api/v1/support/sla/status`
+
+The same answer as `/status/{ticket_id}`, for up to 200 tickets in one call — what a ticket list uses to show every row's clock.
+
+| Parameter | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `ticket_id` | `UUID` (repeatable) | Yes | 1–200 ids; duplicates are ignored |
+
+```bash
+curl "https://api.callmissed.com/api/v1/support/sla/status?ticket_id={id_1}&ticket_id={id_2}" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+Returns an array of status objects. Ids that are not tickets in your tenant are left out of the answer rather than reported as errors.
+
 ## GET `/api/v1/support/sla/breaches`
 
 Tickets currently past a deadline, oldest first.

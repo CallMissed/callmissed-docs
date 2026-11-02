@@ -626,7 +626,9 @@ prompt the session ends with a `NO_INPUT` error, unless `agent.nudge_hangup` is
 no-input prompts; they work on both endpoints.
 
 Usage is billed per turn across speech recognition, the language model and
-text-to-speech, at each model's own rate. If your balance runs out mid-session
+text-to-speech, at each model's own rate. The session also pays a flat ₹1 a minute
+platform fee, charged once when it ends, per second above a 30-second minimum.
+If your balance runs out mid-session
 you receive an `INSUFFICIENT_CREDITS` `Error` frame and the socket closes,
 rather than the call continuing unbilled. An API key with a spend limit is
 checked after every billed turn as well; once the key reaches its limit you

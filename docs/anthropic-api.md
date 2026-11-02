@@ -187,7 +187,7 @@ event: message_stop          → stream complete
 | `output_config` | object | No | `effort` (`low`, `medium`, `high`, `xhigh`, `max`) sets the model's `reasoning_effort` and takes precedence over `thinking`. Each model keeps only the levels it supports. `format` (`{"type": "json_schema", "schema": {...}}`) requests structured JSON output |
 | `tool_choice` | object | No | `{"type": "auto"}`, `{"type": "any"}`, `{"type": "none"}` or `{"type": "tool", "name": "..."}` |
 | `metadata` | object | No | Up to 16 string, number or boolean values. `user_id` is your end user's id and enforces that user's [monthly budget](/docs/gateway-controls). `trace_id` and `session_id` are recorded on the usage row so you can filter [usage logs](/docs/usage-api) by them |
-| `provider` | object | No | CallMissed extension: `{"zdr": true}` requires a [zero-data-retention route](/docs/gateway-controls) |
+| `provider` | object | No | CallMissed extension: `{"zdr": true}` requires a [zero-data-retention route](/docs/gateway-controls); `{"data_residency": "in"}` limits the request to models processed in India (`region_unavailable` otherwise) |
 
 > **Note:** Unlike the OpenAI API, `max_tokens` is **required** and `system` is a **top-level parameter** (not a message with `role: "system"`).
 
@@ -251,7 +251,7 @@ curl https://api.callmissed.com/anthropic/v1/models \
       "category": "llm",
       "context_window": 1050000,
       "context_length": 1050000,
-      "pricing": {"input": 5.208, "output": 31.25, "unit": "per_million_tokens", "currency": "USD"},
+      "pricing": {"input": 4.167, "output": 20.83, "unit": "per_million_tokens", "currency": "USD"},
       "supports_streaming": true,
       "supports_tools": true,
       "supports_reasoning": true,

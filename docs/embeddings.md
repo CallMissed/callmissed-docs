@@ -104,7 +104,7 @@ vectors = [row.embedding for row in resp.data]
 | `encoding_format` | `string` | No | `float` | `float` or `base64` |
 | `dimensions` | `integer` | No | model native | `1 <= dimensions <= 3072` (large) or `1536` (small) |
 | `user` | `string` | No | — | At most 256 characters. Your end user's id; enforces that user's [monthly budget](/docs/gateway-controls) when one is set |
-| `provider` | `object` | No | — | `{"zdr": true}` requires a [zero-data-retention route](/docs/gateway-controls); otherwise `400 zdr_unavailable` |
+| `provider` | `object` | No | — | `{"zdr": true}` requires a [zero-data-retention route](/docs/gateway-controls); otherwise `400 zdr_unavailable`. `{"data_residency": "in"}` requires a model processed in India; otherwise `400 region_unavailable` ([details](/docs/gateway-controls)) |
 
 ### Batching
 

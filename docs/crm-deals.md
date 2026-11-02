@@ -130,6 +130,7 @@ A list with repeats returns `422 stage_ids contains duplicates`; a list that mis
   "status": "open",
   "expected_close_date": "2026-09-15",
   "closed_at": null,
+  "lost_reason": null,
   "last_activity_at": "2026-08-16T12:05:00Z",
   "created_at": "2026-08-05T09:00:00Z",
   "updated_at": "2026-08-16T12:05:00Z"
@@ -141,6 +142,7 @@ A list with repeats returns `422 stage_ids contains duplicates`; a list that mis
 | `status` | `string` | `open`, `won` or `lost`. Driven by the stage — see below |
 | `currency` | `string` | ISO 4217, three letters, upper-cased. Default `INR` |
 | `closed_at` | `datetime \| null` | Stamped when the deal lands on a won or lost stage. Moving between won and lost keeps the original time; re-opening clears it |
+| `lost_reason` | `string \| null` | Why the deal was lost, up to 255 characters. Kept only while `status` is `lost`; cleared when the deal is re-opened or won |
 | `last_activity_at` | `datetime \| null` | Set on create and bumped on every update or move |
 
 ## GET `/api/v1/crm/deals`
@@ -158,6 +160,35 @@ Newest first.
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
 
+## GET `/api/v1/crm/deals/summary`
+
+Board totals for one pipeline, over every deal rather than one page: the count, value and weighted value of each stage (in board order, empty stages included) and of the whole pipeline.
+
+| Parameter | Type | Constraints |
+| --- | --- | --- |
+| `pipeline_id` | `UUID` | Required. Must be your pipeline, otherwise `404` |
+| `status` | `string` | `open`, `won` or `lost`. Anything else is `422` |
+| `owner_user_id` | `UUID` | |
+| `contact_id` | `UUID` | |
+| `company_id` | `UUID` | |
+
+`weighted_value` is `value × probability / 100` using the deal's stage probability. A stage with no probability counts at 100 when it is a won stage and 0 otherwise. Amounts in different currencies are never added together — `totals` has one entry per currency, sorted by currency.
+
+```json
+{
+  "pipeline_id": "11aa…",
+  "count": 14,
+  "totals": [{ "currency": "INR", "value": 2400000.0, "weighted_value": 610000.0 }],
+  "stages": [
+    {
+      "stage_id": "22bb…",
+      "count": 6,
+      "totals": [{ "currency": "INR", "value": 900000.0, "weighted_value": 180000.0 }]
+    }
+  ]
+}
+```
+
 ## POST `/api/v1/crm/deals`
 
 | Field | Type | Required | Constraints |
@@ -171,6 +202,7 @@ Newest first.
 | `company_id` | `UUID` | No | |
 | `owner_user_id` | `UUID` | No | Must be a user in your tenant |
 | `expected_close_date` | `date` | No | |
+| `lost_reason` | `string` | No | Up to 255 characters. Kept only if the deal starts on a lost stage |
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/crm/deals \
@@ -194,6 +226,7 @@ Creating in a pipeline that has no stages yet returns `422 This pipeline has no 
 | Field | Type | Required |
 | --- | --- | --- |
 | `stage_id` | `UUID` | Yes |
+| `lost_reason` | `string` | No. Up to 255 characters; recorded only when the stage is flagged `is_lost` |
 
 The one call you want for a kanban drag. The stage must belong to the deal's pipeline — `422 Stage does not belong to this pipeline` otherwise.
 
@@ -212,13 +245,13 @@ Returns the updated deal.
 | --- | --- |
 | `is_won` | `status` becomes `won`, `closed_at` stamped if unset |
 | `is_lost` | `status` becomes `lost`, `closed_at` stamped if unset |
-| Neither | `status` returns to `open` and `closed_at` is cleared |
+| Neither | `status` returns to `open`, `closed_at` and `lost_reason` are cleared |
 
 So re-opening a deal is just moving it back to a working stage.
 
 ## GET / PATCH / DELETE `/api/v1/crm/deals/{deal_id}`
 
-`PATCH` accepts `title`, `value`, `currency`, `contact_id`, `company_id`, `owner_user_id`, `expected_close_date`, `stage_id` and `status`, all optional, with the same bounds as create. `pipeline_id` cannot be changed.
+`PATCH` accepts `title`, `value`, `currency`, `contact_id`, `company_id`, `owner_user_id`, `expected_close_date`, `stage_id`, `status` and `lost_reason`, all optional, with the same bounds as create. `pipeline_id` cannot be changed.
 
 - `stage_id` follows the same rules as a move: it must belong to the deal's pipeline, and it sets `status` and `closed_at` as in the table above.
 - `status` (`open`, `won` or `lost`) marks the deal closed or open **without moving it**. Sent together with `stage_id`, the explicit `status` wins. `won`/`lost` stamps `closed_at` if unset; `open` clears it.

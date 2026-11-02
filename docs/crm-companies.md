@@ -67,6 +67,10 @@ curl "https://api.callmissed.com/api/v1/companies?q=acme&limit=50" \
   -H "Authorization: Bearer cm_your_api_key"
 ```
 
+## GET `/api/v1/companies/count`
+
+Takes the same `q` as the list and returns `{"total": 42}` — how many companies match.
+
 ## POST `/api/v1/companies`
 
 | Field | Type | Required | Constraints |

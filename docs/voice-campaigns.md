@@ -197,10 +197,10 @@ curl -X POST https://api.callmissed.com/api/v1/voice-campaigns/6d1e.../contacts 
 ```
 
 ```json
-{ "inserted": 2, "skipped_invalid": 0, "skipped_duplicate": 0, "total_now": 2 }
+{ "inserted": 2, "skipped_invalid": 0, "skipped_duplicate": 0, "total_now": 2, "dnc_matches": 0 }
 ```
 
-A row with no usable digits is counted in `skipped_invalid` rather than failing the whole batch. Numbers are deduplicated on their last 10 digits, against the contacts already on the campaign and within the request, so `+919000000001`, `919000000001` and `9000000001` are one person; repeats are counted in `skipped_duplicate` and are not called twice. Adding to a campaign that is `running`, `completed` or `cancelled` returns `409`.
+A row with no usable digits is counted in `skipped_invalid` rather than failing the whole batch. Numbers are deduplicated on their last 10 digits, against the contacts already on the campaign and within the request, so `+919000000001`, `919000000001` and `9000000001` are one person; repeats are counted in `skipped_duplicate` and are not called twice. `dnc_matches` counts the added numbers that are on your do-not-call list: they stay on the campaign but are never dialled. Adding to a campaign that is `running`, `completed` or `cancelled` returns `409`.
 
 On a campaign whose `timezone` is `Asia/Kolkata` (the default), an Indian mobile written without a leading `+` is saved in international format: `9000000001`, `09000000001` and `919000000001` all become `+919000000001`. A number that starts with `+` is saved as you sent it. In any other timezone, send numbers with their `+` country code.
 
@@ -212,7 +212,7 @@ Each row is upserted into your CRM contacts **and** attached to the campaign, de
 
 | Form field | Type | Notes |
 |-------|------|-------|
-| `file` | file | UTF-8 CSV, first row is the header |
+| `file` | file | CSV, first row is the header. UTF-8 or Windows-1252; comma, semicolon or tab separated |
 | `column_map` | string | JSON object mapping your headers to our fields, e.g. `{"Mobile No.":"phone"}` |
 | `dry_run` | boolean | **Default `true`** — previews both effects and writes nothing |
 | `opted_in` | boolean | Asserts messaging consent for new contacts with no opt-in column of their own |
@@ -225,11 +225,11 @@ curl -X POST https://api.callmissed.com/api/v1/voice-campaigns/6d1e.../contacts/
   -F 'dry_run=false'
 ```
 
-The response is the CRM import report plus `attached`, `skipped_invalid`, `skipped_duplicate` and `total_now`. Rows the CRM import rejected are never attached, so a row the report told you was skipped is not dialled.
+The response is the CRM import report plus `attached`, `skipped_invalid`, `skipped_duplicate`, `total_now` and `dnc_matches` (attached numbers on your do-not-call list, which are never dialled). Rows the CRM import rejected are never attached, so a row the report told you was skipped is not dialled.
 
 ## Read the results
 
-`GET /{campaign_id}/contacts` · scope `campaigns:read` · `limit` 1–500 (default 100), `offset` 0–1000000
+`GET /{campaign_id}/contacts` · scope `campaigns:read` · `limit` 1–500 (default 100), `offset` 0–1000000, optional `status` (`pending`, `approved`, `calling`, `done` or `failed`) to list only contacts in that state
 
 Each row carries what happened to that person:
 
@@ -242,6 +242,17 @@ Each row carries what happened to that person:
 | `call_id` | The call this contact produced, for the Telephony API |
 
 The campaign itself carries the totals: `total_contacts`, `completed_contacts`, `failed_contacts`.
+
+### Download the results as CSV
+
+`GET /{campaign_id}/contacts/export` · scope `campaigns:read` · optional `status` filter as above
+
+Streams one CSV row per contact: `name`, `phone`, `state`, `attempts`, `last_error`, `next_attempt_at`, `call_id`, `call_status`, `call_duration_seconds` and `added_at`. Cells a spreadsheet would read as a formula (including a leading `+` on a phone number) are prefixed with `'`. From the console this is limited to owners and admins.
+
+```bash
+curl -o results.csv https://api.callmissed.com/api/v1/voice-campaigns/6d1e.../contacts/export \
+  -H "Authorization: Bearer cm_your_api_key"
+```
 
 ## Watch it run
 
@@ -282,6 +293,8 @@ A `preview` campaign dials only approved contacts, so this is what makes the pho
 ## TRAI readiness for AI calls (India)
 
 TRAI's Third Amendment to the TCCCPR (announced 18 September 2026, [press release 119/2026](https://www.trai.gov.in/sites/default/files/2026-09/PR_No119of2026.pdf)) treats calls placed by an application or automated platform, including AI and artificial-voice calls, as A2P calls. Every business making them must declare that use, and the caller IDs it uses, to its telecom provider beforehand. An undeclared A2P call is treated as unsolicited commercial communication. Every campaign call is an A2P call.
+
+These rules cover Indian caller IDs. A campaign calling from a number outside India has no Indian telecom provider to declare to, so the checks below do not apply to it, unless its caller ID pool also holds Indian numbers, in which case the DLT fields are still required.
 
 You make the declaration with your telecom provider; CallMissed cannot file it for you. What CallMissed does:
 
@@ -345,7 +358,7 @@ Each entry has a `channel` that says what it blocks:
 
 One number can have an entry for more than one channel. See [Opt-outs](/docs/whatsapp-messages#opt-outs) for how WhatsApp sends treat each one.
 
-`GET /dnc` · scope `campaigns:read` · `limit` 1–500 (default 100), `offset` 0–1000000
+`GET /dnc` · scope `campaigns:read` · `limit` 1–500 (default 100), `offset` 0–1000000, `channel` (optional, repeatable: `?channel=whatsapp&channel=whatsapp_marketing` returns only those channels' entries)
 
 Each entry comes back with `id`, `phone`, `reason`, `source` (`manual`, `api`, `opt_out`, `wa_keyword` or `meta_131050`), `channel` and `created_at`.
 

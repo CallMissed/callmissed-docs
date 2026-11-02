@@ -15,7 +15,7 @@ Three operational primitives sit behind the support desk:
 
 - **Macros** — canned replies. A macro carries a body with `{{placeholder}}` variables and, optionally, `actions` that are applied *besides* sending the text: set a status, add tags, assign a user.
 - **Tags** — your tenant's tag vocabulary for tickets: a name, a display colour and a description.
-- **Routing rules** — an ordered, first-match-wins triage list. Each rule ANDs a set of conditions over a fixed six-field allowlist and names what should happen when it matches (assignee, priority, tags). The API stores rules and tells you which one matches via a dry run; it does not apply them to tickets for you.
+- **Routing rules** — an ordered, first-match-wins triage list. Each rule ANDs a set of conditions over a fixed six-field allowlist and names what should happen when it matches (assignee, priority, tags). Rules are applied when a ticket is created (see [creating a ticket](/docs/support-tickets)), and the dry run tells you which one would match without writing anything.
 
 ## Authentication
 
@@ -359,7 +359,7 @@ curl -X POST https://api.callmissed.com/api/v1/support/ops/routing-rules/evaluat
 
 Only `is_active: true` rules are considered. When nothing matches you get `{"matched": false, …, "add_tags": []}` — a miss, not an error.
 
-To act on the decision, apply it to the ticket yourself, for example with [`PATCH /api/v1/support/tickets/{ticket_id}`](/docs/support-tickets) (`assignee_user_id`, `priority`, `tags`).
+The same decision is applied automatically when a ticket is created with `POST /api/v1/support/tickets`: the rule fills in the assignee only when the request names none, sets the priority only when the request sends none, and adds its tags to the request's. Tickets that already exist are not re-routed — change them with [`PATCH /api/v1/support/tickets/{ticket_id}`](/docs/support-tickets).
 
 ## PATCH / DELETE `/api/v1/support/ops/routing-rules/{rule_id}`
 

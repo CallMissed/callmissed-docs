@@ -82,7 +82,7 @@ Authorization: Bearer cm_your_api_key
 
 ## GET `/api/v1/crm/leads`
 
-Newest first.
+Newest first, unless you ask for `sort=score`.
 
 | Parameter | Type | Constraints |
 | --- | --- | --- |
@@ -91,12 +91,15 @@ Newest first.
 | `owner_user_id` | `UUID` | |
 | `q` | `string` | Up to 320 characters. Case-insensitive substring match on name, email, phone and company name |
 | `follow_up_before` | `datetime` | Leads whose `next_follow_up_at` is at or before this time |
+| `sort` | `string` | `newest` (default) or `score` (highest `score` first, then newest). Anything else is `422` |
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
 
 ## GET `/api/v1/crm/leads/stats`
 
 Total and counts of your leads by status. Every status is present, with `0` when there are none.
+
+Accepts the same `source`, `owner_user_id`, `q` and `follow_up_before` filters as the list, so the counts describe exactly the leads that list would page through.
 
 ```json
 {

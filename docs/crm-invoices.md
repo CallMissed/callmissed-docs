@@ -116,6 +116,14 @@ Newest first. Each row carries the header fields, `buyer`, `total_minor`, `due_d
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
 
+## GET `/api/v1/crm/invoices/count`
+
+How many invoices the list would return across every page. Takes the same `status`, `contact_id`, `deal_id`, `q` and `overdue` filters as the list (no `limit` or `offset`).
+
+```json
+{ "total": 312 }
+```
+
 ## GET `/api/v1/crm/invoices/summary`
 
 Outstanding, overdue and recently paid totals, one row per currency because amounts in different currencies are never added together. `outstanding_minor` is the balance on `issued`, `partially_paid` and `overdue` invoices, `overdue_minor` is the overdue part of that, and `paid_30d_minor` is the payments recorded in the last 30 days. Rows are sorted by currency.
