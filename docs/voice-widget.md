@@ -160,7 +160,7 @@ Variables in a token count as explicit values: one that does not fit the agent's
 
 Every call a widget starts is an ordinary voice session: it appears in your call history, its transcript is under [Voice Sessions](/docs/voice-sessions-api), and your `voice_session.*` webhooks fire for it. The session's `metadata` carries `source: "widget"`, the `widget_id`, and the `end_user_id` when a token supplied one.
 
-A call starts only when your account could start any other voice session: enough credits, inside your monthly budget, and under your plan's concurrent-call limit. When it cannot, or a widget cap is reached, the visitor sees a short "not available" or "busy" message; balances and plan details are never shown to visitors.
+A call starts only when your account could start any other voice session: enough credits, inside your monthly budget, and under your plan's limit on browser/API voice sessions at once. When it cannot, or a widget cap is reached, the visitor sees a short "not available" or "busy" message; balances and plan details are never shown to visitors.
 
 ## Errors
 
