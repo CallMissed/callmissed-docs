@@ -11,6 +11,11 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## November 2026
 
+### Numbers nothing answers play a short message (2026-11-02)
+
+- An inbound call to a number with no agent, or whose agent is switched off, and no call menu, call flow, call queue or agent squad is now answered with "Sorry, this number isn't taking calls right now. Please try again later." and then ends. Before, a number with no agent was answered by a generic assistant, and one whose agent was switched off was not picked up. The message plays in the number's own language setting when it has one, else English.
+- The call is billed like any other short inbound call: carriage for its length, plus the ₹1 a minute [platform fee](/docs/voice-tiers#custom-stack-billing) at its 30-second minimum. See [Telephony](/docs/telephony-api) and [Bots](/docs/bots).
+
 ### GLM 5.3 Flash and DeepSeek V4.1 Flash 1017 (2026-11-01)
 
 - **`glm-5.3-flash`** (Z.ai) is a fast, low-cost GLM for coding agents and tool use, with a 1,048,576-token context window, image input, tool calling, structured output and streaming. It always reasons: `reasoning_effort` takes `"low"`, `"high"` or `"max"`, with `"high"` as the default; `"none"` and `"minimal"` map to `"low"`, `"medium"` to `"high"` and `"xhigh"` to `"max"`. In our tests with `"low"` the first token arrived in about 0.4 to 0.5s. $0.229 per 1M input tokens, $0.760 per 1M output tokens ($0.052 cached input). Paid plans only.

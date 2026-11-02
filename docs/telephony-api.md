@@ -371,7 +371,7 @@ else:
 | `PATCH /numbers/{number_id}` | `telephony:write` (owner/admin for JWT) | Update alias / linked bot / per-number call config |
 | `DELETE /numbers/{number_id}?confirm=true` | `telephony:write` (owner/admin for JWT) | Release a number (permanent) |
 
-`GET /numbers` accepts `status` (e.g. `active`), `limit` (1–200, default 50), and `offset` (0–100000), newest first. `PATCH` updates only the fields you send; a `bot_id` or `outbound_bot_id` that is not yours returns `404`. `bot_id` is the agent that answers inbound calls. It also places outbound calls from the number unless you set `outbound_bot_id` to a different agent; set `outbound_bot_id` back to `null` to use one agent for both again. A number moves through `pending` → `active` → `suspended` (unpaid) → `released`.
+`GET /numbers` accepts `status` (e.g. `active`), `limit` (1–200, default 50), and `offset` (0–100000), newest first. `PATCH` updates only the fields you send; a `bot_id` or `outbound_bot_id` that is not yours returns `404`. `bot_id` is the agent that answers inbound calls. It also places outbound calls from the number unless you set `outbound_bot_id` to a different agent; set `outbound_bot_id` back to `null` to use one agent for both again. A number with no agent (or an agent that is switched off) and no call menu, call flow, call queue or agent squad answers with a short "Sorry, this number isn't taking calls right now. Please try again later." and then hangs up. That call is billed like any other short inbound call: carriage for its length, plus the ₹1 a minute [platform fee](/docs/voice-tiers#custom-stack-billing) at its 30-second minimum. A number moves through `pending` → `active` → `suspended` (unpaid) → `released`.
 
 ```bash
 # List your rented numbers
@@ -522,6 +522,7 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/calls \
 | `402` | Insufficient credits to reserve the call |
 | `403` | Missing `telephony:write` scope, JWT caller is not an owner/admin, the destination is on your [do-not-call list](/docs/voice-campaigns#do-not-call-list), or the destination country / number range is not allowed |
 | `404` | `from_number_id` not found/active, or an explicit `bot_id` not found |
+| `409` | The `bot_id` agent is switched off (`This agent is switched off. Switch it on to place calls.`). Nothing is dialled or charged; switch the agent on (`POST /api/v1/bots/{bot_id}/toggle`) and retry |
 | `422` | `to_e164` is malformed, `variables` breaks the limits above, `send_digits` has a character outside `0-9 * # w` or is longer than 32, or the agent declares a required input variable you did not supply |
 | `429` | Concurrent-call limit reached (up to 10 live calls per tenant), or a burst of calls that looks like toll fraud or robocalling was held |
 
