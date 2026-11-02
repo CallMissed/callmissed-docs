@@ -522,6 +522,7 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/calls \
 | `402` | Insufficient credits to reserve the call |
 | `403` | Missing `telephony:write` scope, JWT caller is not an owner/admin, the destination is on your [do-not-call list](/docs/voice-campaigns#do-not-call-list), or the destination country / number range is not allowed |
 | `404` | `from_number_id` not found/active, or an explicit `bot_id` not found |
+| `409` | The `bot_id` agent is switched off (`This agent is switched off. Switch it on to place calls.`). Nothing is dialled or charged; switch the agent on (`POST /api/v1/bots/{bot_id}/toggle`) and retry |
 | `422` | `to_e164` is malformed, `variables` breaks the limits above, `send_digits` has a character outside `0-9 * # w` or is longer than 32, or the agent declares a required input variable you did not supply |
 | `429` | Concurrent-call limit reached (up to 10 live calls per tenant), or a burst of calls that looks like toll fraud or robocalling was held |
 

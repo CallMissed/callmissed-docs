@@ -707,6 +707,8 @@ curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234
 
 Returns the bot with the new `is_active`. `403` without `bots:write`; `404` when not found.
 
+While `is_active` is `false` the agent takes no phone calls: an inbound call to a number it answers is not picked up (unless a call menu, call flow, call queue or agent squad on that number answers it), call queues route past it, campaigns that use it pause, and placing a call with its `bot_id` returns `409`. It also stops replying on WhatsApp, Instagram and Facebook (messages still reach the inbox) and stops answering WhatsApp calls.
+
 ## POST `/api/v1/bots/{bot_id}/deploy/verify`
 
 Live connectivity check against the bot's channel, using credentials stored in the bot's own `config`. No request body. Requires `bots:write`; a JWT caller must also be **owner or admin**.
