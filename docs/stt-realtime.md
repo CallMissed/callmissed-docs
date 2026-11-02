@@ -68,6 +68,7 @@ Send `{"type": "clear_history"}` to reset the conversation memory.
 | `4008` | Plan usage limit reached, or insufficient credits |
 | `4009` | Config message too large |
 | `1013` | Too many connections — retry later |
+| `1012` | Service restart (a deploy). Reconnect and send your `config` message again; the new connection reaches the updated service |
 
 ## Example
 
