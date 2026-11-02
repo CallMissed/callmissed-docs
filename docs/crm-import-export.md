@@ -60,10 +60,14 @@ curl "https://api.callmissed.com/api/v1/crm/search?q=acme&types=contact,company&
     { "id": "5c6d…", "type": "company", "title": "Acme Retail", "subtitle": "acme.com" }
   ],
   "deals": [],
-  "notes": [],
+  "notes": [
+    { "id": "7e21…", "type": "note", "title": "Called Acme about the renewal…", "subtitle": "company", "parent_type": "company", "parent_id": "5c6d…" }
+  ],
   "tasks": []
 }
 ```
+
+Every hit has the same shape. `parent_type` and `parent_id` are set only on notes and tasks: the record the note or task is attached to (`contact`, `company`, `deal`, and so on), so you can link the hit to that record. They are `null` on contacts, companies and deals, and on a task that is not attached to anything.
 
 Every key is always present — an object type with no hits returns an empty array rather than being omitted, so your client never has to guard for a missing key. With `limit=50` and all five types you get at most 250 rows.
 
@@ -136,7 +140,7 @@ Both endpoints take **1–500 ids** per request (repeated ids are collapsed) and
 
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
-| `entity_type` | `string` | Yes | `contact`, `company`, `deal` or `task` |
+| `entity_type` | `string` | Yes | `contact`, `company`, `deal`, `task`, `lead` or `ticket` |
 | `ids` | `UUID[]` | Yes | 1–500 entries |
 | `changes` | `object` | Yes | Non-empty. At most 16,000 characters serialised |
 
@@ -146,8 +150,12 @@ Both endpoints take **1–500 ids** per request (repeated ids are collapsed) and
 | --- | --- |
 | `task` | `status` (`open` / `done`), `assignee_user_id` (nullable), `due_at` (nullable) |
 | `deal` | `stage_id` (**not** nullable), `owner_user_id` (nullable), `status` (`open` / `won` / `lost`) |
-| `contact` | `company_id` (nullable) |
+| `contact` | `company_id` (nullable), `owner_user_id` (nullable), `lifecycle_stage` (nullable; `subscriber` / `lead` / `qualified` / `opportunity` / `customer` / `churned`), `lead_source` (nullable; same values as a lead's `source`) |
 | `company` | `industry` (nullable), `size` (nullable) |
+| `lead` | `owner_user_id` (nullable), `source` (**not** nullable) |
+| `ticket` | `assignee_user_id` (nullable), `priority` (`low` / `normal` / `high` / `urgent`) |
+
+A lead's or ticket's `status` is never bulk-settable — converting a lead and moving a ticket through its lifecycle each have their own endpoint. Bulk calls on `lead` also need the `crm_leads:write` scope, and on `ticket` the `support_tickets:write` scope, in addition to `crm_bulk:write`.
 
 Anything outside the list — including `id`, `tenant_id`, `created_at`, `updated_at` and `created_by_user_id` — returns `422` naming the key and the allowed set. A value of the wrong type returns `422 Invalid value for '<key>'`.
 
@@ -170,7 +178,7 @@ If any id is missing you get `404 2 of 50 task ids were not found in this tenant
 
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
-| `entity_type` | `string` | Yes | `contact`, `company`, `deal` or `task` |
+| `entity_type` | `string` | Yes | `contact`, `company`, `deal`, `task`, `lead` or `ticket` |
 | `ids` | `UUID[]` | Yes | 1–500 entries |
 
 `409 One or more company records are still referenced; nothing was deleted` when something points at them — clear the references first.
@@ -189,8 +197,11 @@ If any id is missing you get `404 2 of 50 task ids were not found in this tenant
 | `contact_id` | `UUID` | No | Deals |
 | `pipeline_id` | `UUID` | No | Deals |
 | `stage_id` | `UUID` | No | Deals |
-| `owner_user_id` | `UUID` | No | Deals |
+| `owner_user_id` | `UUID` | No | Contacts and deals |
 | `status` | `string` | No | Deals — `open`, `won` or `lost` |
+| `lifecycle_stage` | `string` | No | Contacts |
+| `lead_source` | `string` | No | Contacts |
+| `ids` | `UUID` (repeatable) | No | Any — only these records, e.g. `?ids=…&ids=…`. At most 100 |
 
 ```bash
 curl "https://api.callmissed.com/api/v1/crm/csv/export?entity_type=contact&q=acme" \
@@ -216,7 +227,7 @@ Preview how a file's columns map onto CallMissed fields before you import it. Wr
 
 | Part | Type | Required | Constraints |
 | --- | --- | --- | --- |
-| `file` | file | Yes | UTF-8 CSV with a header row. At most **5 MB** |
+| `file` | file | Yes | CSV with a header row, UTF-8 or Windows-1252 (Excel's default "CSV" save), comma, semicolon or tab separated. At most **5 MB** |
 | `entity_type` | text | Yes | `contact`, `company` or `deal` |
 | `use_ai` | text | No | Default `true`. When `true`, headers that no alias or value pattern matched are also tried with an AI pass, billed at the model's token rate. The pass is skipped when your credit balance is empty or your budget cap is reached, and the mapping then uses the rules alone. Send `false` for a purely rule-based mapping |
 
@@ -240,7 +251,9 @@ curl -X POST https://api.callmissed.com/api/v1/crm/csv/inspect \
     { "header": "Notes", "field": null, "source": null }
   ],
   "unresolved": ["Notes"],
-  "importable_fields": ["id", "name", "email", "phone", "company_id", "company_domain", "whatsapp_opt_in", "email_opt_in", "sms_opt_in", "consent_source"]
+  "importable_fields": ["id", "name", "email", "phone", "company_id", "company_domain", "whatsapp_opt_in", "email_opt_in", "sms_opt_in", "consent_source"],
+  "detected_encoding": "utf-8",
+  "detected_delimiter": ","
 }
 ```
 
@@ -251,6 +264,8 @@ curl -X POST https://api.callmissed.com/api/v1/crm/csv/inspect \
 | `proposals[].source` | `alias` (exact name match), `heuristic` (matched on the sample values) or `ai`. `null` when unmapped |
 | `unresolved` | Headers still unmapped — map them yourself or leave them out |
 | `importable_fields` | Every valid mapping target for this `entity_type` |
+| `detected_encoding` | How the file was read: `utf-8` (with or without a BOM) or `windows-1252`. A `windows-1252` file was saved by Excel as plain "CSV", which has already replaced Hindi and other non-Latin text with `?`; save it as **CSV UTF-8** to keep it |
+| `detected_delimiter` | The separator found in the file: `,`, `;` or a tab |
 
 Turn the confirmed proposals into the `column_map` you send to `/import`, e.g. `{"Full Name": "name", "Mobile No.": "phone", "Email ID": "email"}`.
 
@@ -260,7 +275,7 @@ Turn the confirmed proposals into the `column_map` you send to `/import`, e.g. `
 
 | Part | Type | Required | Constraints |
 | --- | --- | --- | --- |
-| `file` | file | Yes | UTF-8 CSV with a header row. At most **5 MB** and **10,000 rows** |
+| `file` | file | Yes | CSV with a header row, UTF-8 or Windows-1252, comma, semicolon or tab separated. At most **5 MB** and **10,000 rows** |
 | `entity_type` | text | Yes | `contact`, `company` or `deal` |
 | `dry_run` | text | No | **Defaults to `true`** |
 | `column_map` | text | No | A JSON object string mapping your headers to import columns, e.g. `{"Mobile No.": "phone"}`. Usually built from [`/inspect`](#post-apiv1crmcsvinspect). Targets must be import columns for this `entity_type`, and two headers may not map to the same column |
@@ -286,11 +301,13 @@ curl -X POST https://api.callmissed.com/api/v1/crm/csv/import \
   "errors": [
     { "row": 42, "field": "company_domain", "message": "company_domain does not match a company in this account" }
   ],
-  "errors_truncated": false
+  "errors_truncated": false,
+  "detected_encoding": "utf-8",
+  "detected_delimiter": ","
 }
 ```
 
-`row` is the 1-based line in the file, so the **first data row is `2`** — it lines up with what a spreadsheet shows. Bad rows are counted in `skipped` and do not stop the rest of the file. At most 100 errors are reported; `errors_truncated` tells you there were more. The report has the same shape for a dry run and a real import.
+`row` is the 1-based line in the file, so the **first data row is `2`** — it lines up with what a spreadsheet shows. Bad rows are counted in `skipped` and do not stop the rest of the file. At most 100 errors are reported; `errors_truncated` tells you there were more. The report has the same shape for a dry run and a real import, and carries the same `detected_encoding` and `detected_delimiter` as `/inspect`.
 
 ### Upsert keys
 
@@ -312,7 +329,7 @@ A matched row is updated, never duplicated. A contact row with none of `id`, `ph
 
 `company_domain` on a contact row resolves to an existing company by domain — handy when your source system has no CallMissed ids.
 
-Whole-file problems return `422` and nothing is written: a file that is not UTF-8 CSV, an empty file or missing header, a header with no recognised columns (the message lists what was expected), more than 10,000 rows, more than 5 MB, an upload that is not a CSV content type, or an invalid `column_map`. A concurrent change during the write returns `409 Import conflicted with a concurrent change; nothing was written. Retry.`
+Whole-file problems return `422` and nothing is written: a file that is neither UTF-8 nor Windows-1252 (a UTF-16 "Unicode Text" save is refused with a message to save as CSV UTF-8), an empty file or missing header, a header with no recognised columns (the message lists what was expected), more than 10,000 rows, more than 5 MB, an upload that is not a CSV content type, or an invalid `column_map`. A concurrent change during the write returns `409 Import conflicted with a concurrent change; nothing was written. Retry.`
 
 ---
 

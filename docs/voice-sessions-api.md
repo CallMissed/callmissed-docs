@@ -90,7 +90,7 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 | `language` | string | `en-IN` | Max 10 chars. BCP-47 language for STT + TTS |
 | `llm_model` | string | `gemma-4-31b` | Any voice-capable model id from [`GET /api/v1/voice/models`](/docs/managed-voice-agent#list-available-models) (`kimi-k2.5`, `sarvam-105b`, `gpt-5.6-luna`, `gpt-live-1`, …). Max 100 chars. An unsupported id returns `422`; a model under maintenance (e.g. `kimi-k2.5-fast`) returns `503` |
 | `stt_model` | string | `saaras:v4` | Speech-recognition model id, from the same list. Max 64 chars. Includes the voice-session-only `assemblyai-universal-3.6-pro`, `inworld-stt-1` and `microsoft-speech-stt` ([details](/docs/speech-to-text#voice-session-only-models)) |
-| `tts_model` | string | follows `tts_provider` | Text-to-speech model id, from the same list. Max 64 chars. Includes the voice-session-only `deepgram-flux-tts`, `rime-coda`, `inworld-tts-2`, `inworld-tts-2-flash`, `fish-audio-drama-3`, `gradium-tts-beta` and `microsoft-neural-tts` ([voices and languages](/docs/tts-voices#voice-session-voices)). Defaults to `bulbul:v3` for `sarvam` and `sonic-3.6` for `cartesia` |
+| `tts_model` | string | follows `tts_provider` | Text-to-speech model id, from the same list. Max 64 chars. Includes `deepgram-flux-tts` (266 voices in 42 languages, also valid on `/v1/audio/speech`) and the voice-session-only `rime-coda`, `inworld-tts-2`, `inworld-tts-2-flash`, `fish-audio-drama-3`, `gradium-tts-beta` and `microsoft-neural-tts` ([voices and languages](/docs/tts-voices#voice-session-voices)), plus the preview `mai-voice-2.1` and `mai-voice-2.1-flash` ([voices](/docs/tts-voices#mai-voice-preview); not processed in India, so not for `hosting: "india"` agents). Defaults to `bulbul:v3` for `sarvam` and `sonic-3.6` for `cartesia` |
 | `tts_provider` | string | *plan-dependent* | Legacy selector: `sarvam` or `cartesia`; prefer `tts_model`. `elevenlabs` is not available and returns `422`. Omit it and the server picks by plan: paid plans (starter, pro, enterprise) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
 | `tts_engine` | string | `cartesia` | Only for `deepgram-voice-*` models: `deepgram`, `flux`, `cartesia` or `aura-1`. With a `deepgram-voice-*` model and no `stt_model`, recognition defaults to `deepgram-flux-general-multi` |
 | `max_duration_seconds` | int | `1800` | 30–3600 |
@@ -175,6 +175,20 @@ Response contains everything from the create response **except** `ws_url` and `t
 
 If a part of the requested speech stack (speech recognition, LLM or voice) could not be started, the call is served with a backup for that part only, and `metadata.stack_substitution` records it: `requested_llm` / `requested_stt_model` / `requested_tts_model`, the `served_llm` / `served_stt_model` / `served_tts_model` that ran, and `failed` (the parts replaced). Usage is billed for the models that served.
 
+When the agent sent a WhatsApp message on the call, or said or promised one, `metadata.message_check` records whether each message really went out. It reads `{"state": "pending"}` until WhatsApp has had time to report (a few minutes after the call ends, at most about 15), then:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `state` | string | `done` |
+| `checked_at` | string | When the check ran (ISO 8601) |
+| `outcome` | string | `ok`, or `problem` when anything below is listed in `problems` |
+| `problems` | string[] | `failed` (a message wasn't delivered), `not_confirmed` (a message couldn't be confirmed as sent), `claimed_without_send` (the agent said it sent a message when none was sent), `promised_without_send` (the agent promised a message and none was sent) |
+| `items` | object[] | One per message: `channel` (`whatsapp_business` or `whatsapp_personal`), `to_ending` (last 4 digits), `status` (`delivered`, `read`, `sent`, `retrying`, `failed`, `not_confirmed`), `template` for a template, `error` when WhatsApp gave a reason |
+| `unbacked_claims` | integer | Times the agent said it sent something no tool sent |
+| `promises_without_call` | integer | Times the agent said it was sending something and called no send |
+
+`message_check` is set by the platform only: a `message_check` key in the `metadata` you send on create is dropped.
+
 `analysis` is `null` until post-call analysis has run for the session (it is always `null` on the list endpoint). Once present:
 
 | Field | Type | Notes |
@@ -242,16 +256,17 @@ The AI cost of a session, one line per `(service, model)` pair it actually used 
 ```json
 {
   "session_id": "7c2b9e30-1d8a-4c5f-9b3d-2f4a6e8b1c2d",
-  "total_credits": 1.84,
+  "total_credits": 2.84,
   "items": [
     { "service": "stt", "model": "saaras:v4", "credits": 0.42, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 50.3 },
     { "service": "llm", "model": "kimi-k2.5", "credits": 0.61, "input_tokens": 5120, "output_tokens": 410, "audio_seconds": 0.0 },
-    { "service": "tts", "model": "bulbul:v3", "credits": 0.81, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 38.9 }
+    { "service": "tts", "model": "bulbul:v3", "credits": 0.81, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 38.9 },
+    { "service": "voice_platform_fee", "model": "voice_platform_fee", "credits": 1.0, "input_tokens": 0, "output_tokens": 0, "audio_seconds": 60.0 }
   ]
 }
 ```
 
-Items are ordered STT, LLM, TTS. This covers the AI layer only; phone-carrier charges for a call on a rented number are billed separately.
+Items are ordered STT, LLM, TTS. A metered call also carries a `voice_platform_fee` line, listed last, whose `audio_seconds` are the billed call seconds: the flat ₹1 a minute [platform fee](/docs/voice-tiers#custom-stack-billing) on a metered call. This covers the AI layer only; phone-carrier charges for a call on a rented number are billed separately.
 
 ## WhatsApp Messages
 

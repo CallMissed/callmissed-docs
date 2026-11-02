@@ -23,8 +23,8 @@ Authorization: Bearer cm_your_api_key
 
 | Operation | Scope |
 | --- | --- |
-| List, get | `support_tickets:read` |
-| Create, update, assign, status, delete | `support_tickets:write` |
+| List, get, list comments | `support_tickets:read` |
+| Create, update, assign, status, delete, add comment | `support_tickets:write` |
 
 ## Enumerations
 
@@ -118,6 +118,8 @@ curl -X POST https://api.callmissed.com/api/v1/support/tickets \
 
 Returns `201`. Creating a ticket directly as `resolved` or `closed` stamps the matching timestamp immediately.
 
+Your active [routing rules](/docs/support-ops) run on create, first match wins: a matching rule fills in `assignee_user_id` only when you sent none, sets `priority` only when you sent none, and adds its tags to yours. Values you send always win.
+
 `404 Conversation not found` / `Contact not found` / `Assignee not found` when a linked id is not in your tenant.
 
 ## GET `/api/v1/support/tickets/{ticket_id}`
@@ -183,6 +185,55 @@ Returns the updated ticket. **Idempotent.** Sending the status the ticket alread
 | → `closed` | Stamps `closed_at`, leaves `resolved_at` alone |
 | Terminal → active | Clears both stamps, `reopened_count += 1` |
 | Leaving `open` for the first time | Stamps `first_responded_at` once |
+
+A logged reply (see [comments](#post-apiv1supportticketsticket_idcomments)) also stamps `first_responded_at` if nothing has yet.
+
+## GET `/api/v1/support/tickets/{ticket_id}/comments`
+
+The ticket's thread — internal notes and logged replies — oldest first.
+
+| Parameter | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `limit` | `integer` | No | 1–200, default 100 |
+| `offset` | `integer` | No | 0–100000, default 0 |
+
+```bash
+curl https://api.callmissed.com/api/v1/support/tickets/{ticket_id}/comments \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+[
+  {
+    "id": "9a1c…",
+    "ticket_id": "e5d4…",
+    "author_user_id": "b1f2…",
+    "body": "Refund re-issued, reference RF-2210.",
+    "is_internal": false,
+    "created_at": "2026-08-17T07:02:00Z"
+  }
+]
+```
+
+`author_user_id` is `null` for entries added with an API key. `404 Ticket not found`.
+
+## POST `/api/v1/support/tickets/{ticket_id}/comments`
+
+| Field | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `body` | `string` | Yes | 1–20000 characters, not blank |
+| `is_internal` | `boolean` | No | Default `true`. `true` is a team-only note; `false` records a reply the customer was given |
+
+A comment is **recorded on the ticket only** — nothing is sent to the customer. The first entry with `is_internal: false` stamps `first_responded_at` if it is still unset; internal notes never do.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/support/tickets/{ticket_id}/comments \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "body": "Refund re-issued, reference RF-2210.", "is_internal": false }'
+```
+
+Returns `201` with the comment. `404 Ticket not found`, `422` for a blank body.
 
 ## DELETE `/api/v1/support/tickets/{ticket_id}`
 

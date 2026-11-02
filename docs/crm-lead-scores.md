@@ -199,7 +199,7 @@ A merged, newest-first feed of everything attached to one record. A company's fe
 | --- | --- | --- | --- |
 | `entity_type` | `string` | Yes | `contact` or `company`. **Deals are not supported here** |
 | `entity_id` | `UUID` | Yes | |
-| `types` | `string` | No | At most 128 characters. Comma-separated subset of `conversation,message,call,note,task,deal`. Omit for all |
+| `types` | `string` | No | At most 128 characters. Comma-separated subset of `conversation,message,call,note,task,deal,ticket`. Omit for all |
 | `limit` | `integer` | No | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | No | `0 <= offset <= 100000`, default `0` |
 

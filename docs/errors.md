@@ -81,6 +81,7 @@ A request that fails schema validation returns `422` with `detail` as a list of 
 | `too_many_concurrent_requests` | 429 | Too many requests from this key are still in flight. Retry after a few seconds |
 | `upstream_error` / `provider_error` | 503 | The model failed to answer. Retry with backoff, or switch model |
 | `model_under_maintenance` | 503 | The model is temporarily out of service |
+| `region_unavailable` | 400 | India-only processing is on and the model, or every model in a `models` fallback list, is not processed in India. See [Gateway controls](/docs/gateway-controls) |
 
 ## Notice header
 

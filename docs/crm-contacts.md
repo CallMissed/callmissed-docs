@@ -66,12 +66,16 @@ Authorization: Bearer cm_your_api_key
 
 ## GET `/api/v1/contacts`
 
-Newest first.
+Newest first unless you pass `sort`.
 
 | Parameter | Type | Required | Constraints |
 | --- | --- | --- | --- |
 | `q` | `string` | No | At most 320 characters. Case-insensitive substring match against `phone`, `email`, `name`, `whatsapp_username` **or** `whatsapp_bsuid` |
 | `company_id` | `UUID` | No | Only contacts linked to this company |
+| `lifecycle_stage` | `string` | No | `subscriber`, `lead`, `qualified`, `opportunity`, `customer` or `churned` |
+| `owner_user_id` | `UUID` | No | Only contacts owned by this teammate |
+| `lead_source` | `string` | No | Only contacts from this source (same values as a lead's `source`) |
+| `sort` | `string` | No | `newest` (default), `oldest`, `name`, `updated`, or `score` — highest lead score first, unscored contacts last |
 | `limit` | `integer` | No | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | No | `0 <= offset <= 100000`, default `0` |
 
@@ -80,7 +84,11 @@ curl "https://api.callmissed.com/api/v1/contacts?q=acme.com&limit=50" \
   -H "Authorization: Bearer cm_your_api_key"
 ```
 
-Returns an array of contact objects.
+Returns an array of contact objects. Each also carries `score` and `score_grade` — the contact's lead score — or `null` when it has never been scored.
+
+## GET `/api/v1/contacts/count`
+
+Takes the same `q`, `company_id`, `lifecycle_stage`, `owner_user_id` and `lead_source` filters as the list and returns `{"total": 1234}` — how many contacts match.
 
 ## POST `/api/v1/contacts`
 

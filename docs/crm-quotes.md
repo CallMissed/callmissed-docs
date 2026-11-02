@@ -156,6 +156,14 @@ Newest first. Each row carries the header fields, `buyer`, `total_minor`, `sent_
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
 
+## GET `/api/v1/crm/quotes/count`
+
+How many quotes the list would return across every page. Takes the same `status`, `contact_id`, `deal_id`, `lead_id` and `q` filters as the list (no `limit` or `offset`).
+
+```json
+{ "total": 48 }
+```
+
 ## POST `/api/v1/crm/quotes`
 
 Creates a `draft`. Currency, validity, notes and terms default from your billing profile.
