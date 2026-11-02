@@ -1,13 +1,13 @@
 ---
 title: "Search, Bulk & CSV"
-description: "Cross-object search, duplicate detection and merge, all-or-nothing bulk updates, and CSV import and export with dry-run validation."
+description: "Cross-object search, duplicate detection and merge, all-or-nothing bulk updates and tagging, and CSV import and export with dry-run validation."
 slug: "crm-import-export"
 breadcrumb: "API Reference"
 ---
 
 # Search, Bulk & CSV
 
-Cross-object search, duplicate detection and merge, all-or-nothing bulk updates, and CSV import and export with dry-run validation.
+Cross-object search, duplicate detection and merge, all-or-nothing bulk updates and tagging, and CSV import and export with dry-run validation.
 
 ## Overview
 
@@ -15,7 +15,8 @@ Four data-management surfaces on top of the CRM objects:
 
 - **Search** — one query across contacts, companies, deals, notes and tasks.
 - **Duplicates & merge** — find records that are the same thing twice, then fold them together.
-- **Bulk** — update or delete up to 500 records in one all-or-nothing call.
+- **Bulk** — update, tag or delete up to 500 records in one all-or-nothing call.
+- **Tags** — the labels in use on contacts, companies and leads, for autocomplete.
 - **CSV** — export a filtered set, preview a file's column mapping, or import with a dry run first.
 
 ## Authentication
@@ -28,11 +29,12 @@ Authorization: Bearer cm_your_api_key
 | --- | --- |
 | Search, duplicates | `crm_search:read` |
 | Merge | `crm_search:write` |
-| Bulk update, bulk delete | `crm_bulk:write` |
+| Bulk update, bulk add/remove tags, bulk delete | `crm_bulk:write` |
+| Tag counts | `contacts:read`, `companies:read` or `crm_leads:read`, matching `entity_type` |
 | CSV export | `crm_csv:read` |
 | CSV inspect, CSV import | `crm_csv:write` |
 
-`crm_bulk` has **no read half** — there is nothing to read, only two destructive writes.
+`crm_bulk` has **no read half** — there is nothing to read, only writes.
 
 ---
 
@@ -128,7 +130,7 @@ Folds duplicates into one surviving record.
 
 # Bulk operations
 
-Both endpoints take **1–500 ids** per request (repeated ids are collapsed) and are **all-or-nothing**: every id is verified to be in your tenant before a single row is touched.
+Every bulk endpoint takes **1–500 ids** per request (repeated ids are collapsed) and are **all-or-nothing**: every id is verified to be in your tenant before a single row is touched.
 
 ```json
 { "entity_type": "task", "requested": 3, "affected": 3 }
@@ -183,6 +185,65 @@ If any id is missing you get `404 2 of 50 task ids were not found in this tenant
 
 `409 One or more company records are still referenced; nothing was deleted` when something points at them — clear the references first.
 
+## POST `/api/v1/crm/bulk/add-tags`
+
+Adds tags to every record in `ids`, keeping the tags each record already has. A tag a record already carries is skipped, so repeating a call changes nothing.
+
+| Field | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `entity_type` | `string` | Yes | `contact`, `company` or `lead` |
+| `ids` | `UUID[]` | Yes | 1–500 entries |
+| `tags` | `string[]` | Yes | 1–20 tags, each at most 40 characters. Trimmed; blanks and repeats dropped |
+
+Bulk calls on `lead` also need the `crm_leads:write` scope.
+
+A record can hold at most 20 tags. The limit is checked for each record as it is written, and if **any** selected record would go over it the whole call is refused — `422 3 of 50 contact records would have more than 20 tags; nothing was changed` — rather than trimmed. Remove some tags from those records first.
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/crm/bulk/add-tags \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{ "entity_type": "contact", "ids": ["4411…", "5522…"], "tags": ["vip"] }'
+```
+
+## POST `/api/v1/crm/bulk/remove-tags`
+
+Same body as `add-tags`. Removes those tags from every record in `ids` and keeps the rest in order. A record that doesn't carry a tag is left as it is.
+
+---
+
+# Tags
+
+Contacts, companies and leads each carry `tags`: a list of your own labels, such as `vip` or `renewal`.
+
+- At most **20 tags** per record and **40 characters** per tag. Longer tags are refused, not cut.
+- Tags are trimmed and runs of spaces become one space. Blank tags and repeats are dropped.
+- Matching is **exact**: `VIP` and `vip` are two different tags.
+- Set the whole list with `tags` on create or `PATCH`; add or remove single tags across many records with the bulk endpoints above.
+- Filter any of the three lists by tag with `?tag=` (repeatable, matches records carrying **any** of the tags).
+
+## GET `/api/v1/crm/tags`
+
+The tags in use on one record type, most used first.
+
+| Parameter | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `entity_type` | `string` | Yes | `contact`, `company` or `lead` |
+| `q` | `string` | No | Case-insensitive prefix, at most 40 characters |
+| `limit` | `integer` | No | `1 <= limit <= 200`, default `50` |
+
+```bash
+curl "https://api.callmissed.com/api/v1/crm/tags?entity_type=contact&q=v" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+```json
+[
+  { "tag": "vip", "count": 42 },
+  { "tag": "vendor", "count": 3 }
+]
+```
+
 ---
 
 # CSV
@@ -201,6 +262,7 @@ If any id is missing you get `404 2 of 50 task ids were not found in this tenant
 | `status` | `string` | No | Deals — `open`, `won` or `lost` |
 | `lifecycle_stage` | `string` | No | Contacts |
 | `lead_source` | `string` | No | Contacts |
+| `tag` | `string` (repeatable) | No | Contacts and companies — records carrying any of these tags. At most 20 |
 | `ids` | `UUID` (repeatable) | No | Any — only these records, e.g. `?ids=…&ids=…`. At most 100 |
 
 ```bash
@@ -337,9 +399,9 @@ Whole-file problems return `422` and nothing is written: a file that is neither 
 
 | Status | When |
 | --- | --- |
-| `403` | Key is missing the matching `crm_search:*` / `crm_bulk:write` / `crm_csv:*` scope |
+| `403` | Key is missing the matching `crm_search:*` / `crm_bulk:write` / `crm_csv:*` scope, or the entity's read scope for tag counts |
 | `404` | An id in your list (or inside `changes`, or a merge id) is not in your tenant — nothing was changed |
 | `409` | Records still referenced, or a concurrent import |
-| `422` | Query too short, unknown `types`, over 500 ids, a non-updatable change key, a deal stage from another pipeline, a file over 5 MB or 10,000 rows, an unrecognised CSV header, or a bad `column_map` |
+| `422` | Query too short, unknown `types`, over 500 ids, a non-updatable change key, a bulk tag call that would put a record over 20 tags, a deal stage from another pipeline, a file over 5 MB or 10,000 rows, an unrecognised CSV header, or a bad `column_map` |
 
 Nothing on this page consumes credits except the optional AI header-mapping pass (`use_ai`), which is billed at the model's token rate.

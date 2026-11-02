@@ -22,7 +22,7 @@ Three separate ceilings govern sending, and they count three **different** thing
 | Free | 10 requests / min | 2,000 | 200 |
 | Starter | 60 requests / min | 50,000 | 5,000 |
 | Pro | 300 requests / min | 1,000,000 | 50,000 |
-| Enterprise | 1,000 requests / min | Unlimited | 500,000 |
+| Enterprise, Scale, Business, Corporate | 1,000 requests / min | Unlimited | 500,000 |
 
 - **Send rate** counts **requests** accepted in the trailing 60 seconds, across your whole account. One call is one request whether it carries 1 recipient or 50, and a `messageVersions` batch is still one request. Exceeding it is `429 rate_limited`.
 - **Recipients per calendar month** counts **delivered recipients** in the current calendar month. It resets on the 1st, not on a rolling 30 days. A send is refused up front if it *would* push you past the cap. Exceeding it is `429 monthly_cap_exceeded`.

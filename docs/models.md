@@ -10,7 +10,7 @@ breadcrumb: "LLM & AI"
 Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, first-party flagships, realtime voice and image — through one OpenAI-compatible API, plus 300+ more we deploy on demand.
 
 :::cards
-/docs/model-access | Model Access by Plan | key | Free, Starter, Pro, and Enterprise model tiers
+/docs/model-access | Model Access by Plan | key | Free, Starter, Pro, Enterprise, Scale, Business, and Corporate model tiers
 /docs/models-indic | Indic Models | mic | Indic STT, TTS, and LLM models
 /docs/models-kimi-fast | Fast LLMs | zap | High-throughput Kimi tier for voice-agent latency
 /docs/api-speed | API Speed | gauge | Latency benchmarks and reasoning-effort matrix
@@ -89,7 +89,7 @@ A free-plan key calling a paid model gets `403 model_not_available` — it is no
 
 The Claude models (`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`) are the exception: they need the Pro plan or higher. A free or Starter key gets `403 model_not_available` with the message `Model '<id>' requires the Pro plan or higher. Upgrade at https://console.callmissed.com/org/plans`.
 
-All other models — including `kimi-k2.5-fast`, `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017`, `gemma-4-31b`, `deepgram-think-fast`, `deepgram-phonellm-mini`, the `gemini-*` chat models, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `gpt-6-*`, `gpt-6.1-sol`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `gpt-live-1`, first-party STT/TTS), the other speech models (`gnani-*`, `ink-*`, `sonic-3.6`, `assemblyai-*`, `inworld-*`, `rime-coda`, `fish-audio-*`, `gradium-*`, `deepgram-flux-tts`, `microsoft-*`), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`, `gemini-3.1-flash-lite-image`) — require Starter, Pro, or Enterprise.
+All other models — including `kimi-k2.5-fast`, `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017`, `gemma-4-31b`, `deepgram-think-fast`, `deepgram-phonellm-mini`, the `gemini-*` chat models, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `gpt-6-*`, `gpt-6.1-sol`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `gpt-live-1`, first-party STT/TTS), the other speech models (`gnani-*`, `ink-*`, `sonic-3.6`, `assemblyai-*`, `inworld-*`, `rime-coda`, `fish-audio-*`, `gradium-*`, `deepgram-flux-tts`, `microsoft-*`), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`, `gemini-3.1-flash-lite-image`) — require a paid plan (Starter or higher), except Claude models, which need Pro or higher.
 
 ### Pricing
 
@@ -442,9 +442,6 @@ infrastructure. Send the model you need and your expected throughput to
 response with a plain CallMissed ID and published per-token pricing, on the
 same `/v1/chat/completions` endpoint as every other model. Same key, same
 credit balance, no new SDK.
-
-Enterprise accounts get dedicated capacity. Starter and Pro get shared capacity
-where the model allows it.
 
 ## First-Party Models
 
