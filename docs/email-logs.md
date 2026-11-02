@@ -131,6 +131,8 @@ Suppressed recipients are dropped from `to`, `cc`, and `bcc` before sending and 
 | `bounced_at` | string \| null | Set from bounce feedback |
 | `complained_at` | string \| null | Set from a spam complaint |
 | `created_at` | string \| null | When the row was written |
+| `failure_reason` | string \| null | Why a `bounced`, `complained`, `rejected` or `failed` send didn't land, in plain language (e.g. `Address doesn't exist`, `Mailbox full`, `Recipient marked it as spam`, `Not sent: credit balance too low`). `null` for every other status |
+| `failure_code` | string \| null | Short code for the same outcome: the receiving server's SMTP status code when it gave one (e.g. `5.1.1`, `550`), otherwise one of `bounced`, `suppressed`, `complaint`, `insufficient_credit`, `billing_unavailable`, `rejected`, `recipient_refused`, `send_refused`, `temporary_failure`, `send_failed`. `null` for every other status |
 
 One row per **message**, so a `messageVersions` batch writes one row per version. This is how you find out which versions of a batch failed.
 
