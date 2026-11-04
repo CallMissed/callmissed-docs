@@ -23,9 +23,12 @@ web search. Credits do not expire.
 | Starter, monthly | 550 credits your first month, then 500 a month |
 | Pro, monthly | 6,000 credits your first month, then 5,000 a month |
 | Enterprise, monthly | 26,000 credits your first month, then 20,000 a month |
+| Scale, monthly | 65,000 credits your first month, then 52,500 a month |
+| Business, monthly | 1,30,000 credits your first month, then 1,10,000 a month |
+| Corporate, monthly | 2,60,000 credits your first month, then 2,30,000 a month |
 | Top-up | Any amount from 10 to 50,000 credits, at ₹1 per credit |
 
-Usage is always metered. There is no unlimited tier — Enterprise removes the
+Usage is always metered. There is no unlimited tier — Pro and above remove the
 monthly call caps, not the per-call credit cost.
 
 ## How each service is metered
@@ -43,14 +46,14 @@ Per-model rates are in the [model catalog](/docs/models#pricing) and live at
 
 ## Plan call caps
 
-Monthly caps counted per service, reset on the 1st. `-1` means uncapped.
+Monthly caps counted per service, reset on the 1st. Only Free and Starter have caps; Pro and above are uncapped and limited by request rate instead.
 
-| Plan | LLM | STT | TTS | Image | Conversations | Storage | Team |
-|------|-----|-----|-----|-------|---------------|---------|------|
-| Free | 100 | 50 | 50 | 50 | 50 | 100 MB | 2 |
-| Starter | 5,000 | 2,500 | 2,500 | 500 | 1,000 | 1 GB | 5 |
-| Pro | 50,000 | 25,000 | 25,000 | 5,000 | 10,000 | 10 GB | 20 |
-| Enterprise | uncapped | uncapped | uncapped | uncapped | uncapped | uncapped | uncapped |
+| Plan | LLM | STT | TTS | Image | Storage | Team |
+|------|-----|-----|-----|-------|---------|------|
+| Free | 100 | 50 | 50 | 50 | 100 MB | 2 |
+| Starter | 5,000 | 2,500 | 2,500 | 500 | 1 GB | 5 |
+| Pro | uncapped | uncapped | uncapped | uncapped | 10 GB | 20 |
+| Enterprise, Scale, Business, Corporate | uncapped | uncapped | uncapped | uncapped | uncapped | uncapped |
 
 Caps are separate from credits. Exceeding a cap returns `429` even with credits
 in the balance; running out of credits returns `402` even under the cap.
@@ -65,6 +68,9 @@ Per API key, requests per minute:
 | Starter | 500 |
 | Pro | 3,000 |
 | Enterprise | 10,000 |
+| Scale | 20,000 |
+| Business | 40,000 |
+| Corporate | 80,000 |
 
 Override a single key with `rate_limit_rpm` in the dashboard. An explicit
 override can only lower the plan default; a higher value is capped at the

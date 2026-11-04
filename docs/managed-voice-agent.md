@@ -50,7 +50,7 @@ new WebSocket(url, ["token", "cm_your_api_key"])
 ```
 
 A missing or invalid key, a key without those permissions, an exhausted plan
-limit, the concurrent-session cap and a credit balance below the minimum are all
+limit, the browser/API voice sessions at once limit and a credit balance below the minimum are all
 checked before the socket is accepted, so a refused connection fails at the
 handshake rather than mid-conversation. A refused handshake fails the WebSocket
 upgrade with HTTP `403` whatever the reason; no `Error` frame is sent, because
@@ -113,7 +113,7 @@ role.
 | `agent.llm.model` | `gemma-4-31b` | Any LLM id from [`GET /api/v1/voice/models`](#list-available-models) except `deepgram-voice-*` (see [Choosing models](#choosing-models)) |
 | `agent.llm.temperature` | model default | Number, 0–2 |
 | `agent.stt.model` | `saaras:v4` | |
-| `agent.tts.model` | plan-dependent | Free plan `bulbul:v3`; paid plans (starter, pro, enterprise) `sonic-3.6` |
+| `agent.tts.model` | plan-dependent | Free plan `bulbul:v3`; paid plans (starter and above) `sonic-3.6` |
 | `agent.tts.voice` | model default | With no `agent.tts.model`: free plan `shubh`, paid plans `skylar`. With a model set, that model's own default speaker. A voice you set must be a speaker of the chosen model |
 | `agent.tools` | `[]` | Functions the agent may call: `name` (required), `description`, `parameters` (JSON Schema) |
 | `agent.record_calls` | `false` | Boolean. Records the session as one MP3 with both sides; fetch it afterwards with [`GET /v1/voice/sessions/{id}/recording`](/docs/voice-sessions-api#get-recording). The session is listed by `GET /v1/voice/sessions`. Transcripts are saved either way |
@@ -452,7 +452,7 @@ Deepgram's name; the native endpoint keeps its own.
 | `INVALID_JSON` | `UNPARSABLE_CLIENT_MESSAGE` | `Settings` was not valid JSON, or not a JSON object |
 | `INVALID_SETTINGS` | same | A field failed validation, a model id cannot be served, or `Settings` is too large |
 | — | `SETTINGS_ALREADY_APPLIED` | A second `Settings` arrived |
-| `CONCURRENCY_LIMIT` | same | Your plan's concurrent-session cap was reached while the session started |
+| `CONCURRENCY_LIMIT` | same | Your plan's browser/API voice sessions at once limit was reached while the session started |
 | `MODEL_UNAVAILABLE` | same | No voice engine could be built for this configuration |
 | `INSUFFICIENT_CREDITS` | same | Your balance ran out mid-session |
 | `API_KEY_BUDGET_EXCEEDED` | same | The API key reached its spend limit, or was revoked or expired, mid-session |
@@ -589,7 +589,7 @@ the rest with `LatencyReport`.
 | Idle time with nothing from your client | 2 minutes (warning after 90 seconds) |
 | `agent.context.messages` | 100 entries, 60,000 characters |
 | Fallback entries per array | 3 after the primary |
-| Concurrent sessions | Per plan |
+| Browser/API voice sessions at once | Per plan (Free 1, Starter 5, Pro 20, Enterprise and above unlimited) |
 | Models named in `Settings` | Must be inside the key's `allowed_models` list |
 
 A model you name in `Settings` that the key's `allowed_models` list excludes fails
@@ -600,6 +600,13 @@ session keeps the model it was running. Models you leave out are not checked.
 JSON control messages are small; one far larger than any legitimate update is
 dropped with a `MESSAGE_TOO_LARGE` warning. A `Settings` message whose prompt is
 within the 25,000-character limit always fits.
+
+This is a temporary "at capacity, retry" response, not a plan limit. When the
+service as a whole is briefly at capacity, the WebSocket upgrade is refused
+before it opens, with HTTP `503`, a `Retry-After` header (seconds) and a JSON
+body `{"error": {"code": "SERVER_AT_CAPACITY", "message": "..."}}`. Clients or
+proxies that cannot read an upgrade response see a failed handshake; reconnect
+with backoff. Sessions already running are not affected.
 
 Connection attempts are also admission-controlled before the API key is
 checked. Opening many sessions at once, or reconnecting in a tight loop, from
