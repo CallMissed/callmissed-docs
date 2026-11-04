@@ -45,6 +45,7 @@ Authorization: Bearer cm_your_api_key
   "whatsapp_bsuid": null,
   "whatsapp_parent_bsuid": null,
   "whatsapp_username": null,
+  "tags": ["vip", "renewal"],
   "metadata": null,
   "created_at": "2026-08-04T10:00:00Z",
   "updated_at": "2026-08-16T09:00:00Z"
@@ -62,6 +63,7 @@ Authorization: Bearer cm_your_api_key
 | `consent_source` | `string \| null` | Where consent was captured, in your own words |
 | `consent_updated_at` | `datetime \| null` | **Server-managed.** Stamped when any opt-in flag or `consent_source` changes |
 | `external_ids` | `object \| null` | Your own foreign keys into other systems. Free-form JSON |
+| `tags` | `string[]` | Your labels, in the order added. Up to 20, each at most 40 characters. See [tags](/docs/crm-import-export#tags) |
 | `metadata` | `object \| null` | Free-form JSON attached by the platform |
 
 ## GET `/api/v1/contacts`
@@ -75,6 +77,7 @@ Newest first unless you pass `sort`.
 | `lifecycle_stage` | `string` | No | `subscriber`, `lead`, `qualified`, `opportunity`, `customer` or `churned` |
 | `owner_user_id` | `UUID` | No | Only contacts owned by this teammate |
 | `lead_source` | `string` | No | Only contacts from this source (same values as a lead's `source`) |
+| `tag` | `string` (repeatable) | No | Only contacts carrying **any** of these tags, e.g. `?tag=vip&tag=renewal`. Exact match. At most 20 |
 | `sort` | `string` | No | `newest` (default), `oldest`, `name`, `updated`, or `score` — highest lead score first, unscored contacts last |
 | `limit` | `integer` | No | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | No | `0 <= offset <= 100000`, default `0` |
@@ -88,7 +91,7 @@ Returns an array of contact objects. Each also carries `score` and `score_grade`
 
 ## GET `/api/v1/contacts/count`
 
-Takes the same `q`, `company_id`, `lifecycle_stage`, `owner_user_id` and `lead_source` filters as the list and returns `{"total": 1234}` — how many contacts match.
+Takes the same `q`, `company_id`, `lifecycle_stage`, `owner_user_id`, `lead_source` and `tag` filters as the list and returns `{"total": 1234}` — how many contacts match.
 
 ## POST `/api/v1/contacts`
 
@@ -108,6 +111,7 @@ At least one of `phone`, `email` or `whatsapp_bsuid` is required — `422 a cont
 | `email_opt_in` | `boolean` | No | Default `false` |
 | `sms_opt_in` | `boolean` | No | Default `false` |
 | `consent_source` | `string` | No | At most 64 characters |
+| `tags` | `string[]` | No | Up to 20, each at most 40 characters. Trimmed; blanks and repeats dropped |
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/contacts \
@@ -129,7 +133,7 @@ Returns `201` with the contact object.
 
 ## GET / PATCH / DELETE `/api/v1/contacts/{contact_id}`
 
-`PATCH` accepts the same fields, all optional, with the same bounds. Only the fields you send are changed. Send `"company_id": null` to un-link the contact from its company.
+`PATCH` accepts the same fields, all optional, with the same bounds. Only the fields you send are changed. Send `"company_id": null` to un-link the contact from its company. `tags` replaces the whole list (`null` or `[]` clears it); to add or remove one tag across many contacts without touching their other tags, use [bulk tags](/docs/crm-import-export#post-apiv1crmbulkadd-tags).
 
 `DELETE` returns `204`. Deals and conversations that pointed at the contact are kept, with their contact link cleared. The contact's memory is erased with it.
 
@@ -190,6 +194,6 @@ Scope `contacts:write`. Erases one fact, addressed by its `key` (1–64 characte
 | `403` | Key is missing `contacts:read` / `contacts:write` |
 | `404` | Contact, linked company, or memory fact not in your tenant |
 | `409` | `A contact with this phone, email or WhatsApp BSUID already exists` |
-| `422` | No phone, email or BSUID on create, a malformed BSUID or WhatsApp username, or a field over its length limit |
+| `422` | No phone, email or BSUID on create, a malformed BSUID or WhatsApp username, more than 20 tags or a tag over 40 characters, or a field over its length limit |
 
 Nothing on this page consumes credits.

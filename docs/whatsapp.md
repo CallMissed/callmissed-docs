@@ -52,11 +52,12 @@ The acknowledgement is sent before the LLM runs, so a slow model never causes Me
 
 An inbound message is **always stored**. The agent only answers when all of these hold:
 
-1. The number is **explicitly linked** to a bot (`POST /phone_numbers/{phone_id}/link-bot`). An unlinked number stores messages and stays silent.
-2. The bot has a non-empty `system_prompt`.
-3. AI auto-reply is on for the number (`ai_autoreply_enabled`, togglable per number).
-4. AI auto-reply is on for that conversation (an agent can take over a single thread from the inbox without pausing the whole number).
-5. The message is **text**, or an **image** when the bot's model supports vision. Audio, stickers, reactions, interactive replies and other types are stored but not auto-answered.
+1. The number is **explicitly linked** to a bot (`POST /phone_numbers/{phone_id}/link-bot`). An unlinked number stores messages and stays silent, and its WhatsApp calls are declined unless Call Desk is on.
+2. The linked agent is switched on.
+3. The bot has a non-empty `system_prompt`.
+4. AI auto-reply is on for the number (`ai_autoreply_enabled`, togglable per number).
+5. AI auto-reply is on for that conversation (an agent can take over a single thread from the inbox without pausing the whole number).
+6. The message is **text**, or an **image** when the bot's model supports vision. Audio, stickers, reactions, interactive replies and other types are stored but not auto-answered.
 
 ## Quickstart
 
