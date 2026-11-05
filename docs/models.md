@@ -10,7 +10,7 @@ breadcrumb: "LLM & AI"
 Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, first-party flagships, realtime voice and image — through one OpenAI-compatible API, plus 300+ more we deploy on demand.
 
 :::cards
-/docs/model-access | Model Access by Plan | key | Free, Starter, Pro, and Enterprise model tiers
+/docs/model-access | Model Access by Plan | key | Free, Starter, Pro, Enterprise, Scale, Business, and Corporate model tiers
 /docs/models-indic | Indic Models | mic | Indic STT, TTS, and LLM models
 /docs/models-kimi-fast | Fast LLMs | zap | High-throughput Kimi tier for voice-agent latency
 /docs/api-speed | API Speed | gauge | Latency benchmarks and reasoning-effort matrix
@@ -18,7 +18,7 @@ Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, fi
 
 ## Overview
 
-146 models, one OpenAI-compatible API. Same auth, same request shape — change
+147 models, one OpenAI-compatible API. Same auth, same request shape — change
 the `model` field and nothing else.
 
 | Group | What it is |
@@ -89,7 +89,7 @@ A free-plan key calling a paid model gets `403 model_not_available` — it is no
 
 The Claude models (`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`) are the exception: they need the Pro plan or higher. A free or Starter key gets `403 model_not_available` with the message `Model '<id>' requires the Pro plan or higher. Upgrade at https://console.callmissed.com/org/plans`.
 
-All other models — including `kimi-k2.5-fast`, `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017`, `gemma-4-31b`, `deepgram-think-fast`, `deepgram-phonellm-mini`, the `gemini-*` chat models, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `gpt-6-*`, `gpt-6.1-sol`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `gpt-live-1`, first-party STT/TTS), the other speech models (`gnani-*`, `ink-*`, `sonic-3.6`, `assemblyai-*`, `inworld-*`, `rime-coda`, `fish-audio-*`, `gradium-*`, `deepgram-flux-tts`, `microsoft-*`), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`, `gemini-3.1-flash-lite-image`) — require Starter, Pro, or Enterprise.
+All other models — including `kimi-k2.5-fast`, `kimi-k3.1-pro`, `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017`, `gemma-4-31b`, `deepgram-think-fast`, `deepgram-phonellm-mini`, the `gemini-*` chat models, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `gpt-6-*`, `gpt-6.1-sol`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `gpt-live-1`, first-party STT/TTS), the other speech models (`gnani-*`, `ink-*`, `sonic-3.6`, `assemblyai-*`, `inworld-*`, `rime-coda`, `fish-audio-*`, `gradium-*`, `deepgram-flux-tts`, `microsoft-*`), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`, `gemini-3.1-flash-lite-image`) — require a paid plan (Starter or higher), except Claude models, which need Pro or higher.
 
 ### Pricing
 
@@ -228,6 +228,7 @@ For low-latency English / Spanish voice agents, see `deepgram-aura-2`. For steer
 | `glm-5.3` | Z.ai GLM 5.3 | 1M tokens | Long-context reasoning, tool calling (text only) |
 | `deepseek-v4.1-flash` | DeepSeek V4.1 Flash | 1M tokens | Long-document analysis, agentic workflows, tool calling (text only) |
 | `glm-5.3-flash` | Z.ai GLM 5.3 Flash | 1M tokens | Fast, low-cost coding agents and tool use, with image input |
+| `kimi-k3.1-pro` | Moonshot Kimi K3.1 Pro (2.8T MoE, 104B active) | 1M tokens | Agentic coding and research, long-horizon tool use, image input, JSON mode |
 | `deepseek-v4.1-flash-1017` | DeepSeek V4.1 Flash 1017 | 1M tokens | Long-document analysis, agentic workflows, tool calling, image input |
 | `gemma-4-31b` | Google Gemma 4 31B | 128K tokens | Fast answers with thinking off, image input, tool calling, voice agents |
 | `deepgram-think-fast` | Deepgram Think-Fast (early access) | 32K tokens | Voice agents: follows a system prompt, calls tools, writes replies meant to be spoken (text only) |
@@ -433,7 +434,7 @@ Where a successor costs more (for example `gpt-4.1` output, `gemini-3.1-flash-li
 
 ## Models on Demand
 
-`GET /api/v1/models` lists everything in the catalogue today: **146** model IDs.
+`GET /api/v1/models` lists everything in the catalogue today: **147** model IDs.
 Models marked `status: "maintenance"` return `503` until they are back.
 
 Beyond that we deploy **300+ further models on demand** on CallMissed
@@ -442,9 +443,6 @@ infrastructure. Send the model you need and your expected throughput to
 response with a plain CallMissed ID and published per-token pricing, on the
 same `/v1/chat/completions` endpoint as every other model. Same key, same
 credit balance, no new SDK.
-
-Enterprise accounts get dedicated capacity. Starter and Pro get shared capacity
-where the model allows it.
 
 ## First-Party Models
 
@@ -466,6 +464,7 @@ Credit-covered first-party models. Use the bare model ID in API requests — e.g
 | `claude-sonnet-5-5` | LLM | Anthropic Claude Sonnet 5.5, the best combination of speed and intelligence, 1M context, vision + tools (Pro plan and up) |
 | `claude-haiku-5-5` | LLM | Anthropic Claude Haiku 5.5 for high-volume, latency-sensitive work, 1M context, vision + tools (Pro plan and up) |
 | `grok-4.3` | LLM | xAI Grok, 200K context |
+| `kimi-k3.1-pro` | LLM | Moonshot K3.1 Pro, 1M context, vision + tools + reasoning (paid plans only) |
 | `DeepSeek-V4-Pro` | LLM | Flagship DeepSeek reasoning, 1M context, tools (text-only) |
 | `DeepSeek-V4-Flash` | LLM | Fast DeepSeek reasoning, 1M context, tools |
 | `gpt-realtime` | Realtime voice | OpenAI flagship speech-to-speech (10 concurrent), live — *deprecated, sunset 2026-11-16 → `gpt-realtime-2.1`* |
@@ -485,9 +484,9 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **146** models (72 LLM · 47 STT · 16 TTS · 9 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **147** models (73 LLM · 47 STT · 16 TTS · 9 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
-### LLM (42 models)
+### LLM (43 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
@@ -520,6 +519,7 @@ A curated, representative slice of the **146** models (72 LLM · 47 STT · 16 TT
 | `kimi-k2.5-fast` *(maintenance)* | Kimi K2.5 at ~414 tok/s for voice-agent latency. | 256K | No | $0.8438 in / $4.219 out per 1M |
 | `kimi-k2.6` | Improved reasoning and coding over K2.5. Vision. | 262K | Yes | $1.333 in / $5.625 out per 1M |
 | `kimi-k2.7-code` | 1T-param agentic coding. Vision + tools. | 262K | Yes | $1.333 in / $5.625 out per 1M |
+| `kimi-k3.1-pro` | Moonshot AI's most capable open-weight multimodal agentic model. Image input, tools, JSON mode, reasoning (none / low / high / max). 128K default max output. Paid plans only. | 1M | No | $2.083 in / $10.42 out per 1M ($0.2083 cached input) |
 | `glm-5.3` | Z.ai GLM 5.3. Tools + reasoning (low / high / max). Text-only. | 1M | No | $2.125 in / $6.667 out per 1M |
 | `deepseek-v4.1-flash` | DeepSeek V4.1 Flash. Tools + reasoning (low / high / max). Text-only. | 1M | No | $0.427 in / $1.771 out per 1M |
 | `glm-5.3-flash` | Z.ai GLM 5.3 Flash. Fast, low-cost. Vision + tools + reasoning (low / high / max). | 1M | No | $0.229 in / $0.760 out per 1M |

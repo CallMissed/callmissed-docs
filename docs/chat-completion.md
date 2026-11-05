@@ -224,7 +224,7 @@ Vision-capable models: `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5
 `gpt-5.5`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `gemini-3.8-flash`,
 `gemini-3.7-flash`, `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3.5-flash-lite`,
 `gemini-3.1-pro-preview`, `gemini-3.1-flash-lite`, `gemma-4-31b`, `glm-5.3-flash`, `deepseek-v4.1-flash-1017`,
-`kimi-k2.5`, `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code`.
+`kimi-k2.5`, `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code`, `kimi-k3.1-pro`.
 
 `GET /v1/models` is authoritative. Read `supports_vision` there rather than
 hard-coding this list.
@@ -279,7 +279,7 @@ Snapshot — `GET /v1/models` is authoritative:
 |-------|----------------|
 | `gpt-5.5`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna`, `gpt-6.1-sol` | 1,050,000 |
 | `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` | 1,000,000 |
-| `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017` | 1,048,576 |
+| `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017`, `kimi-k3.1-pro` | 1,048,576 |
 | `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash` | 1,000,000 |
 | `gpt-4.1` | 300,000 |
 | `gpt-5-mini` | 400,000 |

@@ -9,7 +9,7 @@ breadcrumb: "WhatsApp"
 
 Voice calls over WhatsApp: enable calling, request permission, place a business-initiated call answered by your agent, and read call logs with transcripts.
 
-WhatsApp Calling lets a customer call your business number, and lets you call them, over WhatsApp itself rather than the phone network. Calls are answered by the same agent that handles the number's messages, with the same voice, model and system prompt, so a call produces a transcript and per-turn AI cost exactly like any other voice session.
+WhatsApp Calling lets a customer call your business number, and lets you call them, over WhatsApp itself rather than the phone network. Calls are answered by the same agent that handles the number's messages, with the same voice, model and system prompt, so a call produces a transcript and per-turn AI cost exactly like any other voice session. A call to a number with no agent, or whose agent is switched off, is declined at once unless Call Desk is on for the number.
 
 All endpoints are under `https://api.callmissed.com/api/v1/whatsapp`.
 
@@ -206,7 +206,7 @@ WhatsApp's own `call_id` does not exist yet. It is minted moments later as the c
 | `402` | Not enough credits to cover the call. Nothing was placed |
 | `403` | The customer has not granted call permission, or 4 calls in a row to them went unanswered (WhatsApp then revokes the permission). Send a permission request first |
 | `404` | The calling number is not on your workspace |
-| `409` | Calling is not enabled on the number, or its messaging limit is below 2000 |
+| `409` | Calling is not enabled on the number, its messaging limit is below 2000, no agent is linked to the number, or its agent is switched off |
 | `429` | `whatsapp_call_limit`: WhatsApp's limit of 100 connected calls to the same customer from the same number in 24 hours is reached. `Retry-After` says when to try again |
 | `503` | The calling media bridge is unavailable right now |
 
