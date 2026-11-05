@@ -126,11 +126,13 @@ Suppressed recipients are dropped from `to`, `cc`, and `bcc` before sending and 
 | `status` | string | `queued`, `sent` (accepted for delivery), `delivered`, `bounced`, `complained`, `rejected` (we refused it), or `failed` (delivery error) |
 | `size_bytes` | integer | Assembled message size |
 | `sent_at` | string \| null | When it was accepted for delivery |
-| `smtp_response` | string \| null | Confirmation that the message was accepted for delivery, up to 512 characters. It shows the hand-off, not that the message reached the inbox: see `delivered_at` and [per-recipient delivery events](#per-recipient-delivery-events). `null` for sends made before this field existed and for messages that were never accepted |
+| `smtp_response` | string \| null | `accepted for delivery` once the message was handed off. It shows the hand-off, not that the message reached the inbox: see `delivered_at` and [per-recipient delivery events](#per-recipient-delivery-events). `null` for sends made before this field existed and for messages that were never accepted |
 | `delivered_at` | string \| null | When the first recipient's mail server accepted the message. The outcome for every recipient is in [per-recipient delivery events](#per-recipient-delivery-events) |
 | `bounced_at` | string \| null | Set from bounce feedback |
 | `complained_at` | string \| null | Set from a spam complaint |
 | `created_at` | string \| null | When the row was written |
+| `failure_reason` | string \| null | Why a `bounced`, `complained`, `rejected` or `failed` send didn't land, in plain language (e.g. `Address doesn't exist`, `Mailbox full`, `Recipient marked it as spam`, `Not sent: credit balance too low`). When only some recipients of a send failed, a summary such as `1 of 3 recipients bounced: Address doesn't exist` or `1 of 3 recipients not delivered: Blocked as spam by the recipient's server`; this can appear on `bounced`, `sent` or `delivered` sends. Otherwise `null` |
+| `failure_code` | string \| null | Short code for the same outcome: the receiving server's SMTP status code when it gave one (e.g. `5.1.1`, `550`), otherwise one of `bounced`, `suppressed`, `complaint`, `insufficient_credit`, `billing_unavailable`, `rejected`, `recipient_refused`, `send_refused`, `temporary_failure`, `send_failed`, `filtered_spam`, `not_delivered`. For a partial failure, the first failed recipient's code. Otherwise `null` |
 
 One row per **message**, so a `messageVersions` batch writes one row per version. This is how you find out which versions of a batch failed.
 
@@ -150,6 +152,8 @@ curl https://api.callmissed.com/api/v1/email/sends/9d0f8b3a-1c2e-4a5b-8f7d-6e2a1
     "send_id": "9d0f8b3a-1c2e-4a5b-8f7d-6e2a1b0c9d4e",
     "recipient": "customer@example.com",
     "status": "delivered",
+    "reason": null,
+    "code": null,
     "detail": null,
     "occurred_at": "2026-08-13T09:41:03.201000+00:00",
     "received_at": "2026-08-13T09:41:05.770114+00:00"
@@ -160,6 +164,9 @@ curl https://api.callmissed.com/api/v1/email/sends/9d0f8b3a-1c2e-4a5b-8f7d-6e2a1
 | Field | Notes |
 |-------|-------|
 | `status` | `delivered`, `bounced`, `suppressed`, `failed`, `filtered_spam`, `quarantined` or `expanded` (a distribution list was expanded into its members) |
+| `reason` | Why this recipient didn't get the message, in plain language (e.g. `Address doesn't exist`, `Blocked as spam by the recipient's server`). `null` when delivered |
+| `code` | The receiving server's SMTP status code when it gave one (e.g. `5.1.1`), otherwise `bounced`, `suppressed`, `filtered_spam`, `not_delivered` or `quarantined`. `null` when delivered |
+| `detail` | Deprecated. Same text as `reason` |
 | `occurred_at` | When delivery to this recipient was attempted |
 | `received_at` | When CallMissed recorded the outcome |
 

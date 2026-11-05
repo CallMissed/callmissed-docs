@@ -28,7 +28,7 @@ The Voice Agent streams conversations over **WebRTC**. Choose one configuration 
 
 - **Full-duplex speech-to-speech:** select `gpt-live-1`, which listens and speaks at the same time. It behaves differently enough that it has [its own page](/docs/full-duplex-voice).
 
-An omitted `llm_model` selects `gemma-4-31b` on the STT → LLM → TTS pipeline, with thinking off for the fastest replies. If the selected stack cannot start, the call runs on a backup stack instead of failing, and usage records the model that actually served it. With `gemma-4-31b`, if the model stops answering mid-call, a backup model answers the remaining turns, billed at the `gemma-4-31b` rate. Retired `voice_fallbacks` settings are no longer used.
+An omitted `llm_model` selects `gemma-4-31b` on the STT → LLM → TTS pipeline, with thinking off for the fastest replies. If the selected stack cannot start, the call runs on a backup stack instead of failing, and usage records the model that actually served it. If the model stops answering mid-call (an outage or a rate limit), the turn is answered by a backup model instead: `sarvam-105b`, then `gpt-4o`. When the agent's model is one of the India-hosted voice LLMs (`gemma-4-31b`, `sarvam-105b` and the rest of the `india_hosting` list in `GET /api/v1/bots/config-schema`), `gemma-4-31b` on a second host outside India is also tried: first for `gemma-4-31b` agents, otherwise just before `gpt-4o`. A turn `sarvam-105b` answered is billed at its own rate; a turn `gpt-4o` or the second `gemma-4-31b` host answered is billed at your agent's model rate, and usage still shows the model that answered. On an agent with `hosting: "india"`, the second host is never used, and `gpt-4o` is used only while it is processed in India. Retired `voice_fallbacks` settings are no longer used.
 
 ## Architecture
 
@@ -118,7 +118,7 @@ The agent joins automatically, greets the user, and responds to speech.
 | `voice` | string | `shubh` | A speaker of the selected TTS model (`bulbul:v3` has 37) |
 | `language` | string | `en-IN` | Language code for STT and TTS |
 | `llm_model` | string | `gemma-4-31b` | One voice-capable model. An id the agent cannot serve is rejected at create time with `422`. `deepgram-think-fast` and `deepgram-phonellm-mini` (early access) are processed outside India, so an agent with `hosting: "india"` cannot use them; see [Models](/docs/models#deepgram-think-fast-and-phonellm-mini-early-access) |
-| `tts_provider` | string | *plan-dependent* | Legacy TTS selector; use `tts_model` for per-model selection. Omit it and the server picks by plan: paid plans (starter, pro, enterprise) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
+| `tts_provider` | string | *plan-dependent* | Legacy TTS selector; use `tts_model` for per-model selection. Omit it and the server picks by plan: paid plans (starter, pro, enterprise, scale, business, corporate) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
 | `max_duration_seconds` | int | 1800 | Max session duration (30-3600) |
 
 `stt_model`, `tts_model`, `greeting`, `variables`, `bot_id` and the rest are covered in the [Voice Session API](/docs/voice-sessions-api#request-body) reference.
@@ -249,3 +249,5 @@ new WebSocket("wss://api.callmissed.com/ws/voice-agent", [
 Clients that can set headers may send `Authorization: Bearer cm_your_api_key` instead. The `?key=cm_your_api_key` query parameter is **deprecated** and still accepted for existing integrations.
 
 Send a config message after connecting (`{"type": "config", "system_prompt": "…", "voice": "shubh", "language": "en-IN", "llm_model": "sarvam-105b"}`), then stream binary 16-bit PCM, 16 kHz mono. The agent's speech comes back as binary MP3 chunks between `audio_start` and `audio_end` events. A key without `stt`, `tts` and `llm` permissions is refused. This is a direct-WebSocket pipeline, separate from the WebRTC path above. See the [Session API](/docs/voice-sessions-api) for the recommended WebRTC approach.
+
+When we deploy, open connections are closed with code `1012` (service restart). Reconnect when you get it, then send your config message again. The conversation memory does not carry over to the new connection.
