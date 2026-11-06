@@ -371,7 +371,7 @@ else:
 | `PATCH /numbers/{number_id}` | `telephony:write` (owner/admin for JWT) | Update alias / linked bot / per-number call config |
 | `DELETE /numbers/{number_id}?confirm=true` | `telephony:write` (owner/admin for JWT) | Release a number (permanent) |
 
-`GET /numbers` accepts `status` (e.g. `active`), `limit` (1–200, default 50), and `offset` (0–100000), newest first. `PATCH` updates only the fields you send; a `bot_id` or `outbound_bot_id` that is not yours returns `404`. `bot_id` is the agent that answers inbound calls. It also places outbound calls from the number unless you set `outbound_bot_id` to a different agent; set `outbound_bot_id` back to `null` to use one agent for both again. A number moves through `pending` → `active` → `suspended` (unpaid) → `released`.
+`GET /numbers` accepts `status` (e.g. `active`), `limit` (1–200, default 50), and `offset` (0–100000), newest first. `PATCH` updates only the fields you send; a `bot_id` or `outbound_bot_id` that is not yours returns `404`. `bot_id` is the agent that answers inbound calls. It also places outbound calls from the number unless you set `outbound_bot_id` to a different agent; set `outbound_bot_id` back to `null` to use one agent for both again. A number with no agent (or an agent that is switched off) and no call menu, call flow, call queue or agent squad answers with a short "Sorry, this number isn't taking calls right now. Please try again later." and then hangs up. That call is billed like any other short inbound call: carriage for its length, plus the ₹1 a minute [platform fee](/docs/voice-tiers#custom-stack-billing) at its 30-second minimum. A number moves through `pending` → `active` → `suspended` (unpaid) → `released`.
 
 ```bash
 # List your rented numbers
@@ -522,8 +522,9 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/calls \
 | `402` | Insufficient credits to reserve the call |
 | `403` | Missing `telephony:write` scope, JWT caller is not an owner/admin, the destination is on your [do-not-call list](/docs/voice-campaigns#do-not-call-list), or the destination country / number range is not allowed |
 | `404` | `from_number_id` not found/active, or an explicit `bot_id` not found |
+| `409` | The `bot_id` agent is switched off (`This agent is switched off. Switch it on to place calls.`). Nothing is dialled or charged; switch the agent on (`POST /api/v1/bots/{bot_id}/toggle`) and retry |
 | `422` | `to_e164` is malformed, `variables` breaks the limits above, `send_digits` has a character outside `0-9 * # w` or is longer than 32, or the agent declares a required input variable you did not supply |
-| `429` | Concurrent-call limit reached (up to 10 live calls per tenant), or a burst of calls that looks like toll fraud or robocalling was held |
+| `429` | The phone calls at once limit for your plan is reached (Free 1, Starter 5, Pro 10, Enterprise 20, Scale 30; Business and Corporate are custom, agreed with sales@callmissed.com), or a burst of calls that looks like toll fraud or robocalling was held |
 
 **Phone menus (agent setting).** To let an agent press keys itself while it talks to someone else's automated menu, set `dtmf_send_enabled` to `true` in the agent's `config` (off by default). Set `ivr_navigation` to `true` as well and the agent also recognises a recorded menu, waits through long prompts and tries again when a menu repeats itself; it has no effect without `dtmf_send_enabled`. Both apply to phone calls only.
 
@@ -639,7 +640,7 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/click-to-call \
 | `404` | `bot_id` or `contact_id` not found |
 | `409` | No `agent_number` and no operator phone configured, or no active number to call from |
 | `422` | Neither `destination` nor `contact_id` given, or a number is not valid E.164 |
-| `429` | Too many calls in progress (a bridge uses two of the 10 concurrent lines) |
+| `429` | Too many calls in progress (a bridge or live transfer counts as one call, and may use one line above your plan's limit) |
 | `503` | Nobody answered your phone, so the contact was not dialled |
 
 ## 9. Voicemail drop
