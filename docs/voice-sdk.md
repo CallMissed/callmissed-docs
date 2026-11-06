@@ -167,6 +167,15 @@ The agent joins the room on its own and runs the speech pipeline. Speech boundar
 
 Call `room.disconnect()` to end the call from the client.
 
+### If your site sends security headers
+
+Two browser policies on your page can stop the call before it reaches us:
+
+- **Content-Security-Policy `connect-src`** must allow the media server. `ws_url` is issued per session, so allow the domain rather than one host: `connect-src 'self' wss://*.callmissed.com https://*.callmissed.com`. The client also checks the URL over HTTPS, so both schemes are needed. Without them the browser logs `Refused to connect because it violates the document's Content Security Policy` and the room never connects.
+- **Permissions-Policy** must allow the microphone for your own origin: `microphone=(self)`. With `microphone=()` the browser refuses `setMicrophoneEnabled(true)` with `microphone is not allowed in this document`.
+
+Set the microphone policy on every page a user can enter from, not only the call page: in a single-page app the headers of the first page loaded apply for the whole visit.
+
 ## Streaming audio from a server, not a browser
 
 `livekit-client` is a browser package. If the thing holding the microphone is a Python, Go or Node process rather than a browser tab, do not reach for a WebRTC client at all: use the [Managed Voice Agent](/docs/managed-voice-agent) instead. It takes raw audio over a single plain WebSocket with no client SDK on your side.
