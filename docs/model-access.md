@@ -1,13 +1,13 @@
 ---
 title: "Model Access by Plan"
-description: "See which models each plan tier (Free, Starter, Pro, Enterprise) can access, with cURL, Python, and JavaScript examples."
+description: "See which models each plan tier (Free, Starter, Pro, Enterprise, Scale, Business, Corporate) can access, with cURL, Python, and JavaScript examples."
 slug: "model-access"
 breadcrumb: "LLM & AI"
 ---
 
 # Model Access by Plan
 
-See which models each plan tier (Free, Starter, Pro, Enterprise) can access, with cURL, Python, and JavaScript examples.
+See which models each plan tier (Free, Starter, Pro, Enterprise, Scale, Business, Corporate) can access, with cURL, Python, and JavaScript examples.
 
 ## Overview
 
@@ -49,12 +49,27 @@ GET /api/v1/models/access
     "pro": {
       "models": ["..."],
       "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
-      "restriction": "All models callable. Higher per-service monthly call limits than Starter."
+      "restriction": "All models callable. No monthly call caps; per-minute rate limits apply."
     },
     "enterprise": {
       "models": ["..."],
       "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
-      "restriction": "All models callable. Custom per-service call limits."
+      "restriction": "All models callable. No monthly call caps; per-minute rate limits apply."
+    },
+    "scale": {
+      "models": ["..."],
+      "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
+      "restriction": "All models callable. No monthly call caps; per-minute rate limits apply."
+    },
+    "business": {
+      "models": ["..."],
+      "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
+      "restriction": "All models callable. No monthly call caps; per-minute rate limits apply."
+    },
+    "corporate": {
+      "models": ["..."],
+      "by_category": { "llm": ["..."], "stt": ["..."], "tts": ["..."], "image": ["..."], "embedding": ["..."] },
+      "restriction": "All models callable. No monthly call caps; per-minute rate limits apply."
     }
   }
 }
@@ -112,7 +127,7 @@ The retired LLM, speech-to-text and text-to-speech IDs (`glm-4.7-flash`, `glm-5.
 
 `restriction` is a human-readable note — branch on `models` / `by_category`, not on this text.
 
-Every other model — `kimi-k2.5-fast`, `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017`, `gemma-4-31b`, `deepgram-think-fast`, `deepgram-phonellm-mini`, the `gemini-*` chat models, the first-party OpenAI / xAI / DeepSeek IDs, the realtime voice models, the Deepgram direct line, the other paid speech models, and the paid image models — requires Starter, Pro, or Enterprise, except the Claude models, which need Pro or higher.
+Every other model — `kimi-k2.5-fast`, `kimi-k3.1-pro`, `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017`, `gemma-4-31b`, `deepgram-think-fast`, `deepgram-phonellm-mini`, the `gemini-*` chat models, the first-party OpenAI / xAI / DeepSeek IDs, the realtime voice models, the Deepgram direct line, the other paid speech models, and the paid image models — requires a paid plan (Starter or higher), except Claude models, which need Pro or higher.
 
 ## Error Handling
 

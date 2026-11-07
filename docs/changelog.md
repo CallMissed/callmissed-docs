@@ -11,6 +11,24 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## November 2026
 
+### Kimi K3.1 Pro (2026-11-06)
+
+- **`kimi-k3.1-pro`** (Moonshot AI) is Moonshot's most capable open-weight model, natively multimodal and built for agentic work: coding, 3D creation, financial research and tool use. 1,048,576-token context window, 131,072 tokens of default max output, image input, tool calling, JSON mode (`response_format: {"type": "json_object"}`) and streaming. Output is text.
+- It thinks by default. `reasoning_effort` accepts `"none"` (thinking off), `"low"`, `"high"` and `"max"`; `"minimal"` runs as `"low"`, `"medium"` as `"high"` and `"xhigh"` as `"max"`. See the [reasoning_effort matrix](/docs/api-speed#3-reasoning-effort-by-model).
+- Priced at $2.00 input / $10.00 output per 1M tokens, with cached input at $0.20. Paid plans only; it is not in the free tier.
+- Images go in as base64 data URIs; we fetch and inline `https://` image URLs for you.
+- The catalogue is now 147 models: 73 LLMs.
+
+### Voice calls keep going through rate limits (2026-11-02)
+
+- When a voice agent's model cannot answer a turn, for example because of a rate limit, `sarvam-105b` answers it, and if that fails too, `gpt-4o` does. Before, a call whose model and `sarvam-105b` both failed could end. A turn `sarvam-105b` answered is billed at its own rate; a turn `gpt-4o` answered is billed at your agent's model rate, and usage shows `gpt-4o` as the model that answered. On an agent with `hosting: "india"`, `gpt-4o` is used only while it is processed in India. See [Voice agent](/docs/voice-agent).
+- When many calls start at the same moment, their speech connections are opened a moment apart, so fewer are refused for opening too fast. A refused one moves to the backup speech provider: listening at once, and a reply after one quick retry.
+
+### Numbers nothing answers play a short message (2026-11-02)
+
+- An inbound call to a number with no agent, or whose agent is switched off, and no call menu, call flow, call queue or agent squad is now answered with "Sorry, this number isn't taking calls right now. Please try again later." and then ends. Before, a number with no agent was answered by a generic assistant, and one whose agent was switched off was not picked up. The message plays in the number's own language setting when it has one, else English.
+- The call is billed like any other short inbound call: carriage for its length, plus the ₹1 a minute [platform fee](/docs/voice-tiers#custom-stack-billing) at its 30-second minimum. See [Telephony](/docs/telephony-api) and [Bots](/docs/bots).
+
 ### GLM 5.3 Flash and DeepSeek V4.1 Flash 1017 (2026-11-01)
 
 - **`glm-5.3-flash`** (Z.ai) is a fast, low-cost GLM for coding agents and tool use, with a 1,048,576-token context window, image input, tool calling, structured output and streaming. It always reasons: `reasoning_effort` takes `"low"`, `"high"` or `"max"`, with `"high"` as the default; `"none"` and `"minimal"` map to `"low"`, `"medium"` to `"high"` and `"xhigh"` to `"max"`. In our tests with `"low"` the first token arrived in about 0.4 to 0.5s. $0.229 per 1M input tokens, $0.760 per 1M output tokens ($0.052 cached input). Paid plans only.
