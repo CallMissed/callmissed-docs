@@ -15,11 +15,11 @@ Requests pass through several limits:
 
 | Layer | Limit | Scope | When exceeded |
 | --- | --- | --- | --- |
-| Per-key RPM | Plan defaults: Free 60 · Starter 500 · Pro 3,000 · Enterprise 10,000 (override per key) | per API key | `429 rate_limit_exceeded` |
+| Per-key RPM | Plan defaults: Free 60 · Starter 500 · Pro 3,000 · Enterprise 10,000 · Scale 20,000 · Business 40,000 · Corporate 80,000 (override per key) | per API key | `429 rate_limit_exceeded` |
 | In-flight requests | A cap on simultaneous chat-completion requests per key | per API key | `429 too_many_concurrent_requests` |
 | Key budget | Optional credit cap on one key | per API key | `402 budget_exceeded` |
 | Monthly budget cap | Optional credit cap for the whole account | per account | `429 quota_exceeded` until the 1st |
-| Plan call caps | Monthly caps on LLM/STT/TTS/image calls, see [Credits & Rate Limits](/docs/credits-rate-limits#plan-call-caps) | per account | `429 quota_exceeded` until the 1st |
+| Plan call caps | Monthly caps on LLM/STT/TTS/image calls (Free and Starter only), see [Credits & Rate Limits](/docs/credits-rate-limits#plan-call-caps) | per account | `429 quota_exceeded` until the 1st |
 
 Abuse protection also runs in front of the API and may throttle traffic that looks automated or hostile, independently of your plan's per-key RPM.
 

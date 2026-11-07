@@ -76,11 +76,11 @@ Send a JSON body.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `input` | string | Yes | Text to synthesize, up to 4096 characters. Some models accept less: `bulbul:v3` 2500, `bulbul:v4-flash` 2500, `deepgram-aura-2` / `deepgram-aura-1` 2000, `deepgram-flux-tts` 2000 with `stream: true` and 400 without |
-| `model` | string | No | Default `bulbul:v3`. One of `bulbul:v3`, `bulbul:v4-flash`, `sonic-3.6`, `gnani-timbre-v3.0`, `deepgram-aura-2`, `deepgram-aura-1`, `deepgram-flux-tts`, `gpt-4o-mini-tts`, `mai-voice-2.1`, `mai-voice-2.1-flash` — see [Models](/docs/models) |
-| `voice` | string | No | Voice ID — default `shubh` for `bulbul:v3`, `shubh_enhi_ads` for `bulbul:v4-flash` (v3 names such as `shubh` are not valid there), `skylar` for `sonic-3.6` (see [Voices](/docs/tts-voices)). An unrecognized voice falls back to the model's default, except on `gpt-4o-mini-tts`, which returns `400` and lists its 13 voices |
-| `language` | string | No | Language code (e.g. `hi-IN`, `ta-IN`; `sonic-3.6` takes base codes like `en`, `hi`). `bulbul:v3` defaults to `en-IN`. `bulbul:v4-flash` covers `hi-IN`, `en-IN`, `bn-IN`, `gu-IN`, `kn-IN`, `mr-IN`, `pa-IN`, `ta-IN` and `te-IN`; `ml-IN` and `od-IN` are not available on it and return `400` (use `bulbul:v3`) |
-| `speed` | number | No | Speech speed, default 1.0. Must be 0.25–4.0, then each model clamps to its own range: `bulbul:v3` and `bulbul:v4-flash` 0.5–2.0, `gpt-4o-mini-tts` 0.25–4.0, `deepgram-aura-2`/`-1` 0.7–1.5, `sonic-3.6` 0.6–1.5, `gnani-timbre-v3.0` 0.85–1.15, `mai-voice-2.1` / `mai-voice-2.1-flash` 0.5–2.0, `deepgram-flux-tts` 0.5–1.5 (English voices only). Ignored by `aura-2-en`, `aura-2-es`, `melotts` |
-| `speech_sample_rate` | integer | No | Output sample rate in Hz, an integer from 8000 to 48000. Leave it out to get each model's own default: `bulbul:v3` and `bulbul:v4-flash` 22050, `sonic-3.6` 44100, `gnani-timbre-v3.0` 48000, `deepgram-aura-2` / `deepgram-aura-1` 24000 (8000 for `mulaw` / `alaw`). Headerless `pcm` carries no rate, so it defaults to 8000 on every model. Send 8000 for phone audio. `bulbul:v3` accepts only 8000, 16000, 22050, 24000, 32000, 44100 or 48000 and `bulbul:v4-flash` only 8000, 16000, 22050 or 24000 (anything else is a `400`); Deepgram PCM output snaps to the nearest of 8000, 16000, 24000, 32000 or 48000, and its `mp3` / `opus` / `aac` output has a fixed rate. Ignored by `gpt-4o-mini-tts` |
+| `model` | string | No | Default `bulbul:v3`. One of `bulbul:v3`, `bulbul:v4-flash`, `sonic-3.6`, `gnani-timbre-v3.0`, `deepgram-aura-2`, `deepgram-aura-1`, `deepgram-flux-tts`, `gpt-4o-mini-tts`, `mai-voice-2.1`, `mai-voice-2.1-flash`, or an ElevenLabs model: `eleven_v4`, `eleven_v4_turbo`, `eleven_v3`, `eleven_v3_conversational`, `eleven_multilingual_v2`, `eleven_flash_v2_5`, `eleven_turbo_v2_5`, `eleven_flash_v2`, `eleven_turbo_v2` — see [Models](/docs/models) |
+| `voice` | string | No | Voice ID — default `shubh` for `bulbul:v3`, `shubh_enhi_ads` for `bulbul:v4-flash` (v3 names such as `shubh` are not valid there), `skylar` for `sonic-3.6`, `sarah` for the `eleven_*` models (a premade name or any ElevenLabs voice ID — see [Voices](/docs/tts-voices)). An unrecognized voice falls back to the model's default, except on `gpt-4o-mini-tts`, which returns `400` and lists its 13 voices |
+| `language` | string | No | Language code (e.g. `hi-IN`, `ta-IN`; `sonic-3.6` and the `eleven_*` models take base codes like `en`, `hi` — a regional code is reduced to its base). On the `eleven_*` models it enforces the language and number reading; `eleven_multilingual_v2` reads the language from the text and ignores it, and a code the model does not speak is ignored. `bulbul:v3` defaults to `en-IN`. `bulbul:v4-flash` covers `hi-IN`, `en-IN`, `bn-IN`, `gu-IN`, `kn-IN`, `mr-IN`, `pa-IN`, `ta-IN` and `te-IN`; `ml-IN` and `od-IN` are not available on it and return `400` (use `bulbul:v3`) |
+| `speed` | number | No | Speech speed, default 1.0. Must be 0.25–4.0, then each model clamps to its own range: `bulbul:v3` and `bulbul:v4-flash` 0.5–2.0, `gpt-4o-mini-tts` 0.25–4.0, `deepgram-aura-2`/`-1` 0.7–1.5, `sonic-3.6` 0.6–1.5, `gnani-timbre-v3.0` 0.85–1.15, `mai-voice-2.1` / `mai-voice-2.1-flash` 0.5–2.0, `deepgram-flux-tts` 0.5–1.5 (English voices only), `eleven_*` 0.7–1.2. Ignored by `aura-2-en`, `aura-2-es`, `melotts` |
+| `speech_sample_rate` | integer | No | Output sample rate in Hz, an integer from 8000 to 48000. Leave it out to get each model's own default: `bulbul:v3` and `bulbul:v4-flash` 22050, `sonic-3.6` 44100, `gnani-timbre-v3.0` 48000, `deepgram-aura-2` / `deepgram-aura-1` 24000 (8000 for `mulaw` / `alaw`). Headerless `pcm` carries no rate, so it defaults to 8000 on every model. Send 8000 for phone audio. `bulbul:v3` accepts only 8000, 16000, 22050, 24000, 32000, 44100 or 48000 and `bulbul:v4-flash` only 8000, 16000, 22050 or 24000 (anything else is a `400`); Deepgram PCM output snaps to the nearest of 8000, 16000, 24000, 32000 or 48000, and its `mp3` / `opus` / `aac` output has a fixed rate. The `eleven_*` models default to 44100 for `mp3` (snapping to 22050, 24000 or 44100) and 24000 for `pcm` / `wav` (snapping to 8000, 16000, 22050, 24000, 32000, 44100 or 48000); `opus` is always 48000 and `mulaw` / `alaw` always 8000. Ignored by `gpt-4o-mini-tts` |
 | `response_format` | string | No | Default `mp3` — see [Audio Formats](#audio-formats) |
 | `temperature` | number | No | Expressiveness. `bulbul:v3` and `bulbul:v4-flash` only — higher is more expressive, lower is more consistent. The model's range is 0.01–1.0; values up to 2.0 are accepted and applied as 1.0, above 2.0 is a 422. Ignored by other models. Defaults to 0.9 (warmer than the model's flat default) |
 | `instructions` | string | No | Natural-language delivery direction — tone, emotion, accent, pacing. `gpt-4o-mini-tts` only. Max 2000 chars. Example: `"Speak slowly and warmly, like you're reassuring someone."` |
@@ -102,6 +102,7 @@ Send a JSON body.
 | `sonic-3.6` | `mp3`, `wav`, `pcm` | WAV |
 | `gnani-timbre-v3.0` | `mp3`, `wav`, `pcm`, `opus`, plus `mulaw` | WAV |
 | `mai-voice-2.1`, `mai-voice-2.1-flash` | `mp3` (default, 24 kHz), `wav`, `pcm` (alias `raw`), `opus` (alias `ogg`), `webm`, `mulaw`, `alaw` | `flac` and `aac` return `400` |
+| `eleven_*` (ElevenLabs) | `mp3`, `wav`, `pcm`, `opus`, plus `mulaw` / `alaw` | MP3 (for `aac` and `flac`) |
 
 ## Errors
 
@@ -255,4 +256,35 @@ curl -N -X POST https://api.callmissed.com/v1/audio/speech \
   -H "Content-Type: application/json" \
   -d '{"model": "deepgram-flux-tts", "voice": "ajay", "input": "Namaste, aap kaise hain?", "response_format": "pcm", "stream": true}' \
   --output speech.pcm
+```
+
+## ElevenLabs
+
+Every current ElevenLabs text-to-speech model is available under its own ElevenLabs model ID, on this endpoint and in [voice agents](/docs/voice-agent) and [voice sessions](/docs/voice-sessions-api) (set it as `tts_model`). All of them share the same voices: pass a premade name such as `sarah` (default), `george` or `brian`, or any ElevenLabs voice ID (20 characters) from your own ElevenLabs voice library, including cloned voices — see [ElevenLabs voices](/docs/tts-voices#elevenlabs-voices). Paid plans only.
+
+| Model | Price | Languages | Best for |
+|-------|-------|-----------|----------|
+| `eleven_v4` | $0.8333 / 10K chars | 91, including 12 Indian languages | The most emotive, highest-quality speech; audio tags such as `[laughs]` are performed |
+| `eleven_v4_turbo` | $0.4167 / 10K chars | 91, including 12 Indian languages | v4 expressiveness tuned for live calls (~100 ms to first audio upstream) |
+| `eleven_v3` | $0.8333 / 10K chars | 85, including 11 Indian languages | Dramatic, expressive delivery; audio tags; multi-speaker dialogue |
+| `eleven_v3_conversational` | $0.4167 / 10K chars | 85, including 11 Indian languages | v3 tuned for natural conversational agents (~165 ms upstream) |
+| `eleven_multilingual_v2` | $0.8333 / 10K chars | 29, including Hindi and Tamil | Lifelike, consistent long-form speech: narration, audiobooks, voice-overs |
+| `eleven_flash_v2_5` | $0.4167 / 10K chars | 32, including Hindi and Tamil | Fast and affordable (~100 ms upstream); the recommended ElevenLabs voice for calls |
+| `eleven_turbo_v2_5` | $0.4167 / 10K chars | 32, including Hindi and Tamil | Functionally equivalent to `eleven_flash_v2_5`, which is faster |
+| `eleven_flash_v2` | $0.4167 / 10K chars | English only | Ultra-low-latency English (~135 ms upstream) |
+| `eleven_turbo_v2` | $0.4167 / 10K chars | English only | Functionally equivalent to `eleven_flash_v2`, which is faster |
+
+- **Language.** Send a base code as `language` (`hi`, `ta`; `hi-IN` is reduced to `hi`). On every model except `eleven_multilingual_v2` it enforces the language and how numbers and dates are read; `eleven_multilingual_v2` reads the language from the text. A code the model does not speak is ignored rather than refused.
+- **Speed.** `speed` clamps to 0.7–1.2.
+- **Formats.** `mp3` (default), `wav`, `pcm`, `opus`, `mulaw` and `alaw`; `aac` and `flac` return MP3. See `speech_sample_rate` above for the rates each format takes.
+- **Audio tags.** `eleven_v4`, `eleven_v4_turbo`, `eleven_v3` and `eleven_v3_conversational` perform bracketed tags written into the text, such as `[laughs]`, `[whispers]` or `[sighs]`; the other models read them aloud. SSML is not supported on any of them.
+- **Length.** `input` takes the endpoint's 4096 characters on every model.
+- **Streaming.** `stream` is ignored; the full audio is returned in one response.
+
+```bash [cURL]
+curl -X POST https://api.callmissed.com/v1/audio/speech \
+  -H "Authorization: Bearer cm_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "eleven_flash_v2_5", "voice": "sarah", "language": "hi", "input": "नमस्ते, मैं आपकी कैसे मदद कर सकती हूँ?"}' \
+  --output speech.mp3
 ```
