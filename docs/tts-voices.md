@@ -219,6 +219,36 @@ gemma · archie · riya · arushi · siya · parvati · kabir
 
 > **Other TTS providers** also expose voices via the same `POST /v1/audio/speech` endpoint — **deepgram-aura-2** (90 voices across English, Spanish, German, French, Dutch, Italian, and Japanese, default `thalia`), **deepgram-aura-1** (12 legacy English voices at half the Aura-2 rate, default `asteria`), and **gpt-4o-mini-tts** (`alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `nova`, `onyx`, `sage`, `shimmer`, `verse`, `marin`, `cedar`). See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model pricing.
 
+## ElevenLabs Voices
+
+The nine ElevenLabs models — `eleven_v4`, `eleven_v4_turbo`, `eleven_v3`, `eleven_v3_conversational`, `eleven_multilingual_v2`, `eleven_flash_v2_5`, `eleven_turbo_v2_5`, `eleven_flash_v2` and `eleven_turbo_v2` (see [Text to Speech](/docs/text-to-speech#elevenlabs)) — share one voice library. Pass a premade name from the table below (case-insensitive; `sarah` is the default) or any ElevenLabs voice ID (20 characters) as `voice`: voices you cloned or added from the ElevenLabs Voice Library work the same way. An unrecognised name falls back to `sarah`. Every premade voice speaks every language its model supports; the accent is the voice's own.
+
+| Voice | Gender | Accent | Character |
+|-------|--------|--------|-----------|
+| `sarah` (default) | Feminine | American | Mature, reassuring, confident |
+| `laura` | Feminine | American | Enthusiast, quirky attitude |
+| `jessica` | Feminine | American | Playful, bright, warm |
+| `matilda` | Feminine | American | Knowledgeable, professional |
+| `bella` | Feminine | American | Professional, bright, warm |
+| `alice` | Feminine | British | Clear, engaging educator |
+| `lily` | Feminine | British | Velvety actress |
+| `river` | Neutral | American | Relaxed, neutral, informative |
+| `roger` | Masculine | American | Laid-back, casual, resonant |
+| `charlie` | Masculine | Australian | Deep, confident, energetic |
+| `george` | Masculine | British | Warm, captivating storyteller |
+| `callum` | Masculine | American | Husky trickster |
+| `harry` | Masculine | American | Fierce warrior |
+| `liam` | Masculine | American | Energetic, social media creator |
+| `will` | Masculine | American | Relaxed optimist |
+| `eric` | Masculine | American | Smooth, trustworthy |
+| `chris` | Masculine | American | Charming, down-to-earth |
+| `brian` | Masculine | American | Deep, resonant and comforting |
+| `daniel` | Masculine | British | Steady broadcaster |
+| `adam` | Masculine | American | Dominant, firm |
+| `bill` | Masculine | American | Wise, mature, balanced |
+
+`GET /api/v1/models?category=tts` returns these as `voice_details` for each `eleven_*` model.
+
 ## MAI Voice (preview)
 
 `mai-voice-2.1` ($0.2292 / 10K chars) and `mai-voice-2.1-flash` ($0.1563 / 10K chars) are Microsoft AI's text-to-speech models. **Both are preview.** They share the same 97 voices across 23 languages: `cs`, `da`, `de`, `en`, `es`, `fi`, `fr`, `hi`, `hu`, `id`, `it`, `ko`, `nb`, `nl`, `pl`, `pt`, `ro`, `ru`, `sv`, `th`, `tr`, `vi`, `zh`. They work on `POST /v1/audio/speech` and in voice agents and voice sessions (`tts_model`). `mai-voice-2.1-flash` is built for low latency and is the pick for live calls; `mai-voice-2.1` is the most expressive and suits narration and long-form audio.

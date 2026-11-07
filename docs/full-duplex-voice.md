@@ -85,7 +85,7 @@ voice agents, see [Voice Agent Tools](/docs/voice-agent-tools).
 
 ## Concurrency
 
-`gpt-live-1` capacity is measured in **concurrent sessions**, not requests per
+`gpt-live-1` capacity is measured in **browser/API voice sessions at once**, not requests per
 minute, and the number available to you depends on your plan. A session that is
 never closed holds its slot until it expires, so close sessions when the call
 ends rather than letting them lapse — an abandoned session is a slot another

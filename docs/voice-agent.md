@@ -28,7 +28,7 @@ The Voice Agent streams conversations over **WebRTC**. Choose one configuration 
 
 - **Full-duplex speech-to-speech:** select `gpt-live-1`, which listens and speaks at the same time. It behaves differently enough that it has [its own page](/docs/full-duplex-voice).
 
-An omitted `llm_model` selects `gemma-4-31b` on the STT → LLM → TTS pipeline, with thinking off for the fastest replies. If the selected stack cannot start, the call runs on a backup stack instead of failing, and usage records the model that actually served it. With `gemma-4-31b`, if the model stops answering mid-call, a backup model answers the remaining turns, billed at the `gemma-4-31b` rate. Retired `voice_fallbacks` settings are no longer used.
+An omitted `llm_model` selects `gemma-4-31b` on the STT → LLM → TTS pipeline, with thinking off for the fastest replies. If the selected stack cannot start, the call runs on a backup stack instead of failing, and usage records the model that actually served it. If the model stops answering mid-call (an outage or a rate limit), the turn is answered by a backup model instead: `sarvam-105b`, then `gpt-4o`. When the agent's model is one of the India-hosted voice LLMs (`gemma-4-31b`, `sarvam-105b` and the rest of the `india_hosting` list in `GET /api/v1/bots/config-schema`), `gemma-4-31b` on a second host outside India is also tried: first for `gemma-4-31b` agents, otherwise just before `gpt-4o`. A turn `sarvam-105b` answered is billed at its own rate; a turn `gpt-4o` or the second `gemma-4-31b` host answered is billed at your agent's model rate, and usage still shows the model that answered. On an agent with `hosting: "india"`, the second host is never used, and `gpt-4o` is used only while it is processed in India. Retired `voice_fallbacks` settings are no longer used.
 
 ## Architecture
 
@@ -118,7 +118,7 @@ The agent joins automatically, greets the user, and responds to speech.
 | `voice` | string | `shubh` | A speaker of the selected TTS model (`bulbul:v3` has 37) |
 | `language` | string | `en-IN` | Language code for STT and TTS |
 | `llm_model` | string | `gemma-4-31b` | One voice-capable model. An id the agent cannot serve is rejected at create time with `422`. `deepgram-think-fast` and `deepgram-phonellm-mini` (early access) are processed outside India, so an agent with `hosting: "india"` cannot use them; see [Models](/docs/models#deepgram-think-fast-and-phonellm-mini-early-access) |
-| `tts_provider` | string | *plan-dependent* | Legacy TTS selector; use `tts_model` for per-model selection. Omit it and the server picks by plan: paid plans (starter, pro, enterprise) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
+| `tts_provider` | string | *plan-dependent* | Legacy TTS selector; use `tts_model` for per-model selection. Omit it and the server picks by plan: paid plans (starter, pro, enterprise, scale, business, corporate) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
 | `max_duration_seconds` | int | 1800 | Max session duration (30-3600) |
 
 `stt_model`, `tts_model`, `greeting`, `variables`, `bot_id` and the rest are covered in the [Voice Session API](/docs/voice-sessions-api#request-body) reference.
@@ -157,7 +157,7 @@ Up to 3 voices to speak through, in order, if the agent's own voice stops workin
 
 ### Expressive audio tags on Gnani Timbre v3
 
-When an agent speaks with `gnani-timbre-v3.0`, the agent adds a few [audio tags](/docs/text-to-speech#gnani-timbre-v3-audio-tags) to its own replies: pauses, a sigh, an exhale, a laugh or giggle, or an excited tone. It uses them sparingly, and never when the call is about money owed, a complaint, health or bad news. Other voices never receive tags, and you do not need to write them into your prompt.
+When an agent speaks with `gnani-timbre-v3.0`, the agent adds a few [audio tags](/docs/text-to-speech#gnani-timbre-v3-audio-tags) to its own replies: pauses, a sigh, an exhale, a laugh or giggle, or an excited tone. It uses them sparingly, and never when the call is about money owed, a complaint, health or bad news. Other voices never receive these tags (ElevenLabs has its own, below), and you do not need to write them into your prompt.
 
 You control this per agent, in its `config` (with [`PATCH /api/v1/bots/{bot_id}/config`](/docs/bots)) or on the console's **Speech** page:
 
@@ -172,6 +172,22 @@ You control this per agent, in its `config` (with [`PATCH /api/v1/bots/{bot_id}/
 { "values": { "tts_audio_tag_set": ["pauses", "sigh"], "tts_audio_tag_frequency": "rare", "tts_speed": 0.95 } }
 ```
 
+### Expressive delivery on ElevenLabs
+
+Each ElevenLabs model is taught only what it can perform:
+
+- **`eleven_v4`, `eleven_v4_turbo`, `eleven_v3`, `eleven_v3_conversational`**: the agent adds a few [audio tags](/docs/text-to-speech#elevenlabs) in square brackets, such as `[sighs]`, `[chuckles]` or `[short pause]`, with the same restraint as above. Any bracketed cue you have not allowed is removed before it is spoken. For a live call, `eleven_v4_turbo` and `eleven_v3_conversational` are the fast, lower-priced choices.
+- **`eleven_flash_v2_5`, `eleven_turbo_v2_5`, `eleven_multilingual_v2`, `eleven_flash_v2`, `eleven_turbo_v2`**: these read bracketed tags aloud, so the agent never gets them and any that appear are removed. Instead, it may pause with `<break time="0.5s" />`, at most once a reply.
+
+The same keys control it:
+
+| Key | Type | Default | What it does |
+|-----|------|---------|--------------|
+| `tts_audio_tags` | boolean | `true` | `false` turns the sounds (v3/v4) or pauses (the other models) off. |
+| `tts_audio_tag_set` | array of tag names | `["short pause", "sighs", "exhales", "chuckles", "laughs", "curious", "excited"]` | v3/v4 only. The tags the agent may use, from: `short pause`, `long pause`, `sighs`, `exhales`, `inhales deeply`, `chuckles`, `laughs`, `starts laughing`, `laughs harder`, `clears throat`, `curious`, `excited`, `happy`, `sad`, `whispers`, `sarcastic`, `mischievously`, `appalled`, `crying`, `wheezing`, `snorts`. `[]` means none. |
+| `tts_audio_tag_frequency` | string | `"normal"` | v3/v4 only. Same levels and enforcement as above; tones (`curious`, `excited`, `happy`, `sad`, `whispers`, `sarcastic`, `mischievously`, `appalled`, `crying`) are counted apart from sounds, and `short pause` / `long pause` never rest. |
+| `tts_speed` | number | `1.0` | Flash, Turbo and Multilingual v2 only. Speaking pace, `0.7`–`1.2`. |
+
 ## Turn-taking and speech-to-speech tuning
 
 Advanced agent settings, saved in the agent's `config` with [`PATCH /api/v1/bots/{bot_id}/config`](/docs/bots) (or the console's **Voice** page). Leave them unset unless calls cut people off or feel slow; an unset key keeps the default shown. A number outside its range is saved with a warning in the response and used as the nearest end of the range on calls; a value the key does not list is ignored on calls.
@@ -181,7 +197,7 @@ Advanced agent settings, saved in the agent's `config` with [`PATCH /api/v1/bots
 | Key | Values | Default | What it does |
 |-----|--------|---------|--------------|
 | `min_endpointing_delay` | 0.2–1.5 s | 0.3 | How long the agent waits after the caller stops before replying. |
-| `stt_fast_endpointing` | `true`, `false` | `false` | `saaras:v4` listening model only. Notices the end of the caller's speech after about 64 ms of silence instead of about 576 ms, so the reply starts roughly half a second sooner. May cut in on callers who pause mid-sentence. |
+| `stt_fast_endpointing` | `true`, `false` | `false` | `saaras:v4` listening model only. Notices the end of the caller's speech after about 64 ms of silence instead of about 320 ms, so the reply starts roughly a quarter of a second sooner. May cut in on callers who pause mid-sentence. |
 | `tool_wait_phrase` | Text, up to 200 characters | unset | A short line the agent says when it starts one of the `tool_wait_tools` before saying anything else, for example "One moment, I'm sending that now." It plays while the tool runs. Write it in the agent's language. Used only when `tool_wait_tools` is also set. |
 | `tool_wait_tools` | List of tool names | unset | Which tools make the agent say `tool_wait_phrase`, for example `send_template_message` or `recall_memory`. |
 | `keep_send_promises` | `true`, `false` | `true` | When the agent tells the caller it is sending something on WhatsApp but calls no send tool, its next reply must make the send. `false`: the promise is only recorded in the session's `metadata.message_check`. |
@@ -249,3 +265,5 @@ new WebSocket("wss://api.callmissed.com/ws/voice-agent", [
 Clients that can set headers may send `Authorization: Bearer cm_your_api_key` instead. The `?key=cm_your_api_key` query parameter is **deprecated** and still accepted for existing integrations.
 
 Send a config message after connecting (`{"type": "config", "system_prompt": "…", "voice": "shubh", "language": "en-IN", "llm_model": "sarvam-105b"}`), then stream binary 16-bit PCM, 16 kHz mono. The agent's speech comes back as binary MP3 chunks between `audio_start` and `audio_end` events. A key without `stt`, `tts` and `llm` permissions is refused. This is a direct-WebSocket pipeline, separate from the WebRTC path above. See the [Session API](/docs/voice-sessions-api) for the recommended WebRTC approach.
+
+When we deploy, open connections are closed with code `1012` (service restart). Reconnect when you get it, then send your config message again. The conversation memory does not carry over to the new connection.
