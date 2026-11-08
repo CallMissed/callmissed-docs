@@ -148,6 +148,22 @@ a voice call is "send me that in the chat": a tracking link, an address, a
 price. If the call is not linked to a connected WhatsApp sender, the tool
 returns an error the model relays instead of sending anything.
 
+### Who the caller is
+
+On an inbound phone call, the caller's number is the caller ID their carrier
+presented, and caller ID can be faked. By default the agent therefore treats an
+inbound phone caller as unidentified. Tools that would read or change records
+found by that number (their orders, bookings, sheet rows, memories and CRM
+contact) answer as they would for an anonymous visitor. The caller can still
+book a new slot, and an order lookup still works with the order number plus the
+email on the order. Messages and links sent to the caller's number are
+unaffected, because they reach whoever really holds it.
+
+WhatsApp calls and outbound calls your agent placed are always identified by
+number. To identify inbound phone callers by number too, set
+`trust_caller_id: true` in the agent's config, or turn on **Trust caller ID**
+in the agent's settings.
+
 ### CRM writes during a call
 
 Four CRM tools are for phone and WhatsApp calls. Add the ones you want to
@@ -162,8 +178,9 @@ Four CRM tools are for phone and WhatsApp calls. Add the ones you want to
 
 What they will not do, whatever the caller says:
 
-- They only touch the contact matched to the number on the call. If no contact
-  matches, they return an error and nothing is created. Nothing takes an id,
+- They only touch the contact matched to the number on the call, and on an
+  inbound phone call only when [the caller is identified](#who-the-caller-is).
+  If no contact matches, they return an error and nothing is created. Nothing takes an id,
   owner or assignee, and passing one is refused.
 - `lifecycle_stage` cannot be set to `customer` or `churned`, and a contact
   already at one of those stages is left alone. A deal cannot be moved to a
