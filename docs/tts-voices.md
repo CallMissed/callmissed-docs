@@ -178,7 +178,7 @@ curl "https://api.callmissed.com/v1/audio/voices?model=sonic-3.6&q=skylar" \
 
 `GET /api/v1/models/sonic-3.6/voices/{id}/preview` streams Cartesia's own pre-recorded sample (no synthesis, no credit charge). Neither listing endpoint synthesizes or bills.
 
-Query params (both listing endpoints): `q` (search, max 200 chars), `language` (base code such as `hi`), `gender` (`masculine` / `feminine` / `gender_neutral`; `male` / `female` also accepted), `limit` (1–100, default 50), `starting_after` (a voice `id` from the previous page). `GET /v1/audio/voices` takes `model=sonic-3.6` (the default and the only accepted value; any other returns `400`).
+Query params (both listing endpoints): `q` (search, max 200 chars), `language` (base code such as `hi`), `gender` (`masculine` / `feminine` / `gender_neutral`; `male` / `female` also accepted), `limit` (1–100, default 50), `starting_after` (a voice `id` from the previous page). `GET /v1/audio/voices` takes `model=sonic-3.6` (the default) or any `eleven_*` model ([ElevenLabs library](#searching-the-elevenlabs-voice-library), paged with `page`); any other model returns `400`.
 
 ```json
 {
@@ -218,6 +218,79 @@ gemma · archie · riya · arushi · siya · parvati · kabir
 `riya`, `arushi`, `siya`, `parvati`, and `kabir` are native Hindi speakers (pair with `"language": "hi"`). Browse the full library in the [console Voices page](https://console.callmissed.com/voice/voices), the [Playground](https://platform.callmissed.com/playground/tts), or [Talk](https://callmissed.com/talk).
 
 > **Other TTS providers** also expose voices via the same `POST /v1/audio/speech` endpoint — **deepgram-aura-2** (90 voices across English, Spanish, German, French, Dutch, Italian, and Japanese, default `thalia`), **deepgram-aura-1** (12 legacy English voices at half the Aura-2 rate, default `asteria`), and **gpt-4o-mini-tts** (`alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `nova`, `onyx`, `sage`, `shimmer`, `verse`, `marin`, `cedar`). See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model pricing.
+
+## ElevenLabs Voices
+
+The nine ElevenLabs models — `eleven_v4`, `eleven_v4_turbo`, `eleven_v3`, `eleven_v3_conversational`, `eleven_multilingual_v2`, `eleven_flash_v2_5`, `eleven_turbo_v2_5`, `eleven_flash_v2` and `eleven_turbo_v2` (see [Text to Speech](/docs/text-to-speech#elevenlabs)) — share one voice library. Pass a premade name from the table below (case-insensitive; `sarah` is the default) or the 20-character `id` of any voice in the voice library (search it with the endpoint below) as `voice`. An unrecognised name falls back to `sarah`. Every premade voice speaks every language its model supports; the accent is the voice's own.
+
+| Voice | Gender | Accent | Character |
+|-------|--------|--------|-----------|
+| `sarah` (default) | Feminine | American | Mature, reassuring, confident |
+| `laura` | Feminine | American | Enthusiast, quirky attitude |
+| `jessica` | Feminine | American | Playful, bright, warm |
+| `matilda` | Feminine | American | Knowledgeable, professional |
+| `bella` | Feminine | American | Professional, bright, warm |
+| `alice` | Feminine | British | Clear, engaging educator |
+| `lily` | Feminine | British | Velvety actress |
+| `river` | Neutral | American | Relaxed, neutral, informative |
+| `roger` | Masculine | American | Laid-back, casual, resonant |
+| `charlie` | Masculine | Australian | Deep, confident, energetic |
+| `george` | Masculine | British | Warm, captivating storyteller |
+| `callum` | Masculine | American | Husky trickster |
+| `harry` | Masculine | American | Fierce warrior |
+| `liam` | Masculine | American | Energetic, social media creator |
+| `will` | Masculine | American | Relaxed optimist |
+| `eric` | Masculine | American | Smooth, trustworthy |
+| `chris` | Masculine | American | Charming, down-to-earth |
+| `brian` | Masculine | American | Deep, resonant and comforting |
+| `daniel` | Masculine | British | Steady broadcaster |
+| `adam` | Masculine | American | Dominant, firm |
+| `bill` | Masculine | American | Wise, mature, balanced |
+
+`GET /api/v1/models?category=tts` returns these as `voice_details` for each `eleven_*` model.
+
+### Searching the ElevenLabs voice library
+
+Beyond the 21 premade voices, more than 17,000 library voices are searchable, about 7,000 of them Hindi and 1,000 Indian English. Results are paginated and include only voices billed at the model's standard per-character rate. Listing does not synthesize or bill.
+
+```bash
+curl "https://api.callmissed.com/api/v1/models/eleven_flash_v2_5/voices?language=hi&gender=female&limit=50"
+curl "https://api.callmissed.com/v1/audio/voices?model=eleven_flash_v2_5&q=customer%20care" \
+  -H "Authorization: Bearer cm_YOUR_KEY"
+```
+
+Query params: `q` (search names, descriptions and voice IDs, max 200 chars), `language` (base code such as `hi`), `gender` (`feminine` / `masculine` / `gender_neutral`; `female` / `male` / `neutral` also accepted), `limit` (1–100, default 50), and `page` (0-based). Any `eleven_*` model id works in the path; every model shares the same library.
+
+```json
+{
+  "object": "list",
+  "model": "eleven_flash_v2_5",
+  "data": [
+    {
+      "id": "0PvBRbbZjTJPB3AadF6T",
+      "handle": null,
+      "name": "Anika - Quick Pace Customer Care",
+      "gender": "feminine",
+      "language": "hi",
+      "locale": "hi-IN",
+      "accent": "",
+      "age": "young",
+      "tagline": "pleasant, conversational",
+      "description": "…",
+      "has_preview": true,
+      "preview": "https://…/preview.mp3"
+    }
+  ],
+  "has_more": true,
+  "next_page": 1,
+  "total": 7178
+}
+```
+
+Pass `id` as `voice` on `POST /v1/audio/speech` or as an agent's `voice`. `preview` is a direct link to the voice's own recorded sample. A premade voice comes back with its `handle` (for example `sarah`).
+
+- **Paging:** the first page (`page=0`) without a `language` filter starts with the matching premade voices. When `has_more` is `true`, request `next_page` to get the next page.
+- **When the library is briefly unreachable:** the first page still answers `200`, with only the premade voices and `"degraded": true`. Later pages return `503`.
 
 ## MAI Voice (preview)
 

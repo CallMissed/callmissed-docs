@@ -104,6 +104,7 @@ Behaviour per model, as the gateway applies it. Each model's accepted values com
 | `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite` | ↓ `"minimal"` | ✅ | ✅ | ✅ | ↓ `"high"` | ✅ |
 | `kimi-k2.5`, `kimi-k2.6` | ✅ off | ✅ | ✅ | ✅ | ↓ `"max"` | ↓ `"none"` |
 | `kimi-k2.7-code` | ⊘ | ✅ | ✅ | ✅ | ↓ `"max"` | ⊘ |
+| `kimi-k3.1-pro` | ↓ `"low"` | ✅ | ↓ `"high"` | ✅ | ↓ `"max"` | ↓ `"low"` |
 | `gpt-oss-120b` | ↓ `"low"` | ✅ | ✅ | ✅ | ↓ `"high"` | ↓ `"low"` |
 | `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash` | ✅ off | ↓ on | ↓ on | ↓ on | ↓ on | ↓ on |
 | `sarvam-105b`, `sarvam-105b-conversations` | ✅ off | ✅ | ⊘ default | ✅ | ↓ `"max"` | ✅ off |
@@ -120,6 +121,7 @@ Legend: ✅ = sent to the model as-is · ✅ off = thinking is switched off · �
 Notes worth reading before you rely on a value:
 
 - `kimi-k2.5`, `kimi-k2.6` and `kimi-k2.7-code` accept `"none"`, `"low"`, `"medium"`, `"high"` and `"max"`; `"xhigh"` runs as `"max"`. `"minimal"` turns thinking off on K2.5 and K2.6. `kimi-k2.7-code` always thinks, so `"none"` and `"minimal"` are dropped.
+- `kimi-k3.1-pro` always thinks; thinking cannot be switched off. `"low"`, `"high"` and `"max"` are sent as-is. `"none"` and `"minimal"` run as `"low"`, `"medium"` as `"high"` and `"xhigh"` as `"max"`. Send `"low"` for the fastest replies.
 - `DeepSeek-V4-Pro` and `DeepSeek-V4-Flash` have an on/off switch, not levels: `"none"` turns thinking off and any other value turns it on. Without `reasoning_effort` they think and return the trace in `reasoning_content`.
 - `gpt-oss-120b` has three levels, `"low"`, `"medium"` and `"high"`. `"none"` and `"minimal"` run as `"low"` (it has no full off switch); `"xhigh"` and `"max"` run as `"high"`.
 - The retired `glm-4.7-flash`, `glm-5.2`, `nemotron-3-super`, `gemma-4-26b-a4b-it` and `mistral-small-3.1` IDs follow the row of the model that answers them (`gpt-oss-120b`, `kimi-k2.7-code`, `kimi-k2.6`, `kimi-k2.5`, `kimi-k2.5`).

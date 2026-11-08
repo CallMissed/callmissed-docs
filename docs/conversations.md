@@ -114,7 +114,8 @@ curl "https://api.callmissed.com/api/v1/conversations?channel=whatsapp&status=ac
 | `duration_seconds` | `integer \| null` | Populated for voice threads |
 | `metadata` | `object \| null` | Free-form JSON attached by the platform |
 | `ai_autoreply_enabled` | `boolean` | Whether the bot still answers automatically on this thread |
-| `bot_name` | `string` | `""` when the bot has been deleted |
+| `bot_id` | `string \| null` | The agent the thread belongs to. `null` for a WhatsApp thread on an account with no agent: the message is stored and nothing replies |
+| `bot_name` | `string` | `""` when the bot has been deleted or the thread has no agent |
 | `last_message` | `string \| null` | The most recent message as stored |
 | `last_message_at` | `string \| null` | When the most recent message was sent. `null` when the thread has none |
 | `unread_count` | `integer` | `user` messages created after `last_read_at` |

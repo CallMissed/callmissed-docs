@@ -28,7 +28,7 @@ Definitions for the core CallMissed concepts and terminology used throughout the
 | Term | Definition |
 | --- | --- |
 | **Credit** | The universal billing unit. **1 credit = ₹1 ≈ US$0.0104 (US$1 = ₹96).** Every API call deducts credits based on usage. |
-| **Plan** | Your subscription tier — free, starter, pro, or enterprise — which sets limits and model access. |
+| **Plan** | Your subscription tier — free, starter, pro, enterprise, scale, business, or corporate — which sets limits and model access. |
 | **Budget cap** | An optional credit limit. A key's own budget, once spent, rejects that key's requests with `402 budget_exceeded`; the account's monthly budget cap rejects all requests with `429 quota_exceeded` until the 1st. |
 | **Credit top-up** | A one-off credit purchase of any amount from 10 to 50,000 credits, at ₹1 per credit. |
 
