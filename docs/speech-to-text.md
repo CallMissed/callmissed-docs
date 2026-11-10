@@ -10,7 +10,6 @@ breadcrumb: "Speech"
 Transcribe audio to text across 47 STT models — Indic-first saaras, Cartesia Ink, and Deepgram Nova.
 
 :::cards
-/docs/stt-realtime | Real-time STT | play | Stream audio for live transcription
 /docs/stt-translation | Translation | settings | Transcribe and translate in one call
 /docs/models-indic | Indic Models | mic | saaras:v4 and other Indic STT models
 :::
@@ -28,7 +27,8 @@ Transcribe an audio file into text with any of **47 speech-to-text models**. The
 | Indian languages, or code-mixed Hinglish | `saaras:v4` | Purpose-built for Indic phonetics; 23 languages, all five output modes |
 | The widest language coverage | `ink-whisper` | 100 languages, and cheaper per hour than the Indic models |
 | English call-centre audio | `deepgram-nova-3` | Strong on accented and noisy telephony English |
-| Clinical or pharmaceutical audio | `deepgram-nova-3-medical` or `deepgram-nova-3-pharma` | Tuned for medical terms and drug names; `deepgram-nova-3-pharma` is English only |
+| Clinical or pharmaceutical audio | `deepgram-nova-3-medical`, `deepgram-nova-3-pharma` or `scribe_v2_medical` | Tuned for medical terms and drug names; `deepgram-nova-3-pharma` is English only; `scribe_v2_medical` hears 100 languages |
+| Highest accuracy on recorded audio, any of 100 languages | `scribe_v2` | ElevenLabs Scribe v2: automatic language detection, 13 Indian languages — see [ElevenLabs Scribe models](#elevenlabs-scribe-models) |
 | Long recordings, up to 2 hours per file (preview) | `mai-transcribe-2` | 60 languages with automatic detection — see [MAI-Transcribe-2](#mai-transcribe-2-preview) |
 | Turn detection built into the model | `ink-2`, `assemblyai-universal-3.6-pro` or `deepgram-flux-general-en` | Voice sessions only — see the note below |
 
@@ -112,7 +112,7 @@ Send as `multipart/form-data`.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `file` | file | Yes | Audio file (WAV, MP3, etc.), up to 25 MB. An empty file returns `400`. Some models accept less per request: `saaras:v4` takes at most 30 seconds of audio, `gnani-prisma-v3.0` (and its retired ID `gnani-prisma-v2.5`) at most 30 seconds, and `whisper`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` and `gpt-4o-transcribe-diarize` at most 25,000,000 bytes |
-| `model` | string | No | Default `saaras:v4`. Any file-transcription STT model ID from [Models](/docs/models). `ink-2` and the Flux models are **not** valid here — see [Cartesia Ink models](#cartesia-ink-models) |
+| `model` | string | No | Default `saaras:v4`. Any file-transcription STT model ID from [Models](/docs/models). `ink-2`, `scribe_v2_realtime` and the Flux models are **not** valid here — see [Cartesia Ink models](#cartesia-ink-models) and [ElevenLabs Scribe models](#elevenlabs-scribe-models) |
 | `language` | string | No | Language code; auto-detected if omitted. For `saaras:v4` use a locale such as `hi-IN` or `ta-IN` — a code the model does not support falls back to auto-detection. For `gnani-prisma-v3.0` use one of `hi-IN`, `bn-IN`, `ta-IN`, `te-IN`, `kn-IN`, `ml-IN`, `mr-IN`, `gu-IN`, `pa-IN`, `en-IN`, a comma-separated list of up to 4 of them, or `indic-auto` to detect the language; a base code such as `hi` is read as `hi-IN` |
 | `mode` | string | No | Output mode — see below. Default `transcribe`; any other value returns `422` |
 | `response_format` | string | No | `json` (default), `text`, `verbose_json`, or `diarized_json`. Any other value is answered as `json` |
@@ -251,19 +251,44 @@ upstream error — it silently produces poor output. Our agent logs a warning an
 transcribes as `en`. For other languages use `ink-whisper` (100 languages) or an
 Indic model such as `saaras:v4`.
 
+## ElevenLabs Scribe models
+
+Three ElevenLabs speech-to-text models. Two transcribe files; the third only runs on a live voice session. All three hear the same 100 languages, including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu and Sinhala, and detect the language automatically when `language` is left out. Paid plans only.
+
+| Model | Price | File transcription | Voice sessions |
+|-------|-------|--------------------|----------------|
+| `scribe_v2` | $0.2292 / hr | Yes | **No** |
+| `scribe_v2_medical` | $0.2292 / hr | Yes | **No** |
+| `scribe_v2_realtime` | $0.4063 / hr | **No** | Yes |
+
+`scribe_v2` is ElevenLabs' state-of-the-art recognizer for recorded audio. `scribe_v2_medical` is the same API and price, fine-tuned for clinical audio (clinician-patient conversations, dictation, intake calls) with 35% fewer errors on it and the same accuracy on everyday speech. `language` takes a base code (`hi`; `hi-IN` is reduced to `hi`); a code the model does not hear is ignored and the language is detected instead. `mode` other than `transcribe` is not applied. Silence counts toward the billed duration.
+
+`scribe_v2_realtime` is the streaming model for voice agents (~150 ms to a committed transcript upstream): select it with `stt_model` on an agent or a [voice session](/docs/voice-sessions-api). It has no turn detection of its own, so the agent's turn detection applies. POSTing it here returns `400`; use `scribe_v2` for files.
+
+```bash
+curl -X POST https://api.callmissed.com/v1/audio/transcriptions \
+  -H "Authorization: Bearer cm_your_key" \
+  -F "model=scribe_v2" \
+  -F "language=hi" \
+  -F "file=@call.mp3"
+```
+
 ## Voice-session-only models
 
-Three more speech-to-text models run only on a live voice session, selected with `stt_model` on an agent or a [voice session](/docs/voice-sessions-api). POSTing any of them to `/v1/audio/transcriptions` returns `400`. For files, use `saaras:v4`, `ink-whisper` or `deepgram-nova-3`.
+Four more speech-to-text models run only on a live voice session, selected with `stt_model` on an agent or a [voice session](/docs/voice-sessions-api). POSTing any of them to `/v1/audio/transcriptions` returns `400`. For files, use `saaras:v4`, `ink-whisper` or `deepgram-nova-3`.
 
 | Model | Price | Languages | Turn detection |
 |-------|-------|-----------|----------------|
 | `assemblyai-universal-3.6-pro` | $0.4688 / hr | 50 | Built into the model |
 | `inworld-stt-1` | $0.1563 / hr | English only (`en`, `en-US`) | Not built in |
 | `microsoft-speech-stt` | $1.0417 / hr | 81 (148 locales), one per call | Not built in |
+| `scribe_v2_realtime` | $0.4063 / hr | 100, auto-detected | Not built in |
 
 `assemblyai-universal-3.6-pro` is AssemblyAI's newest streaming model. It ends the caller's turn itself, so the agent needs no separate turn detector on top, and it auto-detects and code-switches, so the language you set is a hint. Languages include English (with `en-IN`, `en-US`, `en-GB`, `en-AU`, `en-CA`, `en-NZ`), Spanish, French, German, Italian, Portuguese, Turkish, Dutch, Swedish, Norwegian, Danish, Finnish, Hindi, Marathi, Urdu, Vietnamese, Arabic, Hebrew, Japanese, Chinese, Cantonese, Russian, Korean, Catalan, Galician, Romanian, Estonian, Persian, Afrikaans, Zulu and Xhosa.
 
 `inworld-stt-1` is Inworld's low-cost streaming model and hears English only. For any other language use `assemblyai-universal-3.6-pro`, `saaras:v4` or `deepgram-nova-3`.
+
+`scribe_v2_realtime` is ElevenLabs' real-time Scribe model: 100 languages with automatic detection, so a multilingual agent can follow the caller. See [ElevenLabs Scribe models](#elevenlabs-scribe-models).
 
 `microsoft-speech-stt` is Microsoft's real-time streaming recognizer, processed in India. It hears 81 languages (148 locales), including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu, Bhojpuri and Indian English. It recognises one language per call: it does not auto-detect or follow a caller who switches language, so set the agent's language to the one the caller speaks. It has no turn detection of its own, so the agent's turn detection applies. Keyterms you set on the agent (`stt_keyterms`) are applied as a phrase list.
 

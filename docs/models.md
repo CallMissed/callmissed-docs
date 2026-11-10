@@ -10,20 +10,19 @@ breadcrumb: "LLM & AI"
 Every model CallMissed serves — Indic STT/TTS/LLM, fast direct-routed LLMs, first-party flagships, realtime voice and image — through one OpenAI-compatible API, plus 300+ more we deploy on demand.
 
 :::cards
-/docs/model-access | Model Access by Plan | key | Free, Starter, Pro, and Enterprise model tiers
+/docs/model-access | Model Access by Plan | key | Free, Starter, Pro, Enterprise, Scale, Business, and Corporate model tiers
 /docs/models-indic | Indic Models | mic | Indic STT, TTS, and LLM models
-/docs/models-kimi-fast | Fast LLMs | zap | High-throughput Kimi tier for voice-agent latency
 /docs/api-speed | API Speed | gauge | Latency benchmarks and reasoning-effort matrix
 :::
 
 ## Overview
 
-146 models, one OpenAI-compatible API. Same auth, same request shape — change
+158 models, one OpenAI-compatible API. Same auth, same request shape — change
 the `model` field and nothing else.
 
 | Group | What it is |
 |-------|------------|
-| **Fast LLMs** | Gemma 4 31B, the default for voice agents, and Kimi K2.5 at up to ~414 tok/s. |
+| **Fast LLMs** | Gemma 4 31B, the default for voice agents. |
 | **Indic models** | STT, TTS and LLM built for 22 Indian languages. |
 | **Direct-routed LLMs** | Sub-2s open-weights models: Kimi K2.5/K2.6/K2.7 Code and GPT-OSS. |
 | **First-party** | `gpt-6-*`, `gpt-6.1-sol`, `gpt-5.6-*`, `grok-4.3`, `DeepSeek-V4-*`, realtime voice, plus first-party STT/TTS. Older GPT models are [deprecated](#retired-and-deprecated-models). |
@@ -89,7 +88,7 @@ A free-plan key calling a paid model gets `403 model_not_available` — it is no
 
 The Claude models (`claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5`) are the exception: they need the Pro plan or higher. A free or Starter key gets `403 model_not_available` with the message `Model '<id>' requires the Pro plan or higher. Upgrade at https://console.callmissed.com/org/plans`.
 
-All other models — including `kimi-k2.5-fast`, `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017`, `gemma-4-31b`, `deepgram-think-fast`, `deepgram-phonellm-mini`, the `gemini-*` chat models, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `gpt-6-*`, `gpt-6.1-sol`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `gpt-live-1`, first-party STT/TTS), the other speech models (`gnani-*`, `ink-*`, `sonic-3.6`, `assemblyai-*`, `inworld-*`, `rime-coda`, `fish-audio-*`, `gradium-*`, `deepgram-flux-tts`, `microsoft-*`), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`, `gemini-3.1-flash-lite-image`) — require Starter, Pro, or Enterprise.
+All other models — including `kimi-k3.1-pro`, `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017`, `gemma-4-31b`, `deepgram-think-fast`, `deepgram-phonellm-mini`, the `gemini-*` chat models, first-party IDs (`gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-*`, `gpt-6-*`, `gpt-6.1-sol`, `grok-4.3`, `DeepSeek-V4-*`, `gpt-realtime*`, `gpt-live-1`, first-party STT/TTS), the other speech models (`gnani-*`, `ink-*`, `sonic-3.6`, `assemblyai-*`, `inworld-*`, `rime-coda`, `fish-audio-*`, `gradium-*`, `deepgram-flux-tts`, `microsoft-*`), the Deepgram direct line (`deepgram-nova-3`, `deepgram-flux-general-en/multi`, `deepgram-nova-2*`, `deepgram-enhanced*`, `deepgram-base*`, `deepgram-whisper-*`, `deepgram-aura-2`, `deepgram-aura-1`, Deepgram Voice Agent `deepgram-voice-*` ids, the `deepgram-summarize/topics/sentiment/intents` Audio Intelligence features, and the `deepgram-text-summarize/topics/sentiment/intents` Text Intelligence features), and paid image models (`flux-2-pro`, `flux-1.1-pro`, `gpt-image-2.5-*`, `gpt-image-2`, `gpt-image-1.5`, `nano-banana-*`, `gemini-3.1-flash-lite-image`) — require a paid plan (Starter or higher), except Claude models, which need Pro or higher.
 
 ### Pricing
 
@@ -97,7 +96,6 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 
 | Model | Input / 1M tokens | Output / 1M tokens |
 |-------|-------------------|-------------------|
-| `kimi-k2.5-fast` | $0.8438 | $4.219 |
 | `sarvam-105b` | $0.1563 (₹15) | $0.625 (₹60) |
 | `sarvam-105b-conversations` | $0.1563 (₹15) | $0.625 (₹60) |
 | `gpt-5.6-sol` | $4.167 | $20.83 |
@@ -128,6 +126,8 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 | `inworld-stt-1` | $0.1563 / hour *(voice sessions only)* |
 | `microsoft-speech-stt` | $1.0417 / hour *(voice sessions only)* |
 | `mai-transcribe-2` | $0.375 / hour *(preview)* |
+| `scribe_v2` / `scribe_v2_medical` | $0.2292 / hour |
+| `scribe_v2_realtime` | $0.4063 / hour *(voice sessions only)* |
 | `deepgram-nova-3` | $0.325 / hour (files); live voice sessions $0.4792 / hour, or $0.5729 / hour with `multi` |
 | `deepgram-nova-3-medical` | $0.325 / hour (files); live voice sessions $0.4792 / hour, or $0.5729 / hour with `multi` |
 | `deepgram-nova-3-pharma` | $0.325 / hour (files), $0.4792 / hour (live voice sessions) |
@@ -155,6 +155,8 @@ All models are pay-per-use. Pricing is in US$ at US$1 = ₹96; you pay in credit
 | `microsoft-neural-tts` | $0.1563 / 10K chars *(voice sessions only)* |
 | `mai-voice-2.1` | $0.2292 / 10K chars *(preview)* |
 | `mai-voice-2.1-flash` | $0.1563 / 10K chars *(preview)* |
+| `eleven_v4` / `eleven_v3` / `eleven_multilingual_v2` | $0.8333 / 10K chars |
+| `eleven_v4_turbo` / `eleven_v3_conversational` / `eleven_flash_v2_5` / `eleven_turbo_v2_5` / `eleven_flash_v2` / `eleven_turbo_v2` | $0.4167 / 10K chars |
 
 | Intelligence feature (not a model ID) | Price |
 |-------------------------------|-------|
@@ -173,23 +175,6 @@ import requests
 models = requests.get("https://api.callmissed.com/api/v1/models?category=llm").json()
 for m in models["data"]:
     print(f"{m['id']} — {m['name']} ({m['context_window']} tokens) {'FREE' if m['free'] else 'PAID'}")
-```
-
-## Fast LLMs
-
-High-throughput Kimi K2.5 inference tier optimized for voice-agent latency.
-
-| Model ID | Status | Context | Best For |
-|----------|--------|---------|----------|
-| `kimi-k2.5-fast` | **Under maintenance** — fall back to `kimi-k2.5` | 256K | Voice agents, fast inference, reasoning tasks |
-
-While `kimi-k2.5-fast` is in maintenance (returns HTTP 503), use `kimi-k2.5`:
-
-```python
-response = client.chat.completions.create(
-    model="kimi-k2.5",
-    messages=[{"role": "user", "content": "Hello"}]
-)
 ```
 
 ## Indic Models
@@ -228,6 +213,7 @@ For low-latency English / Spanish voice agents, see `deepgram-aura-2`. For steer
 | `glm-5.3` | Z.ai GLM 5.3 | 1M tokens | Long-context reasoning, tool calling (text only) |
 | `deepseek-v4.1-flash` | DeepSeek V4.1 Flash | 1M tokens | Long-document analysis, agentic workflows, tool calling (text only) |
 | `glm-5.3-flash` | Z.ai GLM 5.3 Flash | 1M tokens | Fast, low-cost coding agents and tool use, with image input |
+| `kimi-k3.1-pro` | Moonshot Kimi K3.1 Pro (2.8T MoE, 104B active) | 1M tokens | Agentic coding and research, long-horizon tool use, image input, JSON mode |
 | `deepseek-v4.1-flash-1017` | DeepSeek V4.1 Flash 1017 | 1M tokens | Long-document analysis, agentic workflows, tool calling, image input |
 | `gemma-4-31b` | Google Gemma 4 31B | 128K tokens | Fast answers with thinking off, image input, tool calling, voice agents |
 | `deepgram-think-fast` | Deepgram Think-Fast (early access) | 32K tokens | Voice agents: follows a system prompt, calls tools, writes replies meant to be spoken (text only) |
@@ -250,6 +236,9 @@ See the [Pricing](/docs/pricing) page for current rates.
 | `gpt-4o-mini-transcribe` | Streaming | Low-cost OpenAI transcription | $0.25 / hour |
 | `gpt-4o-transcribe-diarize` | File transcription with speaker labels (not available for voice sessions) | Multi-speaker meetings / calls | $0.4167 / hour |
 | `mai-transcribe-2` **Preview** | 60 with auto-detect, Hinglish code-switching (file transcription only) | Microsoft AI file transcription, up to 2 hours per file | $0.375 / hour |
+| `scribe_v2` | 100 with auto-detect, 13 Indian languages | ElevenLabs' highest-accuracy file transcription | $0.2292 / hour |
+| `scribe_v2_medical` | 100 with auto-detect | Clinical audio (file transcription) | $0.2292 / hour |
+| `scribe_v2_realtime` | 100 with auto-detect (voice sessions only) | Real-time voice agents | $0.4063 / hour |
 
 **Deepgram (direct)** — the full Deepgram speech-to-text line, billed per audio hour at the rates below:
 
@@ -277,10 +266,21 @@ See the [Pricing](/docs/pricing) page for current rates.
 | `gpt-4o-mini-tts` | Multilingual steerable | 6 OpenAI voices | $0.2083 / 10K chars |
 | `mai-voice-2.1` **Preview** | 23 languages | 97 (en-in-priya default; `hi-in-arjun` for Hindi) | $0.2292 / 10K chars |
 | `mai-voice-2.1-flash` **Preview** | 23 languages | 97, low latency for live calls | $0.1563 / 10K chars |
+| `eleven_v4` | 91 incl. 12 Indian languages | 21 premade + any ElevenLabs voice ID (sarah default) | $0.8333 / 10K chars |
+| `eleven_v4_turbo` | 91 incl. 12 Indian languages | same, tuned for live calls | $0.4167 / 10K chars |
+| `eleven_v3` | 85 incl. 11 Indian languages | same, dramatic delivery | $0.8333 / 10K chars |
+| `eleven_v3_conversational` | 85 incl. 11 Indian languages | same, conversational agents | $0.4167 / 10K chars |
+| `eleven_multilingual_v2` | 29 incl. Hindi, Tamil | same, long-form narration | $0.8333 / 10K chars |
+| `eleven_flash_v2_5` | 32 incl. Hindi, Tamil | same, fastest multilingual | $0.4167 / 10K chars |
+| `eleven_turbo_v2_5` | 32 incl. Hindi, Tamil | same (equivalent to Flash v2.5) | $0.4167 / 10K chars |
+| `eleven_flash_v2` | English | same, fastest English | $0.4167 / 10K chars |
+| `eleven_turbo_v2` | English | same (equivalent to Flash v2) | $0.4167 / 10K chars |
 
 The `mai-*` models are **preview**: Microsoft ships them without an SLA and may change or retire them at short notice. If one is retired, the ID keeps working and is answered by a named successor, as in [Retired and deprecated models](#retired-and-deprecated-models), so an agent that uses it keeps working but may sound different. Use a generally available model for production-critical agents. Preview models are paid-plan only, are never a default, and are not processed in India.
 
 Aura 2 returns linear16 PCM streamed at 24 kHz for low-latency playback. Output formats may vary as models are updated.
+
+The nine `eleven_*` models are ElevenLabs' full current text-to-speech line, on `POST /v1/audio/speech` and in voice agents and voice sessions; `scribe_v2` and `scribe_v2_medical` transcribe files and `scribe_v2_realtime` serves voice sessions. See [Text to Speech](/docs/text-to-speech#elevenlabs), [Speech to Text](/docs/speech-to-text#elevenlabs-scribe-models) and [Voices](/docs/tts-voices#elevenlabs-voices).
 
 Deepgram Flux TTS (`deepgram-flux-tts`) is served on this endpoint, in voice agents and voice sessions, and in the managed Voice Agent (selectable with `tts_engine: "flux"`, billed inside the per-minute voice rate). It has 266 voices in 42 languages. Without `stream`, the input is limited to 400 characters; set `"stream": true` with `pcm`, `wav`, `mulaw` or `alaw` for up to 2000. See [Text to Speech](/docs/text-to-speech#deepgram-flux-tts) and [Voices](/docs/tts-voices#flux-tts-voices-by-language).
 
@@ -293,6 +293,7 @@ These models run inside voice agents and [voice sessions](/docs/voice-sessions-a
 | `assemblyai-universal-3.6-pro` | STT, built-in turn detection | 50, including Hindi, Marathi, Urdu and Indian English | $0.4688 / hour |
 | `inworld-stt-1` | STT | English only | $0.1563 / hour |
 | `microsoft-speech-stt` | STT, processed in India | 81 (148 locales), including 13 Indian languages, one per call | $1.0417 / hour |
+| `scribe_v2_realtime` | STT, auto-detects the language | 100, including 13 Indian languages | $0.4063 / hour |
 | `rime-coda` | TTS, 13 voices | 8, including Hindi | $0.5208 / 10K chars |
 | `inworld-tts-2` | TTS, 14 voices | 94, including 11 Indian languages | $0.2604 / 10K chars |
 | `inworld-tts-2-flash` | TTS, 14 voices, faster | 94, including 11 Indian languages | $0.1563 / 10K chars |
@@ -380,7 +381,7 @@ Low-latency models routed directly through CallMissed — sub-2s end-to-end on s
 
 ## Retired and Deprecated Models
 
-**Retired on 2026-10-17 and 2026-10-30.** These IDs still work. Each one is answered by the
+**Retired on 2026-10-17, 2026-10-30 and 2026-11-11.** These IDs still work. Each one is answered by the
 model in the second column, and the response `model` field keeps the ID you
 sent. They are no longer listed by `GET /api/v1/models`. Requests are billed
 at the price shown.
@@ -400,8 +401,10 @@ at the price shown.
 | `nova-3` | `deepgram-nova-3` | Unchanged ($0.5208 / hour) |
 | `gnani-prisma-v2.5` (retired 2026-10-30) | `gnani-prisma-v3.0` | Keeps its price ($0.2813 / hour) |
 | `whisper-large-v3-turbo` | `whisper` (also translates) | `whisper` price ($0.4167 / hour) |
+| `kimi-k2.5-fast` (retired 2026-11-11) | `kimi-k2.5` | `kimi-k2.5` price ($0.8438 in / $4.219 out per 1M) |
 
-The retired LLM, speech-to-text and text-to-speech IDs stay on the free plan.
+The retired LLM, speech-to-text and text-to-speech IDs stay on the free plan,
+except `kimi-k2.5-fast`, which was never on it and stays paid-only.
 The retired image IDs do not: the free plan has no image model, and a free key
 gets `403 model_not_available`.
 
@@ -433,7 +436,7 @@ Where a successor costs more (for example `gpt-4.1` output, `gemini-3.1-flash-li
 
 ## Models on Demand
 
-`GET /api/v1/models` lists everything in the catalogue today: **146** model IDs.
+`GET /api/v1/models` lists everything in the catalogue today: **147** model IDs.
 Models marked `status: "maintenance"` return `503` until they are back.
 
 Beyond that we deploy **300+ further models on demand** on CallMissed
@@ -442,9 +445,6 @@ infrastructure. Send the model you need and your expected throughput to
 response with a plain CallMissed ID and published per-token pricing, on the
 same `/v1/chat/completions` endpoint as every other model. Same key, same
 credit balance, no new SDK.
-
-Enterprise accounts get dedicated capacity. Starter and Pro get shared capacity
-where the model allows it.
 
 ## First-Party Models
 
@@ -466,6 +466,7 @@ Credit-covered first-party models. Use the bare model ID in API requests — e.g
 | `claude-sonnet-5-5` | LLM | Anthropic Claude Sonnet 5.5, the best combination of speed and intelligence, 1M context, vision + tools (Pro plan and up) |
 | `claude-haiku-5-5` | LLM | Anthropic Claude Haiku 5.5 for high-volume, latency-sensitive work, 1M context, vision + tools (Pro plan and up) |
 | `grok-4.3` | LLM | xAI Grok, 200K context |
+| `kimi-k3.1-pro` | LLM | Moonshot K3.1 Pro, 1M context, vision + tools + reasoning (paid plans only) |
 | `DeepSeek-V4-Pro` | LLM | Flagship DeepSeek reasoning, 1M context, tools (text-only) |
 | `DeepSeek-V4-Flash` | LLM | Fast DeepSeek reasoning, 1M context, tools |
 | `gpt-realtime` | Realtime voice | OpenAI flagship speech-to-speech (10 concurrent), live — *deprecated, sunset 2026-11-16 → `gpt-realtime-2.1`* |
@@ -485,9 +486,9 @@ See [Credits & Rate Limits](/docs/credits-rate-limits) for per-model USD pricing
 
 ## Full Model Catalog
 
-A curated, representative slice of the **146** models (72 LLM · 47 STT · 16 TTS · 9 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
+A curated, representative slice of the **158** models (72 LLM · 50 STT · 25 TTS · 9 image · 2 embedding) served by `GET /api/v1/models` as of the latest deploy — the per-domain variants of the direct Deepgram STT line and the `deepgram-voice-*` managed LLM ids are covered in their own sections above rather than repeated below. For live pricing and capability flags (`supports_vision`, `supports_tools`, `free`), query the API — it always reflects the current catalog.
 
-### LLM (42 models)
+### LLM (44 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
@@ -517,9 +518,9 @@ A curated, representative slice of the **146** models (72 LLM · 47 STT · 16 TT
 | `DeepSeek-V4-Pro` | Flagship DeepSeek reasoning. Tools. Text-only. | 1M | No | $1.813 in / $4.125 out per 1M |
 | `DeepSeek-V4-Flash` | Fast, affordable DeepSeek reasoning. Tools. Text-only. | 1M | No | $0.4583 in / $1.375 out per 1M |
 | `kimi-k2.5` | Strong on coding and math. Vision. | 262K | Yes | $0.8438 in / $4.219 out per 1M |
-| `kimi-k2.5-fast` *(maintenance)* | Kimi K2.5 at ~414 tok/s for voice-agent latency. | 256K | No | $0.8438 in / $4.219 out per 1M |
 | `kimi-k2.6` | Improved reasoning and coding over K2.5. Vision. | 262K | Yes | $1.333 in / $5.625 out per 1M |
 | `kimi-k2.7-code` | 1T-param agentic coding. Vision + tools. | 262K | Yes | $1.333 in / $5.625 out per 1M |
+| `kimi-k3.1-pro` | Moonshot AI's most capable open-weight multimodal agentic model. Image input, tools, JSON mode, reasoning (low / high / max, always on). 128K default max output. Paid plans only. | 1M | No | $2.083 in / $10.42 out per 1M ($0.2083 cached input) |
 | `glm-5.3` | Z.ai GLM 5.3. Tools + reasoning (low / high / max). Text-only. | 1M | No | $2.125 in / $6.667 out per 1M |
 | `deepseek-v4.1-flash` | DeepSeek V4.1 Flash. Tools + reasoning (low / high / max). Text-only. | 1M | No | $0.427 in / $1.771 out per 1M |
 | `glm-5.3-flash` | Z.ai GLM 5.3 Flash. Fast, low-cost. Vision + tools + reasoning (low / high / max). | 1M | No | $0.229 in / $0.760 out per 1M |
@@ -536,7 +537,7 @@ A curated, representative slice of the **146** models (72 LLM · 47 STT · 16 TT
 | `gpt-realtime-2.1-mini` | Distilled, lower-cost realtime for faster voice interactions. Voice-agent only. | 32K | No | $0.625 in / $2.5 out per 1M • $0.1219/min |
 | `gpt-live-1` | GPT Live speech-to-speech — audio + text in and out, function calling, 14 voices (default `marin`). No image or video input. Voice-agent only. | — | No | $0.05208/min (billed per second) |
 
-### Speech to Text (12 models)
+### Speech to Text (15 models)
 
 | Model ID | Description | Context | Free | Pricing |
 |----------|-------------|---------|------|---------|
@@ -547,13 +548,16 @@ A curated, representative slice of the **146** models (72 LLM · 47 STT · 16 TT
 | `assemblyai-universal-3.6-pro` | AssemblyAI Universal-3.6 Pro — newest streaming STT with built-in turn detection. 32 languages including Hindi, Marathi, Urdu and Indian English. **Voice sessions only — not available for file transcription.** | — | No | $0.4688 / hr |
 | `inworld-stt-1` | Inworld STT 1 — low-cost streaming STT, English only. **Voice sessions only — not available for file transcription.** | — | No | $0.1563 / hr |
 | `mai-transcribe-2` | **Preview.** Microsoft AI MAI-Transcribe-2 — file transcription in 60 languages with automatic detection and Hinglish code-switching, up to 2 hours per file. `POST /v1/audio/transcriptions` only: not available in voice sessions or translation. Not processed in India. | — | No | $0.375 / hr |
+| `scribe_v2` | ElevenLabs Scribe v2 — state-of-the-art file transcription in 100 languages including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese and Urdu, automatic language detection. File transcription only. | — | No | $0.2292 / hr |
+| `scribe_v2_medical` | ElevenLabs Scribe v2 Medical — Scribe v2 fine-tuned for clinical audio, 35% fewer errors on it, same 100 languages and price. File transcription only. | — | No | $0.2292 / hr |
+| `scribe_v2_realtime` | ElevenLabs Scribe v2 Realtime — real-time recognition in 100 languages with automatic detection. **Voice sessions only — not available for file transcription.** | — | No | $0.4063 / hr |
 | `microsoft-speech-stt` | Microsoft Speech — real-time streaming STT, processed in India. 81 languages (148 locales) including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu, Bhojpuri and Indian English; one language per call. **Voice sessions only — not available for file transcription.** | — | No | $1.0417 / hr |
 | `whisper` | 99 languages. Transcription + translation to English. | — | No | $0.4167 / hr |
 | `gpt-4o-transcribe` | Higher accuracy than Whisper. Streaming. | — | No | $0.4167 / hr |
 | `gpt-4o-mini-transcribe` | Cheaper, faster streaming transcription. | — | No | $0.25 / hr |
 | `gpt-4o-transcribe-diarize` | File transcription with speaker labels. Not available for voice sessions. | — | No | $0.4167 / hr |
 
-### Text to Speech (14 models)
+### Text to Speech (23 models)
 
 | Model ID | Description | Voices | Free | Pricing |
 |----------|-------------|--------|------|---------|
@@ -571,6 +575,15 @@ A curated, representative slice of the **146** models (72 LLM · 47 STT · 16 TT
 | `gpt-4o-mini-tts` | Steerable — takes an `instructions` field to direct tone. | 6 | No | $0.2083 / 10K chars |
 | `mai-voice-2.1` | **Preview.** Microsoft AI MAI-Voice-2.1 — the most expressive MAI voice model, for narration and long-form audio. 23 languages, plain text only. `POST /v1/audio/speech` and voice agents. Not processed in India. | 97 | No | $0.2292 / 10K chars |
 | `mai-voice-2.1-flash` | **Preview.** Microsoft AI MAI-Voice-2.1-Flash — low latency, built for real-time voice agents. Same 97 voices and 23 languages, plain text only. `POST /v1/audio/speech` and voice agents. Not processed in India. | 97 | No | $0.1563 / 10K chars |
+| `eleven_v4` | ElevenLabs Eleven v4 — most emotive, highest quality; 91 languages incl. 12 Indian languages; audio tags performed. 21 premade voices plus any ElevenLabs voice ID. | 21+ | No | $0.8333 / 10K chars |
+| `eleven_v4_turbo` | ElevenLabs Eleven v4 Turbo — v4 expressiveness tuned for live calls (~100 ms to first audio upstream); 91 languages. | 21+ | No | $0.4167 / 10K chars |
+| `eleven_v3` | ElevenLabs Eleven v3 — emotionally rich, dramatic delivery; 85 languages incl. 11 Indian languages; audio tags; multi-speaker dialogue. | 21+ | No | $0.8333 / 10K chars |
+| `eleven_v3_conversational` | ElevenLabs Eleven v3 Conversational — v3 tuned for natural dialogue in agents (~165 ms upstream); 85 languages. | 21+ | No | $0.4167 / 10K chars |
+| `eleven_multilingual_v2` | ElevenLabs Multilingual v2 — lifelike, most stable on long-form speech; 29 languages incl. Hindi and Tamil. | 21+ | No | $0.8333 / 10K chars |
+| `eleven_flash_v2_5` | ElevenLabs Flash v2.5 — fast and affordable (~100 ms upstream); 32 languages incl. Hindi and Tamil. The recommended ElevenLabs voice for calls. | 21+ | No | $0.4167 / 10K chars |
+| `eleven_turbo_v2_5` | ElevenLabs Turbo v2.5 — functionally equivalent to Flash v2.5 (which is faster); 32 languages. | 21+ | No | $0.4167 / 10K chars |
+| `eleven_flash_v2` | ElevenLabs Flash v2 — ultra-low-latency English (~135 ms upstream). | 21+ | No | $0.4167 / 10K chars |
+| `eleven_turbo_v2` | ElevenLabs Turbo v2 — functionally equivalent to Flash v2 (which is faster); English only. | 21+ | No | $0.4167 / 10K chars |
 
 ### Image Generation (9 models)
 

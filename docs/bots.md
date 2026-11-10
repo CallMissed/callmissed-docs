@@ -70,8 +70,9 @@ Most of `config` is stored as-is, which is why [Build an agent programmatically]
 | `followup_agent` | Object; `enabled` and `send_recap` booleans, `instructions` a string ≤ 4000 chars, `max_attempts` an integer 1-5 |
 | `call_personal_whatsapp` | Object ([Call personal WhatsApp](#call-personal-whatsapp)); `enabled`, a boolean, and `session_id`, a linked number's id or `null`. Stored as `{ "enabled": …, "session_id": … }`. Turning it on or changing `session_id` is owner-only (`403` otherwise) |
 | `transcript_retention_days`, `recording_retention_days` | Whole number of days, 1-3650. Applies to calls made after you save this; older calls follow your account's retention setting. The server records when each was saved as `transcript_retention_set_at` / `recording_retention_set_at` ([Voice data retention](/docs/voice-data-retention)) |
+| `trust_caller_id` | Boolean. When `true`, an inbound phone caller is identified by their caller ID ([Who the caller is](/docs/voice-agent-tools#who-the-caller-is)) |
 | `data_retention_mode` | `"standard"` or `"zdr"` ([Voice data retention](/docs/voice-data-retention)) |
-| `tts_fallbacks` | List of at most 3 `{ "tts_model", "voice" }` objects (`voice` optional). Each `tts_model` must be a voice model that speaks the agent's `language`, each `voice` one of that model's voices, never a cloned voice; no repeats ([Backup voices](/docs/voice-agent#backup-voices-and-spoken-numbers)) |
+| `tts_fallbacks` | List of at most 3 `{ "tts_model", "voice" }` objects (`voice` optional). Each `tts_model` must be a voice model that speaks the agent's `language`, each `voice` one of that model's voices; no repeats ([Backup voices](/docs/voice-agent#backup-voices-and-spoken-numbers)) |
 
 Two normalisations happen silently on every write: `commands` and `disabled_tools` come back normalised (lower-cased, de-duplicated) rather than as you sent them, and the retired `voice_fallbacks` key is dropped. Everything else in `config` is stored verbatim.
 
@@ -706,6 +707,8 @@ curl -X POST https://api.callmissed.com/api/v1/bots/b1f2c3d4-5678-90ab-cdef-1234
 ```
 
 Returns the bot with the new `is_active`. `403` without `bots:write`; `404` when not found.
+
+While `is_active` is `false` the agent takes no phone calls: a caller to a number it answers hears a short "Sorry, this number isn't taking calls right now. Please try again later." and the call ends (unless a call menu, call flow, call queue or agent squad on that number answers it), call queues route past it, campaigns that use it pause, and placing a call with its `bot_id` returns `409`. It also stops replying on WhatsApp, Instagram and Facebook (messages still reach the inbox), declines WhatsApp calls to its numbers at once (Call Desk numbers still ring a person), and on a linked personal WhatsApp number it sends nothing, including reminders, while messages keep syncing.
 
 ## POST `/api/v1/bots/{bot_id}/deploy/verify`
 

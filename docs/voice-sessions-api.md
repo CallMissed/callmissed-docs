@@ -88,10 +88,10 @@ curl -X POST https://api.callmissed.com/v1/voice/sessions \
 | `greeting` | string | — | Max 500 chars. The exact first line the agent speaks; omit it and the agent opens on its own |
 | `voice` | string | `shubh` | Max 50 chars. A speaker of the selected TTS model (`bulbul:v3` has 37); each model's speakers are listed in [`GET /api/v1/voice/models`](/docs/managed-voice-agent#list-available-models) under `tts[].voices` |
 | `language` | string | `en-IN` | Max 10 chars. BCP-47 language for STT + TTS |
-| `llm_model` | string | `gemma-4-31b` | Any voice-capable model id from [`GET /api/v1/voice/models`](/docs/managed-voice-agent#list-available-models) (`kimi-k2.5`, `sarvam-105b`, `gpt-5.6-luna`, `gpt-live-1`, …). Max 100 chars. An unsupported id returns `422`; a model under maintenance (e.g. `kimi-k2.5-fast`) returns `503` |
+| `llm_model` | string | `gemma-4-31b` | Any voice-capable model id from [`GET /api/v1/voice/models`](/docs/managed-voice-agent#list-available-models) (`kimi-k2.5`, `sarvam-105b`, `gpt-5.6-luna`, `gpt-live-1`, …). Max 100 chars. An unsupported id returns `422`; a model under maintenance returns `503` |
 | `stt_model` | string | `saaras:v4` | Speech-recognition model id, from the same list. Max 64 chars. Includes the voice-session-only `assemblyai-universal-3.6-pro`, `inworld-stt-1` and `microsoft-speech-stt` ([details](/docs/speech-to-text#voice-session-only-models)) |
 | `tts_model` | string | follows `tts_provider` | Text-to-speech model id, from the same list. Max 64 chars. Includes `deepgram-flux-tts` (266 voices in 42 languages, also valid on `/v1/audio/speech`) and the voice-session-only `rime-coda`, `inworld-tts-2`, `inworld-tts-2-flash`, `fish-audio-drama-3`, `gradium-tts-beta` and `microsoft-neural-tts` ([voices and languages](/docs/tts-voices#voice-session-voices)), plus the preview `mai-voice-2.1` and `mai-voice-2.1-flash` ([voices](/docs/tts-voices#mai-voice-preview); not processed in India, so not for `hosting: "india"` agents). Defaults to `bulbul:v3` for `sarvam` and `sonic-3.6` for `cartesia` |
-| `tts_provider` | string | *plan-dependent* | Legacy selector: `sarvam` or `cartesia`; prefer `tts_model`. `elevenlabs` is not available and returns `422`. Omit it and the server picks by plan: paid plans (starter, pro, enterprise) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
+| `tts_provider` | string | *plan-dependent* | Legacy selector: `sarvam` or `cartesia`; prefer `tts_model`. `elevenlabs` is not available and returns `422`. Omit it and the server picks by plan: paid plans (starter, pro, enterprise, scale, business, corporate) default to Cartesia `sonic-3.6`, the free plan to Sarvam `bulbul:v3`. An explicit value is always honoured. |
 | `tts_engine` | string | `cartesia` | Only for `deepgram-voice-*` models: `deepgram`, `flux`, `cartesia` or `aura-1`. With a `deepgram-voice-*` model and no `stt_model`, recognition defaults to `deepgram-flux-general-multi` |
 | `max_duration_seconds` | int | `1800` | 30–3600 |
 | `variables` | object | — | Values for `{{token}}` placeholders in the greeting and prompt, e.g. `{"callee_name": "Priya"}`. With `bot_id`, a variable the agent marks required must be supplied (`422` otherwise) |
@@ -306,15 +306,17 @@ Every WhatsApp template the agent sent during the call or its follow-up, to whic
 
 ## Limits
 
+The session limits below count browser and API voice sessions only. Live phone calls have a separate limit that depends on your plan (Free 1, Starter 5, Pro 10, Enterprise 20, Scale 30; Business and Corporate are custom, agreed with sales); see [Pricing](/docs/pricing).
+
 | Limit | Value | Behavior on exceed |
 |-------|-------|--------------------|
 | Session create rate | 10 / minute / workspace | HTTP 429 |
 | Model outside the key's `allowed_models` | any `llm_model`, `stt_model` or `tts_model` you name | HTTP 403 |
 | API key spend cap / per-key rate limit | as set on the key | HTTP 402 / HTTP 429 |
-| Concurrent active sessions (free) | 1 | HTTP 429 |
-| Concurrent active sessions (starter) | 5 | HTTP 429 |
-| Concurrent active sessions (pro) | 20 | HTTP 429 |
-| Concurrent active sessions (enterprise) | unlimited | — |
+| Browser/API voice sessions at once (free) | 1 | HTTP 429 |
+| Browser/API voice sessions at once (starter) | 5 | HTTP 429 |
+| Browser/API voice sessions at once (pro) | 20 | HTTP 429 |
+| Browser/API voice sessions at once (enterprise, scale, business, corporate) | unlimited | — |
 | Minimum credit balance to create | server-configured | HTTP 402 (also when your monthly budget cap is exhausted) |
 | Max session duration | 3600s (capped by `max_duration_seconds`) | session auto-ends |
 | Connection token TTL | 3600s (1 hour) | reconnect requires a new session |

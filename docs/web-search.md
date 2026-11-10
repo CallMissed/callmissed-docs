@@ -76,11 +76,11 @@ curl -X POST https://api.callmissed.com/v1/search \
 
 | `mode` | Provider | Default `search_type` |
 |------|------|------|
-| `shorter` | `serper` | `search` |
-| `detailed` | `serper` | `auto` |
-| `auto` (default) | your account's default mode if one is set, otherwise the platform default | — |
+| `shorter` | `firecrawl` (titles and snippets) | `search` |
+| `detailed` | `firecrawl` (also fetches each result's page text into `content`) | `auto` |
+| `auto` (default) | your account's default mode if one is set, otherwise `firecrawl` | — |
 
-Set `provider` to `serper`, `exa`, `firecrawl` or `linkup` to choose directly; when both `mode` and `provider` are set, `provider` wins. If the chosen provider fails, the request is retried on another provider your key allows, so the `provider` field in the response may differ from the one you asked for. All providers return the same normalised shape.
+Set `provider` to `serper`, `exa`, `firecrawl` or `linkup` to choose directly; when both `mode` and `provider` are set, `provider` wins. If the chosen provider fails, the request is retried on another provider your key allows, in the order `firecrawl`, `serper`, `linkup`, `exa`, so the `provider` field in the response may differ from the one you asked for. All providers return the same normalised shape.
 
 Operators can set the **tenant default** from **Settings → Web search default**.
 
@@ -145,7 +145,7 @@ Responses are **normalised across providers** — same keys regardless of which 
 
 API keys must have `search` (or `*`) in their service permissions. Edit a key in your dashboard (↳ **Profile → API Keys → Edit**) and tick the **Search** chip.
 
-You can also restrict which **search providers** a single key may call by editing **Allowed web-search providers** on the same edit panel. A key restricted to `serper` can still use the endpoint, but calls with `mode: "detailed"` (or `provider: "exa"`) will return **HTTP 403 `search_provider_not_allowed`** before any upstream request is made.
+You can also restrict which **search providers** a single key may call by editing **Allowed web-search providers** on the same edit panel. A request that names a `provider` the key does not allow (for example `provider: "exa"` on a key restricted to `serper`) returns **HTTP 403 `search_provider_not_allowed`** before any upstream request is made. Requests that use `mode` or `auto` are served by the first allowed provider in the failover order.
 
 ## Errors
 
