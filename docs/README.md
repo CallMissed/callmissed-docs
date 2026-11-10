@@ -125,7 +125,6 @@ AI-powered communication APIs to deploy WhatsApp chatbots and voice call agents.
 
 - [Speech to Text](speech-to-text.md)
 - [Audio Translation](stt-translation.md)
-- [Real-time STT](stt-realtime.md)
 - [Audio Intelligence](audio-intelligence.md)
 - [Text to Speech](text-to-speech.md)
 - [Voices](tts-voices.md)
