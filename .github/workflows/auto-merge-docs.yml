@@ -48,7 +48,9 @@ jobs:
           fi
 
           # 2. Find open auto-sync PRs (branch prefix auto/sync-docs), newest first.
-          PRS=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open \
+          # --limit: the default page is 30; list them all so every superseded
+          # PR is closed.
+          PRS=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 200 \
             --json number,headRefName,createdAt \
             --jq '[.[] | select(.headRefName | startswith("auto/sync-docs"))] | sort_by(.createdAt) | reverse')
 
