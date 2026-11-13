@@ -138,7 +138,7 @@ curl -X POST https://api.callmissed.com/v1/chat/completions \
 | `logit_bias` | object | Token id → bias between `-100` and `100`; at most 1,024 entries |
 | `logprobs` | boolean | Return log probabilities |
 | `top_logprobs` | integer | Top N log probs per token, `0`–`20` |
-| `tools` | array | Up to 128 function definitions — see [Function Calling](/docs/chat-function-calling) |
+| `tools` | array | Up to 10,000 function definitions (128 on the GPT-4o, GPT-4.1, GPT-5 and GPT-6 models other than `gpt-6.1-sol`) — see [Function Calling](/docs/chat-function-calling) |
 | `tool_choice` | string or object | `"auto"`, `"none"`, `"required"`, or `{"type": "function", "function": {"name": "..."}}` |
 | `parallel_tool_calls` | boolean | Allow parallel function calls |
 | `response_format` | object | `{"type": "json_object"}` or `{"type": "json_schema", "json_schema": {...}}` |
@@ -224,7 +224,7 @@ Vision-capable models: `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5
 `gpt-5.5`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `grok-4.3`, `gemini-3.8-flash`,
 `gemini-3.7-flash`, `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3.5-flash-lite`,
 `gemini-3.1-pro-preview`, `gemini-3.1-flash-lite`, `gemma-4-31b`, `glm-5.3-flash`, `deepseek-v4.1-flash-1017`,
-`kimi-k2.5`, `kimi-k2.5-fast`, `kimi-k2.6`, `kimi-k2.7-code`.
+`kimi-k2.5`, `kimi-k2.6`, `kimi-k2.7-code`, `kimi-k3.1-pro`.
 
 `GET /v1/models` is authoritative. Read `supports_vision` there rather than
 hard-coding this list.
@@ -279,12 +279,11 @@ Snapshot — `GET /v1/models` is authoritative:
 |-------|----------------|
 | `gpt-5.5`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna`, `gpt-6.1-sol` | 1,050,000 |
 | `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` | 1,000,000 |
-| `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017` | 1,048,576 |
+| `glm-5.3`, `glm-5.3-flash`, `deepseek-v4.1-flash`, `deepseek-v4.1-flash-1017`, `kimi-k3.1-pro` | 1,048,576 |
 | `DeepSeek-V4-Pro`, `DeepSeek-V4-Flash` | 1,000,000 |
 | `gpt-4.1` | 300,000 |
 | `gpt-5-mini` | 400,000 |
 | `kimi-k2.5`, `kimi-k2.6`, `kimi-k2.7-code` | 262,144 |
-| `kimi-k2.5-fast` | 256,000 |
 | `grok-4.3` | 200,000 |
 | `sarvam-105b`, `gpt-oss-120b`, `gemma-4-31b` | 131,072 |
 | `gpt-4o` | 128,000 |
@@ -418,6 +417,7 @@ All errors return the OpenAI-compatible envelope:
 | `400` | `zdr_unavailable` | Zero data retention is on and the model has no zero-retention route |
 | `400` | `region_unavailable` | India-only processing is on and the model is not processed in India |
 | `400` | `context_length_exceeded` | The prompt is longer than the model's context window |
+| `400` | `too_many_tools` | The request sends more tools than the model accepts (128 on the GPT models listed in [Function Calling](/docs/chat-function-calling)) |
 | `400` | `max_tokens_too_small` | `max_tokens` below 3 on `gpt-5.6-luna`, `gpt-6-sol`, `gpt-6-luna` or `gpt-6.1-sol`, or below 16 on `gpt-6.1-sol` when `tools` are sent |
 | `400` | `max_tokens_too_large` | `max_tokens` above the model's `max_output_tokens` (for example 65,536 on the `gemini-*` models, 16,384 on `gpt-4o`, 32,768 on `gpt-4.1`, 128,000 on the GPT-5 and GPT-6 models) |
 | `401` | `invalid_api_key` / `api_key_expired` | Missing, malformed or revoked key / expired key |

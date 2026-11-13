@@ -13,7 +13,15 @@ Split voice traffic across agent variants, assign callers deterministically, and
 
 An **experiment** compares variants of one voice agent on a single metric. Each variant is an **arm**: a bot version, or a set of overrides (system prompt, voice, model, timing). Exactly one arm is the **control**.
 
-`traffic_split` decides what share of callers each arm gets. `POST /assign` buckets a caller into an arm deterministically, and `GET /results` reports the metric per arm.
+`traffic_split` decides what share of callers each arm gets. While an experiment is `running`, every call to its agent is routed automatically — inbound and outbound phone calls, WhatsApp calls and web-widget calls — and served by the arm the caller is assigned to. `GET /results` reports the metric per arm. `POST /assign` previews or records an assignment yourself.
+
+### How calls are routed
+
+- **Sticky per person.** A caller is bucketed by their phone number (or widget visitor id), so the same person hears the same arm on every call while the split is unchanged.
+- **One running experiment per agent.** Starting a second one on the same agent returns `409`.
+- **What an arm changes on a live call:** its `bot_version_number` (that published version's prompt and settings), `system_prompt`, `model`, `voice` and `timing.allow_interruptions`. The arm's model and voice win over a phone number's own settings.
+- **Only calls the agent answers itself count.** When a call flow, call menu or call queue answers the number first, the call is not routed. When an agent squad answers, the squad's entry agent is routed by its own experiment.
+- **Not routed:** console test calls, sessions where you set `system_prompt`, `llm_model` or `voice` yourself, every call once the experiment is stopped or concluded, and any call where your plan no longer allows the arm's model. A call that is not routed is answered by the agent's live configuration and counted for no arm.
 
 Nothing on this page consumes credits — the calls the experiment configures are billed as normal voice usage.
 
@@ -41,8 +49,8 @@ draft ──start──▶ running ──stop──▶ stopped ──conclude─
 | Status | What it means |
 | --- | --- |
 | `draft` | Being configured. The metric can still be changed |
-| `running` | Assigning traffic. Arms are frozen except for renaming |
-| `stopped` | Not assigning. Arms can be edited again, and it can restart |
+| `running` | Routing calls to arms. Arms are frozen except for renaming |
+| `stopped` | Not routing calls. Arms can be edited again, and it can restart |
 | `concluded` | Terminal and **immutable** — a winner is recorded and nothing can change |
 
 Stop before editing an arm; conclude only when you are done for good.
@@ -141,6 +149,8 @@ Unknown keys are rejected with `422` rather than ignored.
 
 #### Timing fields
 
+Only `allow_interruptions` is applied to live calls today. Start refuses an arm that sets any other timing field or `node_timing` (`422`), so an experiment never reports on a setting no caller heard.
+
 | Field | Type | Range |
 | --- | --- | --- |
 | `allow_interruptions` | `boolean` | |
@@ -173,6 +183,8 @@ Set it with `PATCH /{experiment_id}`, or pass it on start.
 ### POST `/api/v1/voice/experiments/{experiment_id}/start`
 
 Optional body `{ "traffic_split": { … } }`; falls back to the stored split. Needs **at least two arms** — `422 An experiment needs at least two arms to compare`.
+
+Every arm is checked before any call is routed to it: a `bot_version_number` must be a published version of the agent, its `model` and `voice` must be ones the agent's speech stack can run (and a `model` is refused on an agent with a `voice_tier`, which picks its own), and every arm's model — its override, else its pinned version's, else the agent's — must be allowed on your plan. A problem returns `422` (or `403` for the plan) naming the arm.
 
 ### POST `/api/v1/voice/experiments/{experiment_id}/stop`
 
@@ -244,8 +256,20 @@ No parameters.
   "winner_arm_id": null,
   "verdict": "short-greeting is ahead on goal completion rate",
   "arms": [
-    { "arm_id": "arm-a-id", "name": "control", "is_control": true, "sample_size": 205, "metric_value": 0.61 },
-    { "arm_id": "arm-b-id", "name": "short-greeting", "is_control": false, "sample_size": 207, "metric_value": 0.68 }
+    {
+      "arm_id": "arm-a-id", "name": "control", "is_control": true,
+      "sample_size": 205, "metric_value": 0.61,
+      "analysed_calls": 198, "goal_met_rate": 0.61,
+      "positive_sentiment_rate": 0.44, "negative_sentiment_rate": 0.12,
+      "avg_duration_seconds": 142.5, "avg_cost_credits": 3.8
+    },
+    {
+      "arm_id": "arm-b-id", "name": "short-greeting", "is_control": false,
+      "sample_size": 207, "metric_value": 0.68,
+      "analysed_calls": 201, "goal_met_rate": 0.68,
+      "positive_sentiment_rate": 0.51, "negative_sentiment_rate": 0.09,
+      "avg_duration_seconds": 118.0, "avg_cost_credits": 3.1
+    }
   ]
 }
 ```
@@ -255,6 +279,8 @@ No parameters.
 | `sufficient_data` | `false` while any arm has fewer than **30** assignments, or fewer than two arms have a value |
 | `leader_arm_id` | Currently ahead on the metric. Not a verdict |
 | `winner_arm_id` | Only set once you conclude |
+| `goal_met_rate`, `positive_sentiment_rate`, `negative_sentiment_rate` | From each call's post-call analysis, whatever the deciding metric. `null` until a call in the arm is analysed |
+| `avg_duration_seconds`, `avg_cost_credits` | Per call. The cost is the call's AI usage in credits (phone carrier minutes are not included) |
 
 > There is deliberately **no p-value or significance field**. `sufficient_data` is a floor, not a test — treat `leader_arm_id` as a signal to keep running, and decide the winner yourself.
 
@@ -264,5 +290,5 @@ No parameters.
 | --- | --- |
 | `403` | Key is missing `experiments:read` / `experiments:write` |
 | `404` | Experiment, arm, agent or voice session not in your tenant |
-| `409` | Concluded and immutable, already running / not running, or an arm edit while running |
-| `422` | Over 6 arms, a second control, fewer than two arms on start, a `traffic_split` that does not add up, or a winner that is not an arm of the experiment |
+| `409` | Concluded and immutable, already running / not running, another experiment already running on the agent, or an arm edit while running |
+| `422` | Over 6 arms, a second control, fewer than two arms on start, a `traffic_split` that does not add up, an arm that cannot be served on a live call, or a winner that is not an arm of the experiment |

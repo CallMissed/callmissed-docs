@@ -22,7 +22,7 @@ Upload an English audio file and get back its transcript plus any combination of
 | Sentiment analysis | `deepgram-sentiment` | `sentiments` |
 | Intent recognition | `deepgram-intents` | `intents` |
 
-English only. Audio Intelligence is available on the Starter, Pro and Enterprise plans, and the key needs the `stt` permission. To run the same analyses on text instead of audio, use `POST /v1/text/intelligence` — see [Models](/docs/models).
+English only. Audio Intelligence is available on the Starter plan and every higher plan, and the key needs the `stt` permission. To run the same analyses on text instead of audio, use `POST /v1/text/intelligence` — see [Models](/docs/models).
 
 ## Basic Usage
 

@@ -53,6 +53,7 @@ Authorization: Bearer cm_your_api_key
   "converted_company_id": null,
   "converted_deal_id": null,
   "converted_at": null,
+  "tags": ["enterprise"],
   "created_at": "2026-10-07T09:00:00Z",
   "updated_at": "2026-10-08T11:00:00Z"
 }
@@ -68,6 +69,7 @@ Authorization: Bearer cm_your_api_key
 | `external_ref` | `string \| null` | Your own de-duplication key, up to 64 characters. Set on create only. Unique per tenant when set |
 | `attribution` | `object \| null` | Free-form JSON about where the lead came from |
 | `converted_*` | `UUID \| null` | Filled in by [convert](#convert-a-lead) |
+| `tags` | `string[]` | Your labels, in the order added. Up to 20, each at most 40 characters. See [tags](/docs/crm-import-export#tags) |
 
 ### Status lifecycle
 
@@ -91,6 +93,7 @@ Newest first, unless you ask for `sort=score`.
 | `owner_user_id` | `UUID` | |
 | `q` | `string` | Up to 320 characters. Case-insensitive substring match on name, email, phone and company name |
 | `follow_up_before` | `datetime` | Leads whose `next_follow_up_at` is at or before this time |
+| `tag` | `string` (repeatable) | Leads carrying **any** of these tags, e.g. `?tag=enterprise&tag=renewal`. Exact match. At most 20 |
 | `sort` | `string` | `newest` (default) or `score` (highest `score` first, then newest). Anything else is `422` |
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
@@ -99,7 +102,7 @@ Newest first, unless you ask for `sort=score`.
 
 Total and counts of your leads by status. Every status is present, with `0` when there are none.
 
-Accepts the same `source`, `owner_user_id`, `q` and `follow_up_before` filters as the list, so the counts describe exactly the leads that list would page through.
+Accepts the same `source`, `owner_user_id`, `q`, `follow_up_before` and `tag` filters as the list, so the counts describe exactly the leads that list would page through.
 
 ```json
 {
@@ -136,6 +139,7 @@ Accepts the same `source`, `owner_user_id`, `q` and `follow_up_before` filters a
 | `message` | `string` | No | The original enquiry. Up to 10,000 characters |
 | `attribution` | `object` | No | |
 | `external_ref` | `string` | No | Up to 64 characters, unique per tenant |
+| `tags` | `string[]` | No | Up to 20, each at most 40 characters. Trimmed; blanks and repeats dropped |
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/crm/leads \
@@ -155,7 +159,7 @@ Returns `201` with the lead object. A reused `external_ref` returns `409`. An `o
 
 ## GET / PATCH / DELETE `/api/v1/crm/leads/{lead_id}`
 
-`PATCH` accepts every create field except `external_ref`, all optional. Explicit `null` is `422` for `name`, `source`, `status`, `score` and `currency`. Moving a lead to `contacted` stamps `last_contacted_at` with the current time unless you send it. Changing the status of a `converted` lead is `422`. `DELETE` permanently deletes the lead and returns `204`; contacts, companies and deals created by a conversion are kept.
+`PATCH` accepts every create field except `external_ref`, all optional. Explicit `null` is `422` for `name`, `source`, `status`, `score` and `currency`. Moving a lead to `contacted` stamps `last_contacted_at` with the current time unless you send it. Changing the status of a `converted` lead is `422`. `tags` replaces the whole list (`null` or `[]` clears it); use [bulk tags](/docs/crm-import-export#post-apiv1crmbulkadd-tags) to add or remove one tag across many leads. `DELETE` permanently deletes the lead and returns `204`; contacts, companies and deals created by a conversion are kept.
 
 ## Convert a lead
 
@@ -201,6 +205,6 @@ Converting a lead that is already `converted` returns `409`, as does a new conta
 | `403` | API key is missing `crm_leads:read` / `crm_leads:write` (dashboard logins are not scope-checked) |
 | `404` | Lead, owner, pipeline, stage or contact not in your tenant |
 | `409` | Duplicate `external_ref`, converting an already converted lead, or a phone/email collision on the new contact |
-| `422` | Blank name, unknown `status` or `source`, `converted` as a status, a null on a required field in `PATCH`, a convert problem listed above, or a value outside the bounds above |
+| `422` | Blank name, unknown `status` or `source`, `converted` as a status, a null on a required field in `PATCH`, a convert problem listed above, more than 20 tags or a tag over 40 characters, or a value outside the bounds above |
 
 Nothing on this page consumes credits.

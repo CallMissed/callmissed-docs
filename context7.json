@@ -9,11 +9,11 @@
     "Base URL is https://api.callmissed.com",
     "Endpoints are OpenAI-compatible: use the OpenAI SDK and set base_url to https://api.callmissed.com/v1",
     "API keys are prefixed with cm_ and sent as the header Authorization: Bearer cm_your_key",
-    "Use sarvam-30b or sarvam-105b for Indic-language LLM tasks",
-    "Use saaras:v3 for Indian-language speech-to-text across 22 Indic languages",
-    "Use bulbul:v3 for Indian-language text-to-speech (39 voices across 11 languages)",
+    "Use sarvam-105b for Indic-language LLM tasks",
+    "Use saaras:v4 for Indian-language speech-to-text across 22 Indic languages",
+    "Use bulbul:v3 for Indian-language text-to-speech (37 voices across 11 languages)",
     "The Anthropic Messages API is available at /v1/messages using the Anthropic SDK",
-    "Free-tier models include kimi-k2.5, sarvam-30b, sarvam-105b, saaras:v3, and bulbul:v3"
+    "Free-tier models include kimi-k2.5, sarvam-105b, saaras:v4, and bulbul:v3"
   ],
   "url": "https://context7.com/callmissed/callmissed-docs",
   "public_key": "pk_oB0ul6t09880agH0mZZNn"

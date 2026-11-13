@@ -48,7 +48,7 @@ Function calling lets the model invoke your functions. Pass a `tools` array and 
 
 Set `parallel_tool_calls: true` to allow the model to call multiple tools in one response.
 
-Up to 128 tools per request. Every model with `supports_tools: true` in [`GET /v1/models`](/docs/models#models-api) accepts them. On the GPT-5.6 and GPT-6 models, a request that sends `tools` runs with reasoning switched off (`reasoning_effort` is sent as `"none"`), because those models cannot combine function tools with reasoning on this endpoint. A request with `tools` never uses the `models` fallback list.
+Up to 10,000 tools per request. Every model with `supports_tools: true` in [`GET /v1/models`](/docs/models#models-api) accepts them, except `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5.5`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-6-sol` and `gpt-6-luna`, which accept at most 128 and return `400 too_many_tools` above that. On the GPT-5.6 and GPT-6 models, a request that sends `tools` runs with reasoning switched off (`reasoning_effort` is sent as `"none"`), because those models cannot combine function tools with reasoning on this endpoint. A request with `tools` never uses the `models` fallback list.
 
 ### Claude models
 

@@ -152,6 +152,7 @@ One profile per account. `GET` creates the profile with defaults on first read i
   "default_terms": "Payment due within 15 days.",
   "bank_details": "Account name, number, IFSC",
   "reply_to_email": "billing@acme.example",
+  "whatsapp_template_id": null,
   "auto_invoice_on_accept": true,
   "created_at": "2026-10-07T09:00:00Z",
   "updated_at": "2026-10-07T09:00:00Z"
@@ -183,6 +184,7 @@ One profile per account. `GET` creates the profile with defaults on first read i
 | `default_notes`, `default_terms` | `string` | Up to 5000 characters each. Copied onto new documents |
 | `bank_details` | `string` | Up to 2000 characters. Copied onto new documents |
 | `reply_to_email` | `string` | Up to 320 characters, must be a valid-looking email address. Replies to documents you send go here |
+| `whatsapp_template_id` | `UUID` | Optional. One of your approved WhatsApp templates with exactly one variable, in its body, and no media header. A quote or invoice sent on WhatsApp outside the customer's 24-hour window goes out in this template, with the document summary and link as the variable. Anything else returns `422` |
 | `auto_invoice_on_accept` | `boolean` | Default `true`. See [quotes](/docs/crm-quotes#accepting) |
 
 ## Tax regimes
@@ -216,6 +218,6 @@ Quotes are numbered when first sent. Invoices are numbered when issued, so draft
 | `403` | Key is missing the scope, or a dashboard user who is not an owner or admin creates, updates or deletes tax rates or replaces the billing profile |
 | `404` | Product, tax rate or referenced tax rate not in your tenant |
 | `409` | Duplicate SKU or tax rate name |
-| `422` | Blank name, `rate_bps` outside `0..10000`, unknown `tax_regime` or `numbering_period`, an invalid `country`, currency, prefix or `reply_to_email`, or a value outside the bounds above |
+| `422` | Blank name, `rate_bps` outside `0..10000`, unknown `tax_regime` or `numbering_period`, an invalid `country`, currency, prefix or `reply_to_email`, a `whatsapp_template_id` that is not an approved one-variable template, or a value outside the bounds above |
 
 Nothing on this page consumes credits.

@@ -46,9 +46,33 @@ Pass these in the `events` array. An unrecognised value returns `422` listing th
 | Customer payment links | `payment_request.partially_paid`, `payment_request.paid`, `payment_request.expired`, `payment_request.cancelled` — a payment link an agent sent to your customer changed status in your own connected Razorpay account |
 | CRM quotes & invoices | `quote.accepted` (a customer accepted a [quote](/docs/crm-quotes) on its public page, or your team recorded the acceptance), `invoice.paid` (a [CRM invoice](/docs/crm-invoices) was fully paid, online through its payment link or by a recorded manual payment) |
 
+### Conversation and message events
+
+Sent once the change is saved, on every channel that keeps a conversation thread: WhatsApp, Instagram, Facebook Messenger, the website chat widget, and a phone call handed to a person. A subscription scoped to one agent receives the events of that agent's conversations.
+
+| Event | When | `data` fields |
+| --- | --- | --- |
+| `conversation.started` | A new conversation thread opens (the customer's first message, or your first message to them) | `conversation_id`, `bot_id`, `channel` (`whatsapp`, `instagram`, `facebook`, `web` or `voice`), `external_id` (the customer on that channel: phone number or WhatsApp id, platform user id, or chat session id), `contact_id` (or `null`), `started_at` |
+| `conversation.ended` | An open conversation is set to `completed` or `failed`, from the inbox, the API or the agent | `conversation_id`, `bot_id`, `channel`, `external_id`, `status`, `ended_at` |
+| `message.received` | A customer's message is stored | `conversation_id`, `bot_id`, `channel`, `from`, `message_id`, `type`, `text` (`null` for media without a caption). WhatsApp adds `from_user_id` and `username` |
+| `message.sent` | A message to the customer is stored | `conversation_id`, `bot_id`, `channel`, `to`, `message_id`, `type`, `text`, `sent_by` (`ai` for your agent, `agent` for a person in the inbox, `api` for an API call, `campaign` for a campaign send) |
+
+`message_id` is the channel's own message id when it has one (for WhatsApp, the id that `message.status` reports on), otherwise the CallMissed message id. Reopening a conversation does not send an event.
+
+### Payment events
+
+Sent after the payment's outcome is saved, for payments on your own CallMissed account (plan purchases, renewals and credit top-ups, including automatic recharges). Each event is sent at most once per `order_id`, but one order can send both: a payment that is declined and then retried successfully sends `payment.failed` and later `payment.succeeded`.
+
+`amount` is in **major units** of `currency` (`999.0` is ₹999.00), not the minor units the CRM quote and invoice events use.
+
+| Event | `data` fields |
+| --- | --- |
+| `payment.succeeded` | `order_id`, `amount` (major units), `currency`, `type` (`plan` or `credit_topup`), `plan` (or `null` for a top-up), `credits` (credits the payment added), `invoice_number` (or `null` for a renewal, whose invoice follows separately), `recurring` (`true` for a subscription charge) |
+| `payment.failed` | `order_id`, `amount`, `currency`, `type`, `plan`, `reason` (why the payment did not go through, or `null`) |
+
 ### CRM quote and invoice events
 
-Both are sent once the change is saved. Money is in minor units of the document's `currency`; ids are your own records.
+Both are sent once the change is saved. Money is in minor units of the document's `currency` (unlike the [payment events](#payment-events), which use major units); ids are your own records.
 
 | Event | `data` fields |
 | --- | --- |
@@ -70,6 +94,21 @@ Both are sent once the change is saved. Money is in minor units of the document'
 | `handoff_number` | `1` for the call's first handoff, then `2`, … |
 | `at` | When the handoff happened (ISO 8601) |
 
+### Post-call analysis event
+
+`voice_analysis.completed` is sent once per call, after the [post-call analysis](/docs/voice-sessions-api) is saved. It carries the whole result, so a survey or feedback agent's answers reach your system without a second request.
+
+| `data` field | Meaning |
+| --- | --- |
+| `analysis_id` | The analysis record |
+| `session_id` | The voice session the analysis belongs to |
+| `bot_id` | The agent that took the call |
+| `summary` | A short summary of the call, or `null` |
+| `sentiment` | `positive`, `neutral`, `negative` or `unknown` |
+| `disposition` | The call outcome label, or `null` |
+| `goal_met` | `true` / `false` for the agent's goal variable, `null` when the agent declares none |
+| `extracted` | The agent's own analysis variables by name, for example `{"rating": 4, "callback_requested": false}`; `{}` when it declares none |
+
 ### Voice session end reasons
 
 A voice session fires exactly one of `voice_session.ended` or `voice_session.failed`, once, whichever way it ends: the agent or caller hanging up, a `DELETE`, the managed voice agent socket closing, or the session timing out. The event is sent only after the end has been saved. If two end signals arrive at the same moment, the first one decides `end_reason` and `duration_seconds`, and the later one changes nothing.
@@ -87,7 +126,7 @@ Every event is a `POST` with this JSON body:
 ```json
 {
   "event": "message.received",
-  "data": { "conversation_id": "c0ffee00-1111-2222-3333-444455556666", "role": "user" },
+  "data": { "conversation_id": "c0ffee00-1111-2222-3333-444455556666", "channel": "web", "from": "chat-session-id", "text": "Hi" },
   "timestamp": "2026-08-04T09:12:00.512301+00:00"
 }
 ```

@@ -70,7 +70,7 @@ Voice agents run the whole speech pipeline, so the [Voice Session API](/docs/voi
 
 ### Resource scopes
 
-Scopes gate the resource endpoints under `/api/v1/` — agents, conversations, CRM, support, knowledge, webhooks and the rest. Unlike permissions, scopes default to **empty = no resource access** — you opt in explicitly.
+Scopes gate the resource endpoints under `/api/v1/` — agents, conversations, CRM, support, knowledge, webhooks and the rest. Like permissions, a new key gets **all scopes** by default. To restrict a key, choose **Account data → Choose areas** when you create it in the console, or later in the key's **Edit** dialog, and pick no access, view, or view and change for each area; **No account data** leaves the key with AI services only. A call that needs a scope the key lacks returns `403` naming the scope.
 
 | Scope | Gates |
 |-------|-------|

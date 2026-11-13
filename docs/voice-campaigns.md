@@ -140,7 +140,7 @@ With `amd_enabled` on, each answered call is checked for a voicemail greeting be
 | `full_greeting` | Listens to the whole greeting and classifies it with your agent's language model. A short spoken "hello" counts as a person straight away | After the greeting ends and the record beep has sounded |
 | `off` | No detection, even with `amd_enabled` on | Never |
 
-In `full_greeting` mode your agent waits for the callee to speak first, so a person who picks up and stays silent hears your agent after a few seconds. A greeting saying no message can be left (a full or unset mailbox, a phone that is switched off or out of coverage) ends the call without a drop. A phone menu or a call screener asking who is calling is treated as a person, so your agent answers it. A spoken notice that the call is recorded never counts as a machine on its own, in either mode. Agents that run a speech-to-speech model or your own language model use `classic` detection.
+In `full_greeting` mode your agent waits for the callee to speak first, so a person who picks up and stays silent hears your agent after a few seconds. A greeting saying no message can be left (a full or unset mailbox, a phone that is switched off or out of coverage) ends the call without a drop. A phone menu or a call screener asking who is calling is treated as a person, so your agent answers it. A spoken notice that the call is recorded never counts as a machine on its own, in either mode. Agents that run a speech-to-speech model use `classic` detection.
 
 The `full_greeting` classification runs on your agent's language model and is billed as that call's model usage, at the agent's model rate: typically one or two short requests per call. It adds no speech-to-text cost, because it reads the call's own transcript.
 
@@ -173,7 +173,7 @@ curl -X POST https://api.callmissed.com/api/v1/voice-campaigns/6d1e.../status \
 
 Returns the updated campaign, or `409` if the move is not allowed. Posting the status it is already in is a no-op that returns `200`.
 
-Moving to `scheduled` or `running` runs the [TRAI readiness check](#trai-readiness-for-ai-calls-india). If your account enforces it and the campaign is not ready, the move returns `409` naming what is missing.
+Moving to `scheduled` or `running` first checks the campaign can dial. It returns `409` with a plain reason, and changes nothing, when it has no agent (its own, or the from-number's outbound agent), no number to call from (its own, a caller ID pool, or your account's active number), or no contacts left to call (`pending`, `approved` or `calling`). It then runs the [TRAI readiness check](#trai-readiness-for-ai-calls-india). If your account enforces it and the campaign is not ready, the move returns `409` naming what is missing.
 
 Moving to `running` fires the `campaign.started` webhook; reaching `completed` fires `campaign.completed`. Pausing, cancelling and scheduling fire nothing — they are operator moves, not lifecycle beats a subscriber acts on.
 
@@ -394,7 +394,7 @@ Taking a number back off the list un-does somebody's opt-out, so it is done by a
 |--------|------|
 | `403` | The API key is missing `campaigns:read` or `campaigns:write` |
 | `404` | The campaign, contact, agent, number or voicemail template is not yours |
-| `409` | The status move is not allowed, the campaign fails an enforced TRAI readiness check, or you are adding contacts to a running campaign |
+| `409` | The status move is not allowed, a start is missing an agent, a number or contacts, the campaign fails an enforced TRAI readiness check, or you are adding contacts to a running campaign |
 | `422` | A DLT field with characters an identifier cannot have, a calling window that wraps midnight, a batch over the cap, a malformed `column_map`, or a CSV that is empty or too large |
 
 ## Related
