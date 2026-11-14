@@ -371,7 +371,7 @@ else:
 | `PATCH /numbers/{number_id}` | `telephony:write` (owner/admin for JWT) | Update alias / linked bot / per-number call config |
 | `DELETE /numbers/{number_id}?confirm=true` | `telephony:write` (owner/admin for JWT) | Release a number (permanent) |
 
-`GET /numbers` accepts `status` (e.g. `active`), `limit` (1–200, default 50), and `offset` (0–100000), newest first. `PATCH` updates only the fields you send; a `bot_id` or `outbound_bot_id` that is not yours returns `404`. `bot_id` is the agent that answers inbound calls. It also places outbound calls from the number unless you set `outbound_bot_id` to a different agent; set `outbound_bot_id` back to `null` to use one agent for both again. A number moves through `pending` → `active` → `suspended` (unpaid) → `released`.
+`GET /numbers` accepts `status` (e.g. `active`), `limit` (1–200, default 50), and `offset` (0–100000), newest first. `PATCH` updates only the fields you send; a `bot_id` or `outbound_bot_id` that is not yours returns `404`. `bot_id` is the agent that answers inbound calls. It also places outbound calls from the number unless you set `outbound_bot_id` to a different agent; set `outbound_bot_id` back to `null` to use one agent for both again. A number with no agent (or an agent that is switched off) and no call menu, call flow, call queue or agent squad answers with a short "Sorry, this number isn't taking calls right now. Please try again later." and then hangs up. That call is billed like any other short inbound call: carriage for its length, plus the ₹1 a minute [platform fee](/docs/voice-tiers#custom-stack-billing) at its 30-second minimum. A number moves through `pending` → `active` → `suspended` (unpaid) → `released`.
 
 ```bash
 # List your rented numbers
@@ -507,6 +507,9 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/calls \
   "hangup_cause_code": null,
   "hangup_source": null,
   "recording_id": null,
+  "amd_result": null,
+  "end_reason": null,
+  "tool_call_count": null,
   "followed_up_at": null,
   "metadata": null,
   "created_at": "2026-04-19T12:00:00Z"
@@ -522,18 +525,20 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/calls \
 | `402` | Insufficient credits to reserve the call |
 | `403` | Missing `telephony:write` scope, JWT caller is not an owner/admin, the destination is on your [do-not-call list](/docs/voice-campaigns#do-not-call-list), or the destination country / number range is not allowed |
 | `404` | `from_number_id` not found/active, or an explicit `bot_id` not found |
+| `409` | The `bot_id` agent is switched off (`This agent is switched off. Switch it on to place calls.`). Nothing is dialled or charged; switch the agent on (`POST /api/v1/bots/{bot_id}/toggle`) and retry |
 | `422` | `to_e164` is malformed, `variables` breaks the limits above, `send_digits` has a character outside `0-9 * # w` or is longer than 32, or the agent declares a required input variable you did not supply |
-| `429` | Concurrent-call limit reached (up to 10 live calls per tenant), or a burst of calls that looks like toll fraud or robocalling was held |
+| `429` | The phone calls at once limit for your plan is reached (Free 1, Starter 5, Pro 10, Enterprise 20, Scale 30; Business and Corporate are custom, agreed with sales@callmissed.com), or a burst of calls that looks like toll fraud or robocalling was held |
 
 **Phone menus (agent setting).** To let an agent press keys itself while it talks to someone else's automated menu, set `dtmf_send_enabled` to `true` in the agent's `config` (off by default). Set `ivr_navigation` to `true` as well and the agent also recognises a recorded menu, waits through long prompts and tries again when a menu repeats itself; it has no effect without `dtmf_send_enabled`. Both apply to phone calls only.
 
-The call row carries two costs. `cost_credits` is the **phone-line** leg only: it is filled in after the call by reconciliation (typically within the hour) and stays `null` for inbound calls. `ai_cost_credits` is the **voice agent** (STT, LLM and TTS) for the same call. `duration_seconds` is the best duration available right now, filled the moment the call ends.
+The call row carries two costs. `cost_credits` is the **phone-line** leg only: it is filled in after the call by reconciliation (typically within the hour) and stays `null` for inbound calls. `ai_cost_credits` is the **voice agent** (STT, LLM and TTS) for the same call. `duration_seconds` is the best duration available right now, filled the moment the call ends. `amd_result` is the answering-machine verdict (`human`, `machine` or `unknown`; `null` when detection did not run), `end_reason` says how the agent's session ended (`null` until it has), and `tool_call_count` is how many tools the agent ran during the call (see the turn `tool_calls` in the [voice session transcript](/docs/voice-sessions-api)). The list, get, follow-up and hang-up responses fill both; the response to placing a call leaves them `null`.
 
 ## 7. List & Fetch Calls
 
 | Endpoint | Scope | Purpose |
 |----------|-------|---------|
 | `GET /calls` | `telephony:read` | List your calls |
+| `GET /calls/export` | `telephony:read` (owner/admin for JWT) | Download calls with their post-call analysis as CSV or Excel |
 | `GET /calls/{call_id}` | `telephony:read` | Get one call |
 | `GET /calls/{call_id}/recording` | `telephony:read` | Signed recording URL |
 | `DELETE /calls/{call_id}` | `telephony:write` (owner/admin for JWT) | Hang up a live call |
@@ -550,6 +555,10 @@ The call row carries two costs. `cost_credits` is the **phone-line** leg only: i
 | `to` | ISO 8601 timestamp: calls started before it | — |
 | `bot_id` | UUID of one of your agents | — |
 | `follow_up` | `open` (not yet followed up) / `done` | — |
+| `analysis` | URL-encoded JSON list of up to 8 filters on the post-call analysis, all of which must match. See below | — |
+| `sort` | `created_at`, or an analysis field such as `rating` (numbers first, then text, calls without a value last) | `created_at` |
+| `sort_dir` | `asc` / `desc` | `desc` |
+| `view_id` | UUID of a saved call view. Its filters and sort apply; parameters you pass override them, and `analysis` filters are added to the view's. Also needs `crm_views:read` | — |
 | `limit` | 1–200 | 50 |
 | `offset` | 0–100000 | 0 |
 
@@ -559,6 +568,163 @@ curl "https://api.callmissed.com/api/v1/telephony/calls?direction=outbound&statu
 ```
 
 Returns an array of calls, newest first. `GET /calls/{call_id}` fetches a single call (`404` if not owned).
+
+**Filter on what the agent captured**
+
+Each `analysis` filter is `{"field", "op", "value"}`. `field` is one of the agent's [analysis variables](/docs/bots), or `call.sentiment`, `call.disposition` or `call.goal_met`.
+
+| `op` | Matches | `value` |
+|------|---------|---------|
+| `eq` / `neq` | Equal / not equal. Text ignores case. `neq` also matches calls with no value | text, number or boolean |
+| `lt` / `lte` / `gt` / `gte` | Numeric comparison. Values stored as text never match | number |
+| `contains` | Text contains, ignoring case | text, up to 200 characters |
+| `is_empty` / `not_empty` | No value captured (including calls that were not analysed) / a value captured | — |
+
+```bash
+# Calls rated 2 or lower, worst first
+curl -G "https://api.callmissed.com/api/v1/telephony/calls" \
+  --data-urlencode 'analysis=[{"field":"rating","op":"lte","value":2}]' \
+  -d sort=rating -d sort_dir=asc \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+A malformed `analysis` or `sort` returns `422`.
+
+**Saved call views.** Save a filter set once with `POST /api/v1/crm/saved-views` and `entity_type: "call"` ([Saved views](/docs/crm-custom-fields#saved-views)), then list its calls with `view_id`. They also appear in the console under Voice, Call log.
+
+### Export call results (CSV or Excel)
+
+`GET /calls/export` downloads every call that matches the filters, newest first, with the call's post-call analysis. It takes the same `direction`, `status`, `q`, `from`, `to`, `bot_id` and `follow_up` filters as `GET /calls` (no `limit` / `offset`), plus:
+
+| Param | Values | Default |
+|-------|--------|---------|
+| `format` | `csv` (UTF-8 with a byte-order mark, so Excel shows Hindi, Tamil and other scripts correctly) / `xlsx` | `csv`, or the template's format |
+| `bot_ids` | Comma-separated agent ids, up to 50, for several agents at once. In `xlsx` each agent gets its own sheet with its own fields; in `csv` the calls share one table. `404` if any is not yours | — |
+| `header_style` | `readable` (headers and values in plain words, for people) / `raw` (machine keys and unformatted values, for integrations) | `raw` with an API key (`cm_*`); `readable` from the console |
+| `export_columns` | The exact columns of the file, in order, comma-separated (up to 60). See "Choosing columns" below | every built-in column and every analysis field |
+| `template_id` | A saved export template: its columns, format and header style, unless you pass them yourself. Also needs `crm_views:read` | — |
+| `timezone` | IANA zone used for call times in the `readable` style | your workspace time zone, else `Asia/Kolkata` |
+| `campaign_id` | UUID of an outbound campaign: only the calls it placed | — |
+| `days` | 1–90. The window ending at `to` (default now), used when `from` is not set | 30, or the whole campaign with `campaign_id` |
+| `analysis` | The same analysis filters as `GET /calls` | — |
+| `view_id` | A saved call view: its filters apply, and its columns become the analysis columns. Also needs `crm_views:read` | — |
+| `columns` | Comma-separated analysis fields (up to 12) to export instead of every field, in that order | — |
+
+The window between `from` and `to` can be at most 90 days (`422` otherwise). With `campaign_id` there is no window limit: leave out `from` and `days` to get every call the campaign placed, however old. The file holds at most 50,000 rows; export a shorter window for more.
+
+**Header styles.** `readable` is written for a person opening the file. `raw` is the stable machine format; use it when code reads the file. The default depends on who is calling: an API key gets `raw`, the file integrations have read since this endpoint shipped, while the console and the `export_call_results` agent tool default to `readable`. (Note, 2026-11-13: the 2026-11-12 release briefly made `readable` the API default as well; that is reverted. Pass `header_style` explicitly if your code must not depend on the default.)
+
+| | `readable` | `raw` |
+|---|---|---|
+| Headers | `Call time (IST)`, `Phone number`, `Star rating` | `call_time_utc`, `phone_number`, `star_rating` |
+| Call time | `12 Nov 2026, 4:05 PM` in the `timezone` | ISO 8601, UTC |
+| Duration | `2m 05s` | seconds, as a number |
+| True / false | `Yes` / `No` | `true` / `false` |
+| Status, direction, end reason, sentiment, outcome, enum fields | In words: `No answer`, `Call back later` | As stored: `no_answer`, `call_back_later` |
+| A star rating field | `4 / 5` | `4` |
+| Default column order | Call time, Agent, Phone number, Channel, Direction, Duration, Status, How it ended, Summary, Sentiment, Outcome, Goal met, the analysis fields, Call ID | `call_id`, `call_time_utc`, `agent`, `phone_number`, `direction`, `duration_seconds`, `status`, `end_reason`, `analysis_status`, `summary`, `sentiment`, `disposition`, `goal_met`, the analysis fields, `channel` |
+
+The zone in the `readable` call-time header is the zone's standard-time name all year (`Call time (EST)` for America/New_York in July too, `GMT` for Europe/London, `AEST` for Australia/Sydney), so a scheduled export never adds a second call-time column to its sheet when the clocks change; the values themselves follow daylight saving. No two columns share a header: when an analysis field is named like a built-in column in the same file (a field called `summary`, `status` or `call_id`), the built-in keeps its header and the field's header says which field it is, `Summary (summary)` in `readable` and `summary__field` in `raw`. A Google Sheet tab filled by a scheduled export gets the same headers.
+
+A missing value is an empty cell in both styles. `phone_number` is the other party. The file has one row per phone call and per WhatsApp call an agent answered or placed; `channel` is `phone` or `whatsapp` (`Phone` / `WhatsApp` in `readable`). In `raw` it is the last column (added 2026-11-14), so no column your code already reads has moved. `analysis_status` is `pending` / `completed` / `failed`, empty when the call was not answered.
+
+**Analysis fields.** With `bot_id`, these are that agent's `analysis_variables` in the order they are declared (`404` if the agent is not yours); with `bot_ids`, the chosen agents' fields; with neither, every agent's. Fields a call extracted that no agent declares any more come last. A whole-number rating reads `4`, not `4.0`.
+
+**Choosing columns.** `export_columns` lists exactly the columns you want, in the order you want them. Each entry is one of:
+
+| Key | `readable` header | `raw` header |
+|-----|-------------------|--------------|
+| `call.time` | Call time (zone) | `call_time_utc` |
+| `call.agent` | Agent | `agent` |
+| `call.number` | Phone number | `phone_number` |
+| `call.direction` | Direction | `direction` |
+| `call.channel` | Channel | `channel` |
+| `call.duration` | Duration | `duration_seconds` |
+| `call.status` | Status | `status` |
+| `call.end_reason` | How it ended | `end_reason` |
+| `call.analysis_status` | Analysis | `analysis_status` |
+| `call.summary` | Summary | `summary` |
+| `call.sentiment` | Sentiment | `sentiment` |
+| `call.disposition` | Outcome | `disposition` |
+| `call.goal_met` | Goal met | `goal_met` |
+| `call.recording` | Recording: a console link to the call when it has a recording, else empty | `recording_link` |
+| `call.id` | Call ID | `call_id` |
+| an analysis field name, e.g. `star_rating` | The name in words: Star rating | the name |
+| `*` | Every analysis field you did not name, in the usual order | the same |
+
+An unknown `call.` key or a malformed name is a `422`. In an Excel file for several agents, a named analysis field appears only on the sheets of the agents that declare it.
+
+**Export templates.** Save a column list, a format and a header style once and reuse them with `template_id`. A template is a saved view with `entity_type: "call_export"`; see [Export templates](/docs/crm-custom-fields#export-templates).
+
+In CSV, a cell that starts with `=`, `+`, `-`, `@`, a tab or a carriage return is prefixed with `'` so spreadsheets do not run it as a formula, which is why phone numbers appear as `'+91…`. In `xlsx`, numbers and true/false values are typed cells and text is always stored as text, so nothing needs the prefix.
+
+```bash
+curl "https://api.callmissed.com/api/v1/telephony/calls/export?bot_id={bot_id}&days=30&format=xlsx" \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -o call-results.xlsx
+
+# Two agents, chosen columns, machine keys
+curl "https://api.callmissed.com/api/v1/telephony/calls/export?bot_ids={bot_a},{bot_b}&export_columns=call.time,call.agent,call.number,*,call.id&header_style=raw" \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -o call-results.csv
+```
+
+`GET /calls` and `GET /calls/{call_id}` also carry each call's post-call analysis as `analysis` (`status`, `summary`, `sentiment`, `disposition`, `goal_met`, `extracted`), or `null` until it has run.
+
+### Scheduled exports
+
+Send the same call results on a timetable instead of downloading them by hand. A scheduled export goes out every day (yesterday's calls) or every week (the seven days before the run day), to people in your workspace by email, to a Google Sheet tab, or both. These endpoints live under `/api/v1/scheduled-exports`, not under `/api/v1/telephony`.
+
+| Endpoint | Scope | What it does |
+|----------|-------|--------------|
+| `GET /api/v1/scheduled-exports` | `telephony:read` | List exports with their recipients, next run and last run |
+| `POST /api/v1/scheduled-exports` | `telephony:write` | Create an export |
+| `PATCH /api/v1/scheduled-exports/{id}` | `telephony:write` | Change it. `{"enabled": false}` pauses, `true` resumes |
+| `DELETE /api/v1/scheduled-exports/{id}` | `telephony:write` | Delete it and its run history |
+| `GET /api/v1/scheduled-exports/{id}/runs` | `telephony:read` | Run history, newest first (`limit`, `offset`) |
+| `POST /api/v1/scheduled-exports/{id}/run` | `telephony:write` | Send now: queue one delivery of the latest closed period (`202`) |
+| `GET /api/v1/scheduled-exports/runs/{run_id}/download` | `telephony:read` | The file for one delivery, in the export's format |
+
+Create and update take:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `name` | string | Required on create, up to 120 characters |
+| `frequency` | `daily` / `weekly` | Required on create |
+| `weekday` | 0–6 | Weekly only, required then. `0` is Monday |
+| `hour` | 0–23 | Hour of the day it goes out, in `timezone_name`. Default `9` |
+| `timezone_name` | string | IANA zone. Default `Asia/Kolkata`. Periods are whole days in this zone |
+| `bot_id` | UUID | Only this agent's calls |
+| `campaign_id` | UUID | Only this outbound campaign's calls |
+| `view_id` | UUID | Only the calls a saved call-log view matches, with that view's columns. The view must be shared with your workspace. Not together with `bot_id` or `campaign_id` (`422`) |
+| `format` | `xlsx` / `csv` | The file behind the email link. Default `xlsx` |
+| `template_id` | UUID | An export template shared with your workspace: the columns of the file and of the sheet, in order. `null` goes back to the default columns |
+| `header_style` | `readable` / `raw` | How headers and values are written, as on `GET /calls/export`. Default `readable`. Exports created before header styles existed stay `raw` |
+| `recipient_emails` | string[] | Up to 20. Each must be an active member of your workspace (`422` otherwise) |
+| `recipient_user_ids` | UUID[] | The same recipients by user id |
+| `integration_id`, `spreadsheet_id`, `sheet` | UUID, string, string | A Google Sheets connection of yours, a spreadsheet you allowed on it, and an existing tab. All three or none |
+| `enabled` | boolean | `false` pauses the export |
+
+Leave out `bot_id`, `campaign_id` and `view_id` to cover every call. With `view_id`, the export keeps the view's filters and columns but not its date range: each delivery covers the export's own period. If the view is later deleted or made private, the next run fails with an `error` that says so, and nothing is sent. An export needs at least one destination: a recipient or a sheet (`422` otherwise).
+
+Recipients get an email with a link, not an attachment: the file holds callers' phone numbers, so it is downloaded by a signed-in workspace member. On a sheet, each call is one row under the tab's header and carries its call id (`call_id`, or `Call ID` in the `readable` style; it is added even when a template leaves it out); a call that is already on the tab is not added again, your own columns are left alone, and a field the tab has no column for gets a new column at the end. Columns are the same as `GET /calls/export`. A tab keeps the header style it started with: changing `header_style` on an export that writes to a sheet is a `422` unless you point it at another tab in the same request. If the template is later deleted or made private, the next run fails with an `error` that says so.
+
+Each run in the history has `status` (`queued`, `running`, `succeeded`, `failed`), `period_start`, `period_end`, `row_count`, `emails_sent`, `sheet_rows_added` and, when it failed, an `error` sentence that says what to change.
+
+```bash
+curl -X POST "https://api.callmissed.com/api/v1/scheduled-exports" \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Weekly feedback",
+    "frequency": "weekly",
+    "weekday": 0,
+    "hour": 9,
+    "timezone_name": "Asia/Kolkata",
+    "bot_id": "{bot_id}",
+    "recipient_emails": ["you@yourcompany.com"]
+  }'
+```
 
 ### Follow up a missed call
 
@@ -639,7 +805,7 @@ curl -X POST https://api.callmissed.com/api/v1/telephony/click-to-call \
 | `404` | `bot_id` or `contact_id` not found |
 | `409` | No `agent_number` and no operator phone configured, or no active number to call from |
 | `422` | Neither `destination` nor `contact_id` given, or a number is not valid E.164 |
-| `429` | Too many calls in progress (a bridge uses two of the 10 concurrent lines) |
+| `429` | Too many calls in progress (a bridge or live transfer counts as one call, and may use one line above your plan's limit) |
 | `503` | Nobody answered your phone, so the contact was not dialled |
 
 ## 9. Voicemail drop

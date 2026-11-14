@@ -182,7 +182,7 @@ event: message_stop          → stream complete
 | `top_p` | number | No | Nucleus sampling, `0`–`1` |
 | `top_k` | integer | No | Top-K sampling, `1`–`500` |
 | `stop_sequences` | array | No | Up to 16 stop sequences |
-| `tools` | array | No | Up to 128 `{name, description, input_schema}` tools. Server tools (for example `web_search_20250305`) return `400` |
+| `tools` | array | No | Up to 10,000 `{name, description, input_schema}` tools (128 on the GPT models listed in [Function Calling](/docs/chat-function-calling)). Server tools (for example `web_search_20250305`) return `400` |
 | `thinking` | object | No | `{"type": "disabled"}` turns reasoning off (`reasoning_effort: "none"`). `enabled` and `adaptive` keep the model's default reasoning; `budget_tokens` is not applied |
 | `output_config` | object | No | `effort` (`low`, `medium`, `high`, `xhigh`, `max`) sets the model's `reasoning_effort` and takes precedence over `thinking`. Each model keeps only the levels it supports. `format` (`{"type": "json_schema", "schema": {...}}`) requests structured JSON output |
 | `tool_choice` | object | No | `{"type": "auto"}`, `{"type": "any"}`, `{"type": "none"}` or `{"type": "tool", "name": "..."}` |

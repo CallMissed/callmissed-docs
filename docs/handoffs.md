@@ -156,9 +156,12 @@ curl -X POST https://api.callmissed.com/api/v1/handoffs/c0ffee00-1111-2222-3333-
   -d '{ "resume_ai": true }'
 ```
 
-Returns the updated handoff object. `404 Conversation not found`.
+Returns the updated handoff object.
 
-This endpoint does not check that the conversation is currently `escalated`: calling it on any conversation in your tenant sets that conversation to `active`.
+| Status | Detail |
+| --- | --- |
+| `404` | `Conversation not found` |
+| `409` | `This conversation is not an open handoff.` — the conversation's status is not `escalated`, so a completed or already-resolved conversation is never reopened |
 
 ## POST `/api/v1/handoffs/{conversation_id}/callback`
 

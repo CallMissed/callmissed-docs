@@ -141,35 +141,51 @@ curl -X POST https://api.callmissed.com/api/v1/instagram/posts \
   }'
 ```
 
-### The two-step finish for a slow Instagram post
+### A slow Instagram post finishes on its own
 
 Instagram publishing is a multi-step upstream flow: a container is created, Meta
 processes the media, then the container is published. This endpoint waits a short
 budget (about 27 seconds) for that to finish. If the media is still processing
 when the budget runs out, it returns the `container_id` with status
-`IN_PROGRESS` instead of hanging — **do not re-post** (that risks a duplicate).
-Finish it with the two routes below.
+`IN_PROGRESS` and `publish_status` `pending` instead of hanging — **do not
+re-post** (that risks a duplicate). The post is queued and published for you as
+soon as Meta finishes processing it, within the container's 24-hour lifetime.
 
 ```json
-{ "media_id": "17895695668004550", "container_id": "17889455560051444", "status": "PUBLISHED" }
+{ "media_id": null, "container_id": "17889455560051444", "status": "IN_PROGRESS", "publish_status": "pending" }
 ```
 
-**Check a container's status** — `GET /api/v1/instagram/posts/{container_id}`
+A post that published inside the budget returns `"status": "PUBLISHED"`,
+`"publish_status": "published"` and its live `media_id`.
 
-Poll this until `status_code` is `FINISHED`, then publish. Poll no more than once
-a minute. A container **expires 24 hours** after creation. `status_code` is one of
-`IN_PROGRESS`, `FINISHED`, `PUBLISHED`, `ERROR` or `EXPIRED`.
+**List queued posts** — `GET /api/v1/instagram/posts`
+
+The posts that were queued, newest first, each with `publish_status` `pending`,
+`published` (with its `media_id`) or `failed` (with a plain-language `error`).
+Optional `?status=pending|published|failed` and `?limit=` (1–200, default 50).
 
 ```json
-{ "container_id": "17889455560051444", "status_code": "FINISHED" }
+[{ "id": "8b6f…", "account_id": "2c41…", "container_id": "17889455560051444", "post_type": "reel",
+   "publish_status": "published", "media_id": "17895695668004550", "error": null,
+   "created_at": "2026-11-14T09:00:00Z", "updated_at": "2026-11-14T09:02:00Z" }]
 ```
 
-**Publish a finished container** — `POST /api/v1/instagram/posts/{container_id}/publish`
+**Check one container** — `GET /api/v1/instagram/posts/{container_id}`
 
-Publishes a container whose media has finished processing, returning the live
-`media_id`.
+`status_code` is Meta's live container status (`IN_PROGRESS`, `FINISHED`,
+`PUBLISHED`, `ERROR` or `EXPIRED`); for a queued post the response also carries
+`publish_status`, `media_id` and `error`. Poll no more than once a minute.
 
-Both need `whatsapp:send` and take the same optional `?account=` hint. Use the **same** account you created
+```json
+{ "container_id": "17889455560051444", "status_code": "FINISHED", "publish_status": "pending", "media_id": null, "error": null }
+```
+
+**Publish a finished container now** — `POST /api/v1/instagram/posts/{container_id}/publish`
+
+Optional: publishes a container whose media has finished processing without
+waiting for the queue, returning the live `media_id`.
+
+All three need `whatsapp:send` and take the same optional `?account=` hint. Use the **same** account you created
 the container with — a container belongs to the account that made it, so resolving
 to a different one fails upstream.
 

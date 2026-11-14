@@ -11,6 +11,35 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## November 2026
 
+### Legacy voice WebSocket removed (2026-11-11)
+
+- **`wss://api.callmissed.com/ws/voice-agent` is removed.** For a voice agent over a plain WebSocket, use the [Managed Voice Agent](/docs/managed-voice-agent) at `wss://api.callmissed.com/v2/voice/agent`: it sends a `ConversationText` event for each finished caller turn. For WebRTC, use [voice sessions](/docs/voice-sessions-api). The Real-time STT page, which documented the removed socket, now redirects to the Managed Voice Agent. File transcription on [Speech to Text](/docs/speech-to-text) is unchanged.
+
+### ElevenLabs voices and Scribe transcription (2026-11-07)
+
+- **Nine ElevenLabs text-to-speech models** under their own IDs on `POST /v1/audio/speech` and in voice agents and voice sessions (`tts_model`): `eleven_v4`, `eleven_v4_turbo`, `eleven_v3`, `eleven_v3_conversational`, `eleven_multilingual_v2`, `eleven_flash_v2_5`, `eleven_turbo_v2_5`, `eleven_flash_v2` and `eleven_turbo_v2`. v4 speaks 91 languages and v3 85, both including Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia and Urdu; Flash v2.5 speaks 32 including Hindi and Tamil. `eleven_v4`, `eleven_v3` and `eleven_multilingual_v2` are $0.8333 per 10K characters, the rest $0.4167. See [Text to Speech](/docs/text-to-speech#elevenlabs).
+- **One shared voice library.** Pass a premade name (`sarah` default, `george`, `brian`, …) or any ElevenLabs voice ID, including your cloned voices, as `voice`. `language` takes a base code (`hi`) and enforces the language on every model except `eleven_multilingual_v2`; `speed` clamps to 0.7–1.2; `mp3`, `wav`, `pcm`, `opus`, `mulaw` and `alaw` output. v3 and v4 perform audio tags such as `[laughs]`. See [Voices](/docs/tts-voices#elevenlabs-voices).
+- **ElevenLabs Scribe speech-to-text.** `scribe_v2` and `scribe_v2_medical` ($0.2292 per hour) transcribe files in 100 languages with automatic language detection on `POST /v1/audio/transcriptions`; `scribe_v2_realtime` ($0.4063 per hour) is the streaming model for voice agents (`stt_model`). See [Speech to Text](/docs/speech-to-text#elevenlabs-scribe-models).
+- Paid plans only. The catalogue is now 159 models: 50 speech-to-text and 25 text-to-speech.
+
+### Kimi K3.1 Pro (2026-11-06)
+
+- **`kimi-k3.1-pro`** (Moonshot AI) is Moonshot's most capable open-weight model, natively multimodal and built for agentic work: coding, 3D creation, financial research and tool use. 1,048,576-token context window, 131,072 tokens of default max output, image input, tool calling, JSON mode (`response_format: {"type": "json_object"}`) and streaming. Output is text.
+- It thinks by default. `reasoning_effort` accepts `"none"` (thinking off), `"low"`, `"high"` and `"max"`; `"minimal"` runs as `"low"`, `"medium"` as `"high"` and `"xhigh"` as `"max"`. See the [reasoning_effort matrix](/docs/api-speed#3-reasoning-effort-by-model).
+- Priced at $2.00 input / $10.00 output per 1M tokens, with cached input at $0.20. Paid plans only; it is not in the free tier.
+- Images go in as base64 data URIs; we fetch and inline `https://` image URLs for you.
+- The catalogue is now 147 models: 73 LLMs.
+
+### Voice calls keep going through rate limits (2026-11-02)
+
+- When a voice agent's model cannot answer a turn, for example because of a rate limit, `sarvam-105b` answers it, and if that fails too, `gpt-4o` does. Before, a call whose model and `sarvam-105b` both failed could end. A turn `sarvam-105b` answered is billed at its own rate; a turn `gpt-4o` answered is billed at your agent's model rate, and usage shows `gpt-4o` as the model that answered. On an agent with `hosting: "india"`, `gpt-4o` is used only while it is processed in India. See [Voice agent](/docs/voice-agent).
+- When many calls start at the same moment, their speech connections are opened a moment apart, so fewer are refused for opening too fast. A refused one moves to the backup speech provider: listening at once, and a reply after one quick retry.
+
+### Numbers nothing answers play a short message (2026-11-02)
+
+- An inbound call to a number with no agent, or whose agent is switched off, and no call menu, call flow, call queue or agent squad is now answered with "Sorry, this number isn't taking calls right now. Please try again later." and then ends. Before, a number with no agent was answered by a generic assistant, and one whose agent was switched off was not picked up. The message plays in the number's own language setting when it has one, else English.
+- The call is billed like any other short inbound call: carriage for its length, plus the ₹1 a minute [platform fee](/docs/voice-tiers#custom-stack-billing) at its 30-second minimum. See [Telephony](/docs/telephony-api) and [Bots](/docs/bots).
+
 ### GLM 5.3 Flash and DeepSeek V4.1 Flash 1017 (2026-11-01)
 
 - **`glm-5.3-flash`** (Z.ai) is a fast, low-cost GLM for coding agents and tool use, with a 1,048,576-token context window, image input, tool calling, structured output and streaming. It always reasons: `reasoning_effort` takes `"low"`, `"high"` or `"max"`, with `"high"` as the default; `"none"` and `"minimal"` map to `"low"`, `"medium"` to `"high"` and `"xhigh"` to `"max"`. In our tests with `"low"` the first token arrived in about 0.4 to 0.5s. $0.229 per 1M input tokens, $0.760 per 1M output tokens ($0.052 cached input). Paid plans only.

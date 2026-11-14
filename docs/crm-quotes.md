@@ -251,7 +251,7 @@ A channel you did not request is `null`.
 | `sent` | Handed off for delivery |
 | `skipped` | No recipient address for the channel, or no WhatsApp number connected |
 | `failed` | Delivery was attempted and failed |
-| `outside_window` | WhatsApp only. The customer has not messaged you in the last 24 hours, so a free-form WhatsApp message cannot be sent. Use email or share the `public_url` yourself |
+| `outside_window` | WhatsApp only. The customer has not messaged you in the last 24 hours, so a free-form WhatsApp message cannot be sent, and your [billing profile](/docs/crm-products) has no `whatsapp_template_id` to send it in. Use email or share the `public_url` yourself |
 
 ## Accepting
 

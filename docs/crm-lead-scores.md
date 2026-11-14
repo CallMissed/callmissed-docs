@@ -177,15 +177,18 @@ Highest score first — the ranked list.
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
 | `entity_type` | `string` | Yes | `contact` or `company` |
-| `entity_ids` | `UUID[]` | Yes | 1–**200** entries |
+| `entity_ids` | `UUID[]` | No | 1–**200** entries. Omit to rescore every record (see below) |
+| `after` | `UUID` | No | Only with `entity_ids` omitted: the `next_after` returned by the previous call |
 
 ```json
-{ "entity_type": "contact", "requested": 3, "computed": 3 }
+{ "entity_type": "contact", "requested": 3, "computed": 3, "next_after": null }
 ```
 
 Idempotent: recomputing overwrites the record's previous score. Repeated ids are collapsed, and `requested` is the raw count you sent. If any id is not yours you get `404 2 of 50 contact ids were not found in this tenant; nothing was scored` — nothing is partially computed.
 
-Scores are **not** recomputed automatically after you change a rule. Re-run the affected records yourself.
+**Rescore every record.** Leave out `entity_ids` and each call scores your next 200 records, and returns `next_after`. Send it back as `after` until `next_after` is `null`.
+
+Scores also refresh in the background while you have at least one active rule for that record type: never-scored records first, then scores more than a day old, oldest first, a batch at a time. On a very large workspace a full refresh can take longer than a day. After you change a rule, recompute to apply it to every record straight away.
 
 ---
 

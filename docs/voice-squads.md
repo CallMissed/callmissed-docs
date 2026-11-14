@@ -156,7 +156,7 @@ While a call runs as a squad, the agent answering it can hand the caller to anot
 2. The new member takes the call in the same session: same caller, same recording, same transcript. It receives the conversation so far, introduces itself in one sentence and continues. It does not repeat the greeting or the recording notice.
 3. The handoff is recorded on the session (`metadata.squad_handoffs` on [`GET /v1/voice/sessions/{id}`](/docs/voice-sessions-api#get-session): from and to agent, roles, reason, time), the session's `bot_id` moves to the new member, and a [`call.handoff`](/docs/webhooks#squad-handoff-event) webhook is sent.
 
-From the handoff on, the new member's prompt, voice (including a [cloned voice](/docs/voice-cloning)), language, model, tools, [fallback transfer](/docs/voice-agent-tools#transfer_to_human) and [moderation](/docs/voice-moderation) settings apply, and its usage is billed at its own model rates (or the squad's tier). Settings fixed when the call started stay with the call: turn-taking, the pronunciation dictionary, the moderation blocklist, call recording and its notice, and the AI disclosure (spoken once, at the start of the call).
+From the handoff on, the new member's prompt, voice, language, model, tools, [fallback transfer](/docs/voice-agent-tools#transfer_to_human) and [moderation](/docs/voice-moderation) settings apply, and its usage is billed at its own model rates (or the squad's tier). Settings fixed when the call started stay with the call: turn-taking, the pronunciation dictionary, the moderation blocklist, call recording and its notice, and the AI disclosure (spoken once, at the start of the call).
 
 An agent that is inactive is never handed a call. An agent in [zero data retention](/docs/voice-data-retention) mode can only hand a call to another agent in that mode (the handoff is refused with `data_retention` otherwise), so content from the first part of the call is never stored by the next agent. If a handoff cannot be completed, the agent keeps the caller and carries on.
 
@@ -296,7 +296,10 @@ curl -X POST https://api.callmissed.com/api/v1/voice/squads/author/draft \
     "tts_model": "…",
     "stt_model": "…",
     "voice": "shubh",
-    "language": "hi-IN"
+    "language": "hi-IN",
+    "analysis_variables": [
+      { "name": "appointment_booked", "type": "boolean", "use_as_goal": true, "description": "True if an appointment was booked or moved to a new slot on this call." }
+    ]
   },
   "dropped_tools": ["send_invoice"],
   "model": "…"
@@ -306,6 +309,8 @@ curl -X POST https://api.callmissed.com/api/v1/voice/squads/author/draft \
 `dropped_tools` lists tools the draft asked for that are not in your tool registry — they were removed so the configuration is valid on submission. Check this list: a dropped tool usually means the capability you described is not wired up yet.
 
 At most 12 tools are proposed, de-duplicated and validated against the registry.
+
+`analysis_variables` is the set of result fields for the job the description matches (appointment booking, lead qualification, payment reminders, order confirmation, support, feedback and so on): what the agent records after each call. Save it as `config.analysis_variables` when you create the agent and each field becomes a column in the call log and in exports. It is an empty list when the description matches none of the built-in jobs.
 
 | Status | Detail | Note |
 | --- | --- | --- |

@@ -74,7 +74,7 @@ Returns the notes object — `notes: null` if none have been generated yet.
 
 ### POST `/api/v1/calls/{conversation_id}/notes`
 
-Generates notes from the transcript and saves them.
+Generates notes from the transcript and saves them. For a voice conversation with no chat messages, the transcript is the linked voice calls' turns.
 
 | Field | Type | Required | Default | Notes |
 | --- | --- | --- | --- | --- |
@@ -205,6 +205,8 @@ Returns `204`. Scores taken with it survive with `scorecard_id: null`.
 ## Scoring a call
 
 ### POST `/api/v1/calls/{conversation_id}/score`
+
+For a voice conversation with no chat messages, the transcript graded is the linked voice calls' turns. To grade every voice call automatically, use the `score_call` [post-call action](/docs/post-call-actions).
 
 | Field | Type | Required |
 | --- | --- | --- |

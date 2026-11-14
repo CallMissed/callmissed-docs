@@ -1,13 +1,13 @@
 ---
 title: "Account MCP Server"
-description: "Give an AI agent 342 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
+description: "Give an AI agent 362 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
 slug: "agent-tools-mcp"
 breadcrumb: "Getting Started"
 ---
 
 # Account MCP Server
 
-Give an AI agent 342 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
+Give an AI agent 362 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
 
 :::cards
 /docs/mcp-server | Docs MCP Server | book | Searchable CallMissed docs inside your coding agent
@@ -16,7 +16,7 @@ Give an AI agent 342 tools that act on your CallMissed account: draft, build and
 
 ## Overview
 
-The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 342 tools: draft, build and configure voice agents end to end, set up how inbound calls are answered with flows, menus and queues, place and inspect phone calls, read transcripts, build and run outbound calling campaigns, work the shared inbox and the support desk, search and update the CRM and set up its pipelines, custom fields and lead scoring, summarise and score calls, send WhatsApp messages, catalog products and Flow forms, send email, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, wire up webhooks and managed prompts, version and roll back an agent, run evaluation suites and A/B experiments, and check what it all cost.
+The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 362 tools: draft, build and configure voice agents end to end, set up how inbound calls are answered with flows, menus and queues, place and inspect phone calls, read transcripts, build and run outbound calling campaigns, work the shared inbox and the support desk, search and update the CRM and set up its pipelines, custom fields and lead scoring, summarise and score calls, send WhatsApp messages, catalog products and Flow forms, send email, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, wire up webhooks and managed prompts, version and roll back an agent, run evaluation suites and A/B experiments, and check what it all cost.
 
 It is hosted, so there is nothing to install and nothing to run locally.
 
@@ -62,7 +62,7 @@ The consent screen offers five permission groups.
 | **Set up and change your agents** | Create agents and change their instructions, voice, tools and knowledge, draft a new agent from a description, give them custom tools that call your own URLs, change how a team of agents hands callers between them, and run test suites and A/B experiments against them. Cannot send messages or place calls. Indexing a knowledge source, drafting an agent and running a test suite spend credits. | No | Yes |
 | **Configure your workspace** | Set up where your events are delivered and when you are alerted, connect an external service or a WhatsApp, Facebook or Instagram account by handing you a link to approve, choose which agent answers each connected number or account, disconnect them, create, edit or delete WhatsApp message templates, and manage the prompts the API resolves by name. Cannot read or write the credentials of a connected service. Publishing a prompt or pinning a model to one changes what your own API calls do and what they cost. | No | Yes |
 
-**Read your data** is the only group ticked when the screen opens. The other four start off and are granted only if you tick them yourself, so a single click cannot hand an agent the ability to message a customer or spend credits.
+All five groups are ticked when the screen opens, so the connection gets every tool. Untick any group you do not want before you click **Allow**. **Take actions**, **Set up and change your agents** and **Configure your workspace** can message customers, place calls or spend credits, so untick them if the connection should only read.
 
 Building an agent is its own tick rather than part of **Take actions**: letting an assistant send a WhatsApp message should not also let it rewrite the instructions, voice and tools of the agent answering your phone. Running an eval suite or an A/B experiment sits on that same tick, because it is work done on the agents it already governs.
 
@@ -135,15 +135,16 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 
 ## Tools
 
-342 tools in sixteen groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
+362 tools in sixteen groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
 
 ### Voice and calls
 
 | Tool | What it does | Access | Scope or permission | Credits |
 | --- | --- | --- | --- | --- |
 | `place_call` | Place an outbound call from one of your numbers, answered by one of your voice agents | Write | `telephony:write` | Yes |
-| `list_calls` | List calls, newest first, with status, duration and cost | Read | `telephony:read` | No |
-| `get_call` | Fetch one call by id, with hangup cause and cost | Read | `telephony:read` | No |
+| `list_calls` | List calls, newest first, with status, duration, cost and each call's post-call `analysis` (summary, sentiment, disposition, goal and the agent's own fields such as a rating). Narrow by agent, dates or what the agent captured after each call (`analysis`), sort by a captured field, or pass a saved call view as `view_id` (also needs `crm_views:read`) | Read | `telephony:read` | No |
+| `get_call` | Fetch one call by id, with hangup cause, cost and its post-call `analysis` | Read | `telephony:read` | No |
+| `export_call_results` | Call results as a spreadsheet: the newest rows as CSV text, plus links to download every call (up to 90 days, or all of one campaign) as CSV or Excel, one column per field the agent extracts. Filter by agent (or several with `bot_ids`: Excel then has a sheet per agent) or campaign; `columns` picks the columns and their order, `header_style` is `readable` (default) or `raw`, and `template_id` applies a saved export template | Read | `telephony:read` | No |
 | `end_call` | Hang up a call that is still in progress. Immediate and not undoable | Write, destructive | `telephony:write` | No |
 | `get_call_recording` | Get a short-lived download link for a call's recording | Read | `telephony:read` | No |
 | `click_to_call` | Ring one of your people, dial the contact, and bridge the two. No AI agent involved | Write | `telephony:write` | Yes |
@@ -200,6 +201,11 @@ Deleting a flow, menu, queue or voicemail message is not an MCP tool: an assista
 | `update_number_call_settings` | Set a number's call settings | Write | `telephony:write` | No |
 | `declare_number_for_ai_calls` | Record that a number has been declared to your telecom provider for automated/AI calls (India TRAI). Records a declaration already made; does not file one | Write | `telephony:write` | No |
 | `list_telephony_compliance` | List this account's phone-number KYC applications and whether each is approved, pending or rejected (with the reason) | Read | `telephony:read` | No |
+| `list_scheduled_exports` | List the scheduled call-results exports: which calls, how often, who gets the email, which Google Sheet tab, the next run and how the last one went | Read | `telephony:read` | No |
+| `create_scheduled_export` | Send call results every day or every week, for one agent, one campaign, one shared call-log view or every call, by email link to members of your workspace and/or as rows in a Google Sheet tab. `template_id` (a shared export template) sets the columns and `header_style` is `readable` or `raw` | Write | `telephony:write` | No |
+| `pause_scheduled_export` | Stop a scheduled export from going out until it is resumed | Write | `telephony:write` | No |
+| `resume_scheduled_export` | Turn a paused scheduled export back on | Write | `telephony:write` | No |
+| `delete_scheduled_export` | Permanently delete a scheduled export and its run history | Write | `telephony:write` | No |
 | `unpublish_call_flow` | Stop answering live calls with this flow; numbers on it answer normally again | Write, destructive | `telephony:write` | No |
 | `update_queue_member` | Change a queue member's priority, concurrent-call limit, or enabled flag | Write | `telephony:write` | No |
 
@@ -299,8 +305,8 @@ Deleting a custom field **definition** is not on this surface: the delete cascad
 
 | Tool | What it does | Access | Scope or permission | Credits |
 | --- | --- | --- | --- | --- |
-| `list_saved_views` | List the saved filtered lists you can see: shared ones plus your own | Read | `crm_views:read` | No |
-| `create_saved_view` | Save a named filter, sort and column preset over a CRM list | Write | `crm_views:write` | No |
+| `list_saved_views` | List the saved filtered lists you can see: shared ones plus your own. Covers the CRM lists, the call log (`entity_type` `call`) and call-results export templates (`entity_type` `call_export`) | Read | `crm_views:read` | No |
+| `create_saved_view` | Save a named filter, sort and column preset over a CRM list or the call log, or a call-results export template (its columns in order, file format and header style) | Write | `crm_views:write` | No |
 
 #### Lead scoring
 
@@ -313,7 +319,7 @@ Deleting a custom field **definition** is not on this surface: the delete cascad
 | `list_lead_scores` | The leaderboard: scored records, highest first | Read | `crm_scores:read` | No |
 | `get_lead_score` | One record's score with the breakdown of which rules fired | Read | `crm_scores:read` | No |
 
-A new or changed rule does not move any score until `recompute_lead_scores` runs. The signals a rule may test are a closed list, documented on [Lead scoring](/docs/crm-lead-scores).
+A new or changed rule moves scores as the background refresh reaches each record, or straight away when `recompute_lead_scores` runs. The signals a rule may test are a closed list, documented on [Lead scoring](/docs/crm-lead-scores).
 
 #### More cRM tools
 
@@ -330,6 +336,7 @@ A new or changed rule does not move any score until `recompute_lead_scores` runs
 | `list_crm_duplicates` | Find groups of contacts or companies that look like the same record | Read | `crm_search:read` | No |
 | `merge_crm_duplicates` | Irreversibly fold duplicates into a primary record: their linked records move to it and the duplicates are deleted | Write, destructive | `crm_search:write` | No |
 | `update_saved_view` | Rename a saved view or change its filters, sort, columns, layout or sharing; the list it belongs to cannot change | Write | `crm_views:write` | No |
+| `delete_saved_view` | Delete a saved view. Only the saved preset is removed, never the records it listed | Write, destructive | `crm_views:write` | No |
 | `get_company` | Get one company's record by id | Read | `companies:read` | No |
 
 ### Support desk
@@ -396,6 +403,7 @@ Macros and rules are retired with `is_active: false` rather than deleted, so not
 | `get_call_notes` | Get the notes already generated for a call: summary, action items, outcome | Read | `conversations:read` | No |
 | `generate_call_notes` | Read a call's transcript and write structured notes from it | Write | `conversations:write` | Yes |
 | `score_call` | Grade a call against one of your scorecards and store the result | Write | `conversations:write` | Yes |
+| `get_ratings_summary` | Summarise the star ratings callers gave (1 to 5, or 1 to 10) over up to 90 days: average, how many gave each score, share of low ratings, average per day, a breakdown by another captured field or by agent, and the latest low-rated calls | Read | `telephony:read` | No |
 
 ### Messaging
 
@@ -496,13 +504,32 @@ Macros and rules are retired with `is_active: false` rather than deleted, so not
 | `set_agent_voicemail_drop` | Make a calling agent leave a saved voicemail message when a machine answers | Write | `bots:write` | No |
 | `draft_agent_from_description` | Describe the agent you want and get a complete, reviewable draft back. Creates nothing | Write | `squads:write` | Yes |
 
+#### After the call
+
+What an agent does on its own once a call is analysed: rules of "when these answers look like this, do these things" (update the contact, create a task or ticket, email a team member, send an approved WhatsApp template, add a Google Sheets row). Start from a recipe; test against a past call before saving. A WhatsApp send never reaches anyone who opted out, and marketing templates only go to contacts who agreed to WhatsApp messages.
+
+| Tool | What it does | Access | Scope or permission | Credits |
+| --- | --- | --- | --- | --- |
+| `list_post_call_recipes` | One-click rules filled in from the agent's own answers (low rating, callback asked, happy customer, save to a sheet, save on the contact), with what is left to choose | Read | `bots:read` | No |
+| `get_post_call_options` | The building blocks for this agent: its answers and their types, operators, `{{tokens}}`, team, contact fields, sendable templates, shared spreadsheets | Read | `bots:read` | No |
+| `list_post_call_rules` | The agent's rules in order, plus the agent-wide on/off switch | Read | `bots:read` | No |
+| `create_post_call_rule_from_recipe` | Save a recipe as a rule, filling its blanks | Write | `bots:write` | No |
+| `create_post_call_rule` | Save a custom rule; checked against the agent's declared answers | Write | `bots:write` | No |
+| `update_post_call_rule` | Change a rule's name, order, conditions or actions | Write | `bots:write` | No |
+| `toggle_post_call_rule` | Turn one rule on or off | Write | `bots:write` | No |
+| `set_post_call_actions_enabled` | Turn all of an agent's after-the-call rules on or off | Write | `bots:write` | No |
+| `delete_post_call_rule` | **Permanently** delete a rule; what it already did stays in the call history | Write, destructive | `bots:write` | No |
+| `list_post_call_recent_calls` | The agent's latest analysed calls, to test rules on | Read | `bots:read` | No |
+| `dry_run_post_call_rule` | Test rules on a past call: which conditions pass and what each action would do. Nothing is sent or saved | Read | `bots:read` | No |
+| `list_post_call_action_runs` | What the rules did, for the agent or one call, with each action's status and reason | Read | `bots:read` | No |
+
 #### Building an agent with these tools
 
 `create_agent` is not the first call. An agent's `config` is a free-form object whose keys are mostly not checked when written — a wrong value is stored and then fails on the call, usually without an error. So the order is:
 
 1. `get_agent_config_schema` — the keys this agent type accepts, and a `minimal_example` that works. `draft_agent_from_description` is the shortcut past the blank page: describe the agent and review what comes back. It creates nothing, so whatever it proposes still goes through the steps below.
 2. `validate_agent_config` — fix every `error` finding before writing anything.
-3. `create_agent`, then `add_agent_knowledge`.
+3. `create_agent`, then `add_agent_knowledge`. Pass `use_case` (for example `appointment_booking`, `lead_qualification`, `payment_reminder`, `support_triage` or `feedback`; the tool's schema lists every value) and the agent starts with that job's result fields: what it records after each call, shown as columns in the call log and in exports.
 4. For a voice agent: `search_available_numbers` → `provision_phone_number` → `attach_number_to_agent`, then `place_call` and `get_voice_session_transcript` to hear the result.
 5. `update_agent_config` to change one key later; it merges, so it cannot wipe the rest of the configuration.
 6. `craft_agent_prompt` → `update_agent_prompt` to write or improve the instructions. `craft_agent_prompt` returns the structure, the phone-call rules and the agent's real tools and variables; write the four sections, pass them back as `draft` until the review has no `error` findings, then save. An agent's prompt is edited in four boxes — objective, response guidelines, conversation script and first message — and `update_agent`'s flat `system_prompt` collapses them into one, silently. The pair above is what keeps them.
@@ -707,7 +734,7 @@ Domains, templates, suppressions, inbound addresses and send history for the Ema
 
 ### Guides and playbooks
 
-Step-by-step playbooks an assistant follows before it builds anything: it interviews you about the use case first. The same playbooks are served as MCP prompts (`build_voice_agent`, `build_whatsapp_agent`, `launch_campaign`, `setup_support_desk`, `setup_crm`).
+Step-by-step playbooks an assistant follows before it builds anything: it interviews you about the use case first. The same playbooks are served as MCP prompts (`build_voice_agent`, `build_whatsapp_agent`, `launch_campaign`, `setup_support_desk`, `setup_crm`, `setup_post_call_actions`).
 
 | Tool | What it does | Access | Scope or permission | Credits |
 | --- | --- | --- | --- | --- |
@@ -715,15 +742,15 @@ Step-by-step playbooks an assistant follows before it builds anything: it interv
 
 ### Calling tools are deployment-gated
 
-35 of the 342 tools are gated on whether calling is switched on for your account, in two independent groups.
+36 of the 362 tools are gated on whether calling is switched on for your account, in two independent groups.
 
-**22 telephony tools:** `place_call`, `list_calls`, `get_call`, `end_call`, `get_call_recording`, `click_to_call`, `list_phone_numbers`, `search_available_numbers`, `list_number_countries`, `get_number_requirements`, `provision_phone_number`, `attach_number_to_agent`, the four voicemail-message tools, `set_agent_voicemail_drop`, `get_number_reputation`, `update_number_call_settings`, `declare_number_for_ai_calls`, `list_telephony_compliance` and `callback_handoff`. With telephony off, `tools/list` returns the other 320.
+**23 telephony tools:** `place_call`, `list_calls`, `get_call`, `export_call_results`, `end_call`, `get_call_recording`, `click_to_call`, `list_phone_numbers`, `search_available_numbers`, `list_number_countries`, `get_number_requirements`, `provision_phone_number`, `attach_number_to_agent`, the four voicemail-message tools, `set_agent_voicemail_drop`, `get_number_reputation`, `update_number_call_settings`, `declare_number_for_ai_calls`, `list_telephony_compliance` and `callback_handoff`. With telephony off, `tools/list` returns the other 339.
 
-**13 campaign tools:** the whole **Calling campaigns** table above. With campaigns off, `tools/list` returns the other 327.
+**13 campaign tools:** the whole **Calling campaigns** table above. With campaigns off, `tools/list` returns the other 349.
 
 The flow, menu and queue tools are **not** in either group. Call routing is authored before calling is switched on, so those routes are always mounted and those tools are always served.
 
-Each group appears only where that feature is switched on. Where neither is, `tools/list` returns the other 307 and those 33 are simply absent, because the REST routes behind them are not mounted there. Calling one by name anyway returns the same `Unknown tool` error as a typo.
+Each group appears only where that feature is switched on. Where neither is, `tools/list` returns the other 326 and those 36 are simply absent, because the REST routes behind them are not mounted there. Calling one by name anyway returns the same `Unknown tool` error as a typo.
 
 If you do not see them and you expect to, talk to us and we will get calling turned on for you.
 
@@ -743,7 +770,7 @@ curl https://api.callmissed.com/api/v1/mcp/catalog
 {
   "serverUrl": "https://api.callmissed.com/api/v1/mcp",
   "protocolVersion": "2025-06-18",
-  "count": 342,
+  "count": 362,
   "categories": { "voice": "Voice and calls", "crm": "CRM" },
   "tools": [
     {

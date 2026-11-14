@@ -197,7 +197,7 @@ Newest first.
 
 | Parameter | Type | Constraints |
 | --- | --- | --- |
-| `entity_type` | `string` | `contact`, `company`, `deal` or `task` |
+| `entity_type` | `string` | `contact`, `company`, `deal`, `task`, `call` or `call_export` |
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
 
@@ -205,7 +205,7 @@ Newest first.
 
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
-| `entity_type` | `string` | Yes | `contact`, `company`, `deal` or `task` |
+| `entity_type` | `string` | Yes | `contact`, `company`, `deal`, `task`, `call` (the voice call log) or `call_export` (a call-results export template) |
 | `name` | `string` | Yes | 1–255 characters, unique per entity type |
 | `filters` | `object` | No | Default `{}`. At most 16,000 characters serialised |
 | `sort` | `object` | No | `{ "field": "...", "dir": "asc" \| "desc" }`. `field` 1–64 characters matching `^[A-Za-z_][A-Za-z0-9_.]*$`; `dir` defaults to `desc` |
@@ -228,6 +228,57 @@ curl -X POST https://api.callmissed.com/api/v1/crm/saved-views \
 ```
 
 Returns `201`. A name already used for that entity type returns `409 A deal view named '…' already exists`.
+
+### Call-log views
+
+A view with `entity_type: "call"` is a saved filter over the [call log](/docs/telephony-api), and its shape is checked when you save it (`422` otherwise).
+
+| Field | Contents |
+| --- | --- |
+| `filters` | Any of: `bot_id` (one agent), `period_days` (1–365, relative to today), `direction` (`inbound` / `outbound`), `statuses` (up to 10), `tab` (`all` / `missed`), `follow_up` (`open` / `done`), `q`, and `analysis`, a list of up to 8 `{"field", "op", "value"}` filters as on `GET /api/v1/telephony/calls` |
+| `sort.field` | `created_at`, an analysis variable, or `call.sentiment` / `call.disposition` / `call.goal_met` |
+| `columns` | Up to 12 analysis variables to show, plus `call.summary`, `call.sentiment`, `call.disposition`, `call.goal_met` |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/crm/saved-views \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entity_type": "call",
+    "name": "Low ratings this week",
+    "filters": { "period_days": 7, "analysis": [{ "field": "rating", "op": "lte", "value": 2 }] },
+    "sort": { "field": "rating", "dir": "asc" },
+    "columns": ["rating", "call.summary"]
+  }'
+```
+
+List the calls in a view with `GET /api/v1/telephony/calls?view_id=…`.
+
+### Export templates
+
+A view with `entity_type: "call_export"` is a template for the [call-results export](/docs/telephony-api#export-call-results-csv-or-excel): which columns the file has, in what order, and how it is written. Its shape is checked when you save it (`422` otherwise).
+
+| Field | Contents |
+| --- | --- |
+| `columns` | Required. The file's columns in order, up to 60: the built-in keys (`call.time`, `call.agent`, `call.number`, `call.direction`, `call.duration`, `call.status`, `call.end_reason`, `call.analysis_status`, `call.summary`, `call.sentiment`, `call.disposition`, `call.goal_met`, `call.recording`, `call.id`), analysis field names, and `*` for every analysis field you did not name |
+| `filters` | `{ "format": "csv" \| "xlsx", "header_style": "readable" \| "raw" }`. Defaults `csv` and `readable` |
+| `sort` | Not used; leave it out |
+| `is_shared` | `false` keeps it to you, `true` shares it with your workspace. A scheduled export can only use a shared template |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/crm/saved-views \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entity_type": "call_export",
+    "name": "Weekly feedback sheet",
+    "columns": ["call.time", "call.agent", "call.number", "star_rating", "call.summary", "*", "call.id"],
+    "filters": { "format": "xlsx", "header_style": "readable" },
+    "is_shared": true
+  }'
+```
+
+Use it with `GET /api/v1/telephony/calls/export?template_id={id}` or as `template_id` on a scheduled export.
 
 ## GET / PATCH / DELETE `/api/v1/crm/saved-views/{view_id}`
 

@@ -18,7 +18,7 @@ For general support and questions:
 
 ## Enterprise
 
-Need custom rate limits, dedicated infrastructure, or volume pricing?
+Need higher limits, help choosing between Enterprise, Scale, Business and Corporate, or volume pricing?
 
 - **Email**: sales@callmissed.com
 - We'll set up a call to discuss your requirements
