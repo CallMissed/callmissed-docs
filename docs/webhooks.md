@@ -1,13 +1,13 @@
 ---
 title: "Webhooks"
-description: "Create outbound webhook subscriptions, fire test deliveries, and inspect or replay the delivery log."
+description: "Create outbound webhook subscriptions, the event catalogue with each payload (calls, conversations, payments, and CRM record changes for contacts, companies, leads, deals, tasks and notes), signature verification, test deliveries, and the delivery log with replay."
 slug: "webhooks"
 breadcrumb: "API Reference"
 ---
 
 # Webhooks
 
-Create outbound webhook subscriptions, fire test deliveries, and inspect or replay the delivery log.
+Create outbound webhook subscriptions, the event catalogue with each payload (calls, conversations, payments, and CRM record changes for contacts, companies, leads, deals, tasks and notes), signature verification, test deliveries, and the delivery log with replay.
 
 > Subscribe an HTTPS endpoint to platform events. Every payload is signed with HMAC-SHA256 using the subscription's secret. Deliveries are logged, inspectable, and replayable.
 
@@ -30,7 +30,7 @@ Base URL for every example: `https://api.callmissed.com`. Errors are `{"detail":
 
 ## Event types
 
-Pass these in the `events` array. An unrecognised value returns `422` listing the valid set. Duplicates are dropped, and the array may hold at most as many entries as the catalogue below (31).
+Pass these in the `events` array. An unrecognised value returns `422` listing the valid set. Duplicates are dropped, and the array may hold at most as many entries as the catalogue below (50).
 
 | Category | Events |
 | --- | --- |
@@ -45,6 +45,7 @@ Pass these in the `events` array. An unrecognised value returns `422` listing th
 | Invoices & payments | `invoice.created`, `payment.succeeded`, `payment.failed` |
 | Customer payment links | `payment_request.partially_paid`, `payment_request.paid`, `payment_request.expired`, `payment_request.cancelled` — a payment link an agent sent to your customer changed status in your own connected Razorpay account |
 | CRM quotes & invoices | `quote.accepted` (a customer accepted a [quote](/docs/crm-quotes) on its public page, or your team recorded the acceptance), `invoice.paid` (a [CRM invoice](/docs/crm-invoices) was fully paid, online through its payment link or by a recorded manual payment) |
+| CRM records | `contact.created`, `contact.updated`, `contact.deleted`, `company.created`, `company.updated`, `company.deleted`, `lead.created`, `lead.updated`, `lead.deleted`, `deal.created`, `deal.updated`, `deal.deleted`, `task.created`, `task.updated`, `task.deleted`, `note.created`, `note.updated`, `note.deleted` — a CRM record was created, changed or deleted by anyone, see [CRM record events](#crm-record-events) |
 
 ### Conversation and message events
 
@@ -78,6 +79,139 @@ Both are sent once the change is saved. Money is in minor units of the document'
 | --- | --- |
 | `quote.accepted` | `quote_id`, `number`, `status` (`converted` when the quote was turned straight into an issued invoice, else `accepted`), `currency`, `total_minor`, `accepted_by_name`, `accepted_at`, `contact_id`, `deal_id`, `invoice_id` (the issued invoice, or `null`) |
 | `invoice.paid` | `invoice_id`, `number`, `status` (`paid`), `currency`, `total_minor`, `amount_paid_minor`, `contact_id`, `deal_id`, `paid_at` |
+
+### Call lifecycle events
+
+`call.started` is sent when the other side answers, `call.completed` when the call's status becomes `completed`, and `call.failed` when it becomes `failed`, `busy` or `no_answer`. A subscription scoped to one agent receives that agent's calls only.
+
+| `data` field | Type | Meaning |
+| --- | --- | --- |
+| `call_id` | `UUID` | The call. Use it with [`GET /api/v1/telephony/calls/{call_id}`](/docs/telephony-api#7-list--fetch-calls), its [transcript](/docs/telephony-api#transcripts) and its [recording](/docs/telephony-api#recordings) |
+| `direction` | `string` | `inbound` or `outbound` |
+| `status` | `string` | `in_progress`, `completed`, `failed`, `busy` or `no_answer` |
+| `bot_id` | `UUID \| null` | The agent on the call |
+| `remote_e164` | `string \| null` | The other party's phone number |
+| `voice_session_id` | `UUID \| null` | The agent's voice session, once the call has one. `voice_analysis.completed` reports on the same id as `session_id` |
+| `hangup_cause_code` | `integer \| null` | The carrier's hang-up cause, when known |
+
+### CRM record events
+
+Eighteen events: `contact`, `company`, `lead`, `deal`, `task` and `note`, each with `.created`, `.updated` and `.deleted`. One event is sent per record written, whoever wrote it, once the change is saved. Use them to keep another system in step with your CallMissed CRM; the end-to-end flow is in [Connect your CRM](/docs/connect-your-crm).
+
+CRM records belong to no single agent, so these events go to **workspace-wide** subscriptions only. A subscription with a `bot_id` does not receive them.
+
+Two rules apply to these eighteen events and to no others:
+
+- **They must be named.** A subscription receives a CRM record event only when its `events` list names it. A subscription whose `events` is empty ("every event") still receives none of them, so that customer records are sent only to endpoints that asked for them.
+- **An API key needs the record's read scope to subscribe.** The event delivers the same JSON as the record's `GET`, so creating or updating a subscription that names one needs, besides `webhooks:write`, the scope below. `403 API key missing required scope: …` otherwise. Console owners and admins are not scope-checked.
+
+| Events | Scope the subscribing API key also needs |
+| --- | --- |
+| `contact.*` | `contacts:read` |
+| `company.*` | `companies:read` |
+| `lead.*` | `crm_leads:read` |
+| `deal.*` | `crm_deals:read` |
+| `task.*` | `crm_tasks:read` |
+| `note.*` | `crm_notes:read` |
+
+```json
+{
+  "event": "contact.updated",
+  "data": {
+    "event": "contact.updated",
+    "id": "44110c7e-2a51-4c0f-9d3b-6f1e2a7b8c90",
+    "occurred_at": "2026-11-17T06:31:10.498211+00:00",
+    "source": "agent",
+    "contact": {
+      "id": "44110c7e-2a51-4c0f-9d3b-6f1e2a7b8c90",
+      "tenant_id": "a0b1c2d3-4455-6677-8899-aabbccddeeff",
+      "company_id": null,
+      "phone": "+919876543210",
+      "email": "asha@acme.com",
+      "name": "Asha Menon",
+      "external_ids": { "hubspot": "123" },
+      "whatsapp_opt_in": true,
+      "email_opt_in": false,
+      "sms_opt_in": false,
+      "consent_source": "hubspot_sync",
+      "consent_updated_at": "2026-11-17T06:31:10.412000Z",
+      "whatsapp_bsuid": null,
+      "whatsapp_parent_bsuid": null,
+      "whatsapp_username": null,
+      "lifecycle_stage": "qualified",
+      "lead_source": null,
+      "owner_user_id": null,
+      "tags": ["vip"],
+      "metadata": null,
+      "created_at": "2026-11-17T06:31:10.412000Z",
+      "updated_at": "2026-11-17T09:02:44.120000Z"
+    }
+  },
+  "timestamp": "2026-11-17T09:02:44.301554+00:00"
+}
+```
+
+| `data` field | Type | Meaning |
+| --- | --- | --- |
+| `event` | `string` | The event name again, e.g. `contact.updated` |
+| `id` | `UUID` | The record's id |
+| `occurred_at` | `datetime` | When the change was saved (ISO 8601, UTC) |
+| `source` | `string` | Who made the change, see below |
+| `contact` / `company` / `lead` / `deal` / `task` / `note` | `object` | One key, named after the record type. On `created` and `updated` it is the record exactly as its `GET` returns it: the [contact](/docs/crm-contacts#the-contact-object), [company](/docs/crm-companies#the-company-object), [lead](/docs/crm-leads#the-lead-object), [deal](/docs/crm-deals#the-deal-object), [task](/docs/crm-notes-tasks#the-task-object) or [note](/docs/crm-notes-tasks#the-note-object) object. A contact here has no `score` / `score_grade`; those are on the contact list only |
+
+| `source` | The change was made by |
+| --- | --- |
+| `api` | A request with a `cm_` API key, including the [account MCP server](/docs/agent-tools-mcp) |
+| `console` | A signed-in person in the console, including the console assistant |
+| `agent` | An AI agent during a call or chat, or a [post-call rule](/docs/post-call-actions) that ran on a call's result |
+| `import` | A [CSV import](/docs/crm-import-export) |
+| `system` | Anything else: a connected integration, a payment event, automatic clean-up |
+
+If your own integration writes with an API key, its writes come back to you as `source: "api"`. Skip those to avoid an update loop.
+
+**Deleted events.** The record is gone, so the object under the record key carries only what identifies it:
+
+| Event | Object under the record key |
+| --- | --- |
+| `contact.deleted`, `company.deleted` | `id`, `external_ids` (your own ids), and `merged_into` when the delete was caused by a [merge](/docs/crm-import-export#post-apiv1crmsearchmerge) |
+| `lead.deleted` | `id`, `external_ref` |
+| `deal.deleted`, `task.deleted`, `note.deleted` | `id` |
+
+```json
+{
+  "event": "contact.deleted",
+  "data": {
+    "event": "contact.deleted",
+    "id": "9922aa01-77b4-4e2c-8a10-0c5d6e7f8a9b",
+    "occurred_at": "2026-11-17T09:10:02.118400+00:00",
+    "source": "console",
+    "contact": {
+      "id": "9922aa01-77b4-4e2c-8a10-0c5d6e7f8a9b",
+      "external_ids": { "hubspot": "456" },
+      "merged_into": "44110c7e-2a51-4c0f-9d3b-6f1e2a7b8c90"
+    }
+  },
+  "timestamp": "2026-11-17T09:10:02.240913+00:00"
+}
+```
+
+`merged_into` is the id of the surviving record. When it is present, repoint your link to that record instead of deleting your copy. The survivor sends its own `updated` event when the merge filled any of its blank fields.
+
+**Which writes send what.**
+
+| Write | Events |
+| --- | --- |
+| Create, update or delete one record (API, console, agent tool) | One event for that record |
+| [Create-or-update](/docs/crm-contacts#post-apiv1contactsupsert) | `created` or `updated`, matching the response's `created` flag |
+| Move a deal, complete a task | `deal.updated`, `task.updated` |
+| [Convert a lead](/docs/crm-leads#convert-a-lead) | `lead.updated`, `contact.created` or `contact.updated`, `company.created` when a company was created, `deal.created` when a deal was |
+| [Bulk update, delete or tag](/docs/crm-import-export) | One event per record |
+| [CSV import](/docs/crm-import-export) | One event per record, `source: "import"`. A record the file created and then touched again sends one `created` |
+| [Merge](/docs/crm-import-export#post-apiv1crmsearchmerge) | `deleted` with `merged_into` for each duplicate, and `updated` for the survivor when fields were filled |
+
+**Not announced.** Rows that only follow their parent do not send their own events: the notes of a deleted record, tasks detached from a deleted record, notes and tasks moved to another record by a merge or a lead conversion, and links cleared on other records when the record they pointed at is deleted. Erasing a whole account sends nothing. A contact that first appears through an inbound WhatsApp message does not send `contact.created` yet; an `updated_after` pull on the contact list returns it.
+
+**Bursts and order.** An import or a bulk action can queue thousands of these events at once. They are sent to each endpoint a limited number at a time, so a large batch takes a while to arrive, and events are not delivered in a fixed order. Compare the record's `updated_at` with the copy you hold and ignore an event that is older. A missed event can be recovered with `?updated_after=` on the [contact](/docs/crm-contacts#get-apiv1contacts), [company](/docs/crm-companies#get-apiv1companies), [lead](/docs/crm-leads#get-apiv1crmleads), [deal](/docs/crm-deals#get-apiv1crmdeals) and [task](/docs/crm-notes-tasks#get-apiv1crmtasks) lists.
 
 ### Squad handoff event
 
@@ -213,8 +347,8 @@ Creates a subscription and generates its secret. Returns `201`.
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
 | `url` | `string` | Yes | 1-2048 chars. Must pass the URL rules above |
-| `events` | `string[]` | Yes | 1-30 entries, each from the event table |
-| `bot_id` | `UUID \| null` | No | Scope the subscription to one agent. Omit for a workspace-wide subscription |
+| `events` | `string[]` | Yes | 1-50 entries, each from the event table |
+| `bot_id` | `UUID \| null` | No | Scope the subscription to one agent. Omit for a workspace-wide subscription. [CRM record events](#crm-record-events) reach workspace-wide subscriptions only |
 
 ```bash
 curl -X POST https://api.callmissed.com/api/v1/webhooks \
@@ -245,7 +379,7 @@ This response is the **only** place the full `secret` appears.
 | Status | Cause |
 | --- | --- |
 | `400` | The URL failed validation |
-| `403` | Key missing `webhooks:write`, or JWT caller is not owner/admin |
+| `403` | Key missing `webhooks:write`, key missing the read scope for a [CRM record event](#crm-record-events) in `events`, or JWT caller is not owner/admin |
 | `404` | `Agent not found` when `bot_id` is not an agent in your tenant |
 | `422` | Unknown event type, empty `events`, or `url` over 2048 chars |
 
@@ -256,7 +390,7 @@ Partial update. Every field is optional; omitted fields are unchanged. Returns t
 | Field | Type | Required | Constraints |
 | --- | --- | --- | --- |
 | `url` | `string \| null` | No | 1-2048 chars. Re-validated when present |
-| `events` | `string[] \| null` | No | Replaces the whole list. An empty array `[]` subscribes to **every** event |
+| `events` | `string[] \| null` | No | Replaces the whole list. An empty array `[]` subscribes to **every** event except the [CRM record events](#crm-record-events), which are sent only when named |
 | `is_active` | `boolean \| null` | No | Pause or resume deliveries |
 | `bot_id` | `UUID \| null` | No | Re-scope to an agent in your tenant |
 | `clear_bot_id` | `boolean` | No | Default `false`. Send `true` to widen a scoped subscription back to the whole workspace. Takes precedence over `bot_id` |

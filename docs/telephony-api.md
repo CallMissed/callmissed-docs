@@ -1,13 +1,13 @@
 ---
 title: "Telephony API"
-description: "Rent phone numbers in India and other countries (India needs KYC), link them to a voice-agent bot, place, bridge and hang up outbound PSTN calls, and fetch recordings — all with your cm_ key."
+description: "Rent phone numbers in India and other countries (India needs KYC), link them to a voice-agent bot, place, bridge and hang up outbound PSTN calls, and fetch recordings and transcripts — all with your cm_ key."
 slug: "telephony-api"
 breadcrumb: "Numbers (PSTN)"
 ---
 
 # Telephony API
 
-Rent phone numbers in India and other countries (India needs KYC), link them to a voice-agent bot, place, bridge and hang up outbound PSTN calls, and fetch recordings — all with your cm_ key.
+Rent phone numbers in India and other countries (India needs KYC), link them to a voice-agent bot, place, bridge and hang up outbound PSTN calls, and fetch recordings and transcripts — all with your cm_ key.
 
 ## Overview
 
@@ -541,6 +541,7 @@ The call row carries two costs. `cost_credits` is the **phone-line** leg only: i
 | `GET /calls/export` | `telephony:read` (owner/admin for JWT) | Download calls with their post-call analysis as CSV or Excel |
 | `GET /calls/{call_id}` | `telephony:read` | Get one call |
 | `GET /calls/{call_id}/recording` | `telephony:read` | Signed recording URL |
+| `GET /calls/{call_id}/transcript` | `telephony:read` | What was said on the call, as JSON, text or subtitles |
 | `DELETE /calls/{call_id}` | `telephony:write` (owner/admin for JWT) | Hang up a live call |
 | `POST /calls/{call_id}/follow-up` | `telephony:write` | Mark a missed call followed up, or reopen it |
 
@@ -754,6 +755,71 @@ curl https://api.callmissed.com/api/v1/telephony/calls/{call_id}/recording \
 
 The URL is time-limited — fetch it on demand rather than storing it. Returns `404` if the call has no recording, and `503` if recording storage is temporarily unavailable.
 
+### Transcripts
+
+#### GET `/api/v1/telephony/calls/{call_id}/transcript`
+
+What was said on a phone call, by call id. Scope `telephony:read`. It is the same transcript as [`GET /v1/voice/sessions/{session_id}/transcript`](/docs/voice-sessions-api#get-transcript), reached from the call, so an integration that holds a `call_id` (from the call list or a `call.completed` [webhook](/docs/webhooks#call-lifecycle-events)) does not need the session id. Transcripts are saved whether or not the call is recorded.
+
+| Parameter | In | Type | Required | Constraints |
+| --- | --- | --- | --- | --- |
+| `call_id` | path | `UUID` | Yes | A call in your account |
+| `format` | query | `string` | No | `json` (default), `txt` or `srt` |
+
+```bash
+curl "https://api.callmissed.com/api/v1/telephony/calls/5e6a7b8c-9d0e-1f2a-3b4c-5d6e7f8a9b0c/transcript?format=json" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+**Response (200 OK), `format=json`** — an array of turns in the order they were spoken:
+
+```json
+[
+  {
+    "id": "c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f",
+    "turn_index": 0,
+    "user_transcript": "Hi, I wanted to check on my order.",
+    "agent_response": "Sure, can you tell me the order number?",
+    "interrupted": false,
+    "stt_ms": 180,
+    "first_token_ms": 420,
+    "tts_ttfb_ms": 160,
+    "eou_delay_ms": 300,
+    "first_audio_ms": 910,
+    "total_ms": 4200,
+    "llm_model": "gpt-4o",
+    "tool_calls": null,
+    "created_at": "2026-11-17T06:40:12.118000Z"
+  }
+]
+```
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `turn_index` | `integer` | Position of the turn in the call, from `0` |
+| `user_transcript` | `string \| null` | What the caller said on this turn |
+| `agent_response` | `string \| null` | What the agent said in reply |
+| `interrupted` | `boolean` | The caller spoke over the agent's reply |
+| `stt_ms`, `first_token_ms`, `tts_ttfb_ms`, `eou_delay_ms`, `first_audio_ms`, `total_ms` | `integer \| null` | Timings in milliseconds; `null` when a stage was not measured |
+| `llm_model` | `string \| null` | The model that answered the turn |
+| `tool_calls` | `array \| null` | The tools the agent ran on the turn, in order, each `{id, name, args, result, ok, ms}`; `null` when it ran none |
+| `created_at` | `datetime` | When the turn was stored |
+
+| `format` | Content-Type | Body |
+| --- | --- | --- |
+| `json` | `application/json` | The array above. An answered call with no stored turns returns `[]` |
+| `txt` | `text/plain` | `Session:`, `Started:` and `Ended:` header lines, then alternating `User:` / `Agent:` lines |
+| `srt` | `application/x-subrip` | SubRip subtitles, one cue per `User:` / `Agent:` line, timed from the turn durations |
+
+| Status | `detail` | What to do next |
+| --- | --- | --- |
+| `403` | `API key missing required scope: telephony:read` | Add the scope to the key |
+| `404` | `Call not found` | The id is not a call in your account. Check the id |
+| `404` | `No transcript available` | The call exists but no agent answered it (not answered, busy, failed, or bridged without an agent). There is nothing to fetch; do not retry |
+| `422` | Validation error | `call_id` is not a UUID, or `format` is not `json`, `txt` or `srt` |
+
+Turns are stored as the call goes, so a request made while the call is live returns the turns so far. For the finished transcript, fetch after `call.completed`.
+
 ### Hang up a call
 
 ```bash
@@ -829,7 +895,7 @@ A text-only template is turned into speech, cached and billed the first time it 
 
 | Scope | Grants |
 |-------|--------|
-| `telephony:read` | Search numbers, list/get numbers, list/get compliance applications, list/get calls, fetch recording URLs, list BYO providers and connections |
+| `telephony:read` | Search numbers, list/get numbers, list/get compliance applications, list/get calls, fetch recording URLs and call transcripts, list BYO providers and connections |
 | `telephony:write` | Buy/release/update numbers, the AI-call declaration, submit & sync compliance applications, place / bridge / hang up calls, voicemail drops, BYO connections and imports |
 
 Every `telephony:write` action also requires an **owner/admin** role when called with a JWT (an API key carrying `telephony:write` is sufficient on its own).

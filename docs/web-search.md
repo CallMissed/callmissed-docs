@@ -80,7 +80,7 @@ curl -X POST https://api.callmissed.com/v1/search \
 | `detailed` | `firecrawl` (also fetches each result's page text into `content`) | `auto` |
 | `auto` (default) | your account's default mode if one is set, otherwise `firecrawl` | — |
 
-Set `provider` to `serper`, `exa`, `firecrawl` or `linkup` to choose directly; when both `mode` and `provider` are set, `provider` wins. If the chosen provider fails, the request is retried on another provider your key allows, in the order `firecrawl`, `serper`, `linkup`, `exa`, so the `provider` field in the response may differ from the one you asked for. All providers return the same normalised shape.
+Set `provider` to `firecrawl` or `exa` to choose directly; `auto` (the default) uses `firecrawl`. When both `mode` and `provider` are set, `provider` wins. If the chosen provider fails, the request is retried on the other provider your key allows, in the order `firecrawl`, `exa`, so the `provider` field in the response may differ from the one you asked for. All providers return the same normalised shape.
 
 Operators can set the **tenant default** from **Settings → Web search default**.
 
@@ -90,17 +90,17 @@ Operators can set the **tenant default** from **Settings → Web search default*
 |---|---|---|---|
 | `query` | string | (required) | 1–2000 chars |
 | `mode` | string | `"auto"` | `auto` / `shorter` / `detailed` |
-| `provider` | string | — | Optional raw override: `serper` / `exa` / `firecrawl` / `linkup`. Wins over `mode` |
+| `provider` | string | — | Optional raw override: `auto` / `firecrawl` / `exa`. Wins over `mode` |
 | `num_results` | int | `10` | 1–50 |
-| `search_type` | string | mode default | `exa`: `auto`/`fast`/`instant`/`deep-lite`/`deep`. `serper`: `search`/`news`/`images`. Ignored by `linkup` |
-| `include_domains` | string[] | — | Up to 50. Honoured by `exa` and `linkup` |
-| `exclude_domains` | string[] | — | Up to 50. Honoured by `exa` and `linkup` |
-| `start_published_date` | `YYYY-MM-DD` | — | Honoured by `exa` and `linkup`. Any other format returns `422` |
-| `end_published_date` | `YYYY-MM-DD` | — | Honoured by `exa` and `linkup`. Any other format returns `422` |
+| `search_type` | string | mode default | `exa`: `auto`/`fast`/`instant`/`deep-lite`/`deep`. Ignored by `firecrawl` |
+| `include_domains` | string[] | — | Up to 50. Honoured by `firecrawl` and `exa` |
+| `exclude_domains` | string[] | — | Up to 50. Honoured by `firecrawl` and `exa` |
+| `start_published_date` | `YYYY-MM-DD` | — | Honoured by `firecrawl` and `exa`. Any other format returns `422` |
+| `end_published_date` | `YYYY-MM-DD` | — | Honoured by `firecrawl` and `exa`. Any other format returns `422` |
 | `include_content` | bool | `false` | Fetch page text into `content`. Honoured by `exa` and `firecrawl` (`firecrawl` also does this in `detailed` mode) |
-| `gl` | string | — | Country code (e.g. `in`, `us`). Honoured by `serper` |
-| `hl` | string | — | Language code. Honoured by `serper` |
-| `tbs` | string | — | Time filter, e.g. `qdr:d` (past day). Honoured by `serper` |
+| `gl` | string | — | Two-letter country code (e.g. `in`, `us`). Honoured by `firecrawl` |
+| `hl` | string | — | Language code. Accepted and ignored |
+| `tbs` | string | — | Time filter, e.g. `qdr:d` (past day), `qdr:w`, `qdr:m`, `qdr:y`. Honoured by `firecrawl` |
 
 A filter the serving provider does not honour is ignored, not rejected. Name the `provider` explicitly when a filter must apply.
 
@@ -112,7 +112,7 @@ Responses are **normalised across providers** — same keys regardless of which 
 {
   "query": "latest Indian AI startups raising funding",
   "mode": "shorter",
-  "provider": "serper",
+  "provider": "firecrawl",
   "results": [
     {
       "title": "Acme AI raises $...",
@@ -145,7 +145,7 @@ Responses are **normalised across providers** — same keys regardless of which 
 
 API keys must have `search` (or `*`) in their service permissions. Edit a key in your dashboard (↳ **Profile → API Keys → Edit**) and tick the **Search** chip.
 
-You can also restrict which **search providers** a single key may call by editing **Allowed web-search providers** on the same edit panel. A request that names a `provider` the key does not allow (for example `provider: "exa"` on a key restricted to `serper`) returns **HTTP 403 `search_provider_not_allowed`** before any upstream request is made. Requests that use `mode` or `auto` are served by the first allowed provider in the failover order.
+You can also restrict which **search providers** a single key may call by editing **Allowed web-search providers** on the same edit panel. A request that names a `provider` the key does not allow (for example `provider: "exa"` on a key restricted to `firecrawl`) returns **HTTP 403 `search_provider_not_allowed`** before any upstream request is made. Requests that use `mode` or `auto` are served by the first allowed provider in the failover order.
 
 ## Errors
 

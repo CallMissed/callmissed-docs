@@ -83,6 +83,29 @@ Function tools on a `gpt-live-1` session belong to the backend half of the
 split, not to the voice model. For the tool surface available on our other
 voice agents, see [Voice Agent Tools](/docs/voice-agent-tools).
 
+### Catching missed hand-offs
+
+`gpt-live-1` decides on its own which caller turns go to the backend. A short
+answer to the backend's question (`okay`, `yep`), or one said while the agent
+is still talking, is sometimes heard but never handed over, so the call goes
+quiet or the agent promises an action that never starts.
+
+Set `gpt_live_delegation_recovery` to `true` to catch these. When the model
+leaves a caller turn with itself, and both sides then stay quiet for half a
+second, a short check reads the conversation and, if the turn needs the
+backend, starts the backend work for it. An answer said over the agent is
+passed on with a note, so the backend confirms before it acts on it.
+
+- Off by default. It applies only to a `gpt-live-1` agent or session with at
+  least one function tool; anywhere else it has no effect.
+- Each check is billed as a short `gpt-6-luna` request at that model's token
+  price, on top of the per-minute rate. Turns the model hands over itself are
+  not checked.
+- On a saved agent, set it with the [agent config](/docs/voice-agent) or the
+  console's **Tool hand-off** card. On a managed voice session, send
+  `agent.gpt_live_delegation_recovery` (see
+  [Managed Voice Agent](/docs/managed-voice-agent)).
+
 ## Concurrency
 
 `gpt-live-1` capacity is measured in **browser/API voice sessions at once**, not requests per

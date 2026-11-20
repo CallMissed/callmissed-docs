@@ -11,6 +11,23 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 ## November 2026
 
+### Campaign time zone follows the workspace (2026-11-19)
+
+- **`POST /api/v1/voice-campaigns` and the `create_campaign` MCP tool without `timezone` now use the workspace's saved time zone preference**, and `Asia/Kolkata` when none is saved. Before, the default was always `Asia/Kolkata`. A `timezone` in the request still wins, and an update keeps the stored value. The zone also decides how Indian numbers without a leading `+` are read. See [Voice Campaigns](/docs/voice-campaigns).
+
+### Web search providers (2026-11-18)
+
+- **`POST /v1/search` now runs on `firecrawl` (default) with `exa` as the automatic backup.** `provider` accepts `auto`, `firecrawl` and `exa`. The older values `serper`, `linkup` and `google` are still accepted and are now aliases served by the default backend, so existing requests keep working. `gl`, `tbs`, `include_domains`, `exclude_domains` and the published-date filters apply on the default backend; `hl` is accepted and ignored. Price is unchanged. A key restricted to a retired provider is treated as allowing `firecrawl`. See [Web Search](/docs/web-search).
+
+### CRM integration API (2026-11-17)
+
+- **Create-or-update.** `POST /api/v1/contacts/upsert`, `POST /api/v1/companies/upsert` and `POST /api/v1/crm/leads/upsert` create a record or update the one that already carries your id, so a sync can be re-run safely. Contacts match on your external id, phone or email; companies on your external id, domain or name; leads on `external_ref`. The response says which happened (`created`, `matched_on`). See [Contacts](/docs/crm-contacts#post-apiv1contactsupsert), [Companies](/docs/crm-companies#post-apiv1companiesupsert) and [Leads](/docs/crm-leads#post-apiv1crmleadsupsert).
+- **Look up by your own id.** `GET /api/v1/contacts?external_id=hubspot:123` and the same on companies; `GET /api/v1/crm/leads?external_ref=…` for leads.
+- **Changed since.** `updated_after` on the contact, company, lead, deal and task lists returns the records changed after a time, oldest change first.
+- **CRM change webhooks.** Eighteen new events, `contact|company|lead|deal|task|note` × `created|updated|deleted`, sent for every change whoever made it, with a `source` field and the full record. See [Webhooks](/docs/webhooks#crm-record-events).
+- **Call transcript by call id.** `GET /api/v1/telephony/calls/{call_id}/transcript` (`format=json|txt|srt`, scope `telephony:read`). See [Telephony](/docs/telephony-api#transcripts).
+- New guide: [Connect your CRM](/docs/connect-your-crm).
+
 ### Legacy voice WebSocket removed (2026-11-11)
 
 - **`wss://api.callmissed.com/ws/voice-agent` is removed.** For a voice agent over a plain WebSocket, use the [Managed Voice Agent](/docs/managed-voice-agent) at `wss://api.callmissed.com/v2/voice/agent`: it sends a `ConversationText` event for each finished caller turn. For WebRTC, use [voice sessions](/docs/voice-sessions-api). The Real-time STT page, which documented the removed socket, now redirects to the Managed Voice Agent. File transcription on [Speech to Text](/docs/speech-to-text) is unchanged.
@@ -262,7 +279,7 @@ Latest updates, new features, and improvements to the CallMissed API.
 
 - **WebRTC voice sessions** — `POST /v1/voice/sessions` returns a connection token + URL; CallMissed handles the STT→LLM→TTS pipeline. List, fetch, fetch transcript (`json | txt | srt`), and end sessions under `/v1/voice/sessions`. The legacy `/ws/voice-agent` WebSocket still works for backward compatibility. See [Voice Session API](/docs/voice-sessions-api).
 - **Image Generation API** — `POST /v1/images/generations` (OpenAI-compatible). Free models include `flux-2-klein-9b`, `flux-2-dev`, `lucid-origin`, `phoenix-1.0`, `sdxl-lightning`, `dreamshaper-8-lcm`; paid models include `flux-2-pro`, `flux-1.1-pro`, `nano-banana-2`, and `nano-banana-pro`. See [Image Generation](/docs/image-generation).
-- **Web Search API** — `POST /v1/search` defaults to Serper web search (Exa, Firecrawl also available); flat 1 credit per query. See [Web Search](/docs/web-search).
+- **Web Search API** — `POST /v1/search` defaults to Firecrawl web search (Exa as backup); flat 1 credit per query. See [Web Search](/docs/web-search).
 - **Knowledge RAG** — vector knowledge sources at `/api/v1/knowledge/sources` (ingest text, URL, or PDF; chunked + embedded) with semantic search at `POST /api/v1/knowledge/search`.
 
 ## May 2026

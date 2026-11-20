@@ -201,7 +201,7 @@ Advanced agent settings, saved in the agent's `config` with [`PATCH /api/v1/bots
 | `tool_wait_phrase` | Text, up to 200 characters | unset | A short line the agent says when it starts one of the `tool_wait_tools` before saying anything else, for example "One moment, I'm sending that now." It plays while the tool runs. Write it in the agent's language. Used only when `tool_wait_tools` is also set. |
 | `tool_wait_tools` | List of tool names | unset | Which tools make the agent say `tool_wait_phrase`, for example `send_template_message` or `recall_memory`. |
 | `keep_send_promises` | `true`, `false` | `true` | When the agent tells the caller it is sending something on WhatsApp but calls no send tool, its next reply must make the send. `false`: the promise is only recorded in the session's `metadata.message_check`. |
-| `min_interruption_words` | 0–5 | 1 | How many words the caller must say before the agent stops talking. `0` stops it at any sound. `2` or more lets short replies like "okay" pass without cutting the agent off, but the caller must say more before the agent yields. Has no effect when `allow_interruptions` is `false`. |
+| `min_interruption_words` | 0–5 | 1 | How many words the caller must say before the agent stops talking. `0` stops it at any sound. `2` or more lets short replies like "okay" pass without cutting the agent off, but the caller must say more before the agent yields. On a listening model that returns text only after the caller finishes a phrase (for example `saaras:v4`), the count is measured as speech time, about 0.4 seconds of the caller's voice per word. Has no effect when `allow_interruptions` is `false`. |
 | `endpointing_mode` | `fixed`, `dynamic` | `fixed` | `fixed` waits the same pause every turn. `dynamic` learns how long this caller pauses mid-thought and waits that long, between `min_endpointing_delay` and `max_endpointing_delay`. |
 | `max_endpointing_delay` | 1.0–6.0 s | 3.0 (2.5 with `audio_turn_detector`) | The longest the agent waits when the caller sounds unfinished. It is the ceiling for `dynamic` and for `audio_turn_detector`; with neither, the agent never waits this long. |
 | `audio_turn_detector` | `true`, `false` | `false` | At each pause, listens to how the caller sounds, not just how long the pause is, and waits longer when they sound unfinished. Only for agents whose `language` is English or Hindi. Not used with Flux or `ink-2` listening models, which do this themselves. |
@@ -222,6 +222,12 @@ For `gpt-realtime`, `gpt-realtime-mini`, `gpt-realtime-1.5`, `gpt-realtime-2`, `
 | `realtime_speed` | 0.25–1.5 | 1.0 | Speaking pace. |
 
 Setting `realtime_vad_threshold` or `realtime_silence_ms` without `realtime_vad` uses `server_vad`. The caller can always interrupt a speech-to-speech agent.
+
+For `gpt-live-1` agents with at least one function tool:
+
+| Key | Values | Default | What it does |
+|-----|--------|---------|--------------|
+| `gpt_live_delegation_recovery` | `true`, `false` | `false` | When the model hears a caller's request or answer that needs a tool but never hands it to its backend, check the turn and start the backend work. Each check is billed as a short `gpt-6-luna` request. See [Full-duplex voice](/docs/full-duplex-voice#catching-missed-hand-offs). |
 
 ```json
 {

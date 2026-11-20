@@ -109,9 +109,11 @@ role.
 | `audio.input` / `audio.output` | `linear16` at `24000` Hz | See [Audio format](#audio-format) |
 | `agent.prompt` | a concise built-in assistant prompt | String. Longer than 25,000 characters is truncated, with a `PROMPT_TOO_LONG` warning |
 | `agent.greeting` | — | The first line the agent speaks |
+| `agent.greeting_delay_ms` | `0` | Integer, 0–5000. Wait this long before speaking the greeting. See [Sound and feel](#sound-and-feel) |
 | `agent.language` | `en-IN` | BCP-47. Falls back to `agent.stt.language`, then `agent.tts.language` |
 | `agent.llm.model` | `gemma-4-31b` | Any LLM id from [`GET /api/v1/voice/models`](#list-available-models) except `deepgram-voice-*` (see [Choosing models](#choosing-models)) |
 | `agent.llm.temperature` | model default | Number, 0–2 |
+| `agent.llm.reasoning_effort` | unset (fastest) | `low`, `medium` or `high`. How much a GPT reasoning model thinks before replying. See [Reasoning level](#reasoning-level) |
 | `agent.stt.model` | `saaras:v4` | |
 | `agent.tts.model` | plan-dependent | Free plan `bulbul:v3`; paid plans (starter and above) `sonic-3.6` |
 | `agent.tts.voice` | model default | With no `agent.tts.model`: free plan `shubh`, paid plans `skylar`. With a model set, that model's own default speaker. A voice you set must be a speaker of the chosen model |
@@ -124,7 +126,17 @@ role.
 | `agent.nudge_delay_seconds` | `12` | Number, 3–120. Seconds of silence before each prompt |
 | `agent.nudge_message` | "Are you still there?" in the session language | String. The prompt's wording |
 | `agent.nudge_hangup` | `true` | Boolean. End the session after the last unanswered prompt |
+| `agent.min_interruption_words` | `1` | Integer, 0–5. How many words the caller must say before the agent stops talking. See [Interruptions](#interruptions) |
+| `agent.allow_interruptions` | `true` | Boolean. `false`: the caller cannot interrupt the agent |
+| `agent.max_duration_seconds` | `7200` | Integer, 30–7200. End the session after this many seconds. See [Limits](#limits) |
+| `agent.min_endpointing_delay`, `agent.stt_keyterms`, `agent.tts_speed` and more | unset | Optional tuning of turn-taking, listening and speaking. See [Tuning](#tuning) |
+| `agent.background_sound` | off | `office`, `city`, `forest`, `crowded`, `hold_music`, `keyboard` or `keyboard2`. A sound under the call. See [Sound and feel](#sound-and-feel) |
+| `agent.background_sound_volume` | set per sound | Number, 0–1 |
+| `agent.backchannel` | `false` | Boolean. The agent says a short "okay" or "right" while the caller talks at length. See [Sound and feel](#sound-and-feel) |
+| `agent.backchannel_frequency` | `0.8` | Number, 0–1. How often it does |
+| `agent.backchannel_words` | by language | Up to 10 strings of at most 40 characters. The words it uses |
 | `flags.history` | `false` | Boolean. Send a `History` event for every turn and completed function call |
+| `flags.speech_probability` | `false` | Boolean. Send `SpeechProbability` events: how likely the caller is speaking right now |
 | `tags` | `[]` | Array of strings |
 
 `agent.llm`, `agent.stt` and `agent.tts` also accept a bare model id string as
@@ -162,8 +174,12 @@ stays `deepgram-nova-3`). Anything else, including `think` models CallMissed doe
 (`flux-<voice>-<lang>`), fails `Settings` with `INVALID_SETTINGS` naming the id.
 It is never swapped for a similar model. `agent.think.prompt`, `agent.think.functions`, `agent.greeting`,
 the `audio` block and `tags` behave as on the native surface, and so do
-`agent.record_calls`, `agent.recording_notice_enabled` and
-`agent.recording_notice` (CallMissed additions; Deepgram has no equivalent).
+`agent.record_calls`, `agent.recording_notice_enabled`,
+`agent.recording_notice`, `agent.min_interruption_words`,
+`agent.allow_interruptions`, `agent.max_duration_seconds`, the
+[tuning](#tuning) fields, the [sound and feel](#sound-and-feel) fields,
+`flags.speech_probability` and the `UpdateContext` message (CallMissed
+additions; Deepgram has no equivalent).
 
 Also supported as on Deepgram: `mulaw` and `alaw` audio (see
 [Audio format](#audio-format)), resuming with `agent.context.messages` and the
@@ -174,9 +190,18 @@ fallback arrays in `agent.think` and `agent.speak` (see
 
 Differences from Deepgram, each reported rather than silently dropped:
 
-- Fields accepted but not applied (for example `listen.provider.keyterms`,
-  `speak.provider.speed`, `think.provider.credentials`, `audio.output.bitrate`)
-  are listed in one `SETTINGS_FIELDS_IGNORED` warning.
+- `listen.provider.keyterms`, `listen.provider.eot_threshold`,
+  `listen.provider.eager_eot_threshold`, `speak.provider.speed` and
+  `speak.provider.volume` are applied, as `stt_keyterms`, `flux_eot_threshold`,
+  `flux_eager_eot_threshold`, `tts_speed` and `tts_volume` (see
+  [Tuning](#tuning)). A value those settings cannot take, such as a speed given
+  as text, is reported as not applied instead.
+- `think.provider.reasoning_mode` (`low`, `medium`, `high`) is applied as the
+  [reasoning level](#reasoning-level). Any other value is reported as not
+  applied.
+- Fields accepted but not applied (for example `listen.provider.smart_format`,
+  `think.provider.credentials`, `audio.output.bitrate`) are listed in one
+  `SETTINGS_FIELDS_IGNORED` warning.
 - `audio.output.container` must be `none` (raw frames).
 - A function with a server-side `endpoint` is dispatched to your client instead
   (see [Tool calling](#tool-calling)).
@@ -405,7 +430,7 @@ curl https://api.callmissed.com/api/v1/voice/models \
 | --- | --- | --- |
 | `Welcome` | `request_id` | Socket open. |
 | `SettingsApplied` | — | Configuration accepted; start streaming. |
-| `ConversationText` | `role` (`user` / `assistant`), `content` | A finished turn. |
+| `ConversationText` | `role` (`user` / `assistant`), `content` | A finished turn. The agent's `content` is the words it said, without the voice's delivery tags. |
 | `History` | `role` and `content`, or `function_calls[]` | A finished turn or completed function call, in `agent.context.messages` shape. Only with `flags.history` on. |
 | `UserStartedSpeaking` | — | **Barge-in.** Stop playback and clear your buffer. |
 | `AgentThinking` | `content` | The model is working. |
@@ -414,7 +439,8 @@ curl https://api.callmissed.com/api/v1/voice/models \
 | `FunctionCallRequest` | `functions[]` | Run a tool and reply. |
 | `FunctionCallCancelled` | `functions[]` (`id`, `name`) | A request you already received was abandoned. Stop the work and do not reply. |
 | `LatencyReport` | `eou_latency`, `stt_latency`, `ttt_latency`, `tts_latency`, `total_latency` (on `/v1/agent/converse`: `stt_latency`, `ttt_token_latency`, `tts_latency`, `total_latency`) | Per-stage timings for the turn. Seconds. |
-| `PromptUpdated` / `ThinkUpdated` / `ListenUpdated` / `SpeakUpdated` | — | The matching update was applied. |
+| `PromptUpdated` / `ThinkUpdated` / `ListenUpdated` / `SpeakUpdated` / `ContextUpdated` | — | The matching update was applied. |
+| `SpeechProbability` | `probability` (0–1) | How likely the caller is speaking right now. At most ten a second. Only with `flags.speech_probability` on. |
 | `InjectionRefused` | — | An `InjectAgentMessage` was refused (see below). |
 | `Warning` | `code`, `description` | Non-fatal; the session continues. |
 | `Error` | `code`, `description` | Fatal; the socket closes. Reconnect to start a new session. |
@@ -456,7 +482,7 @@ Deepgram's name; the native endpoint keeps its own.
 | `MODEL_UNAVAILABLE` | same | No voice engine could be built for this configuration |
 | `INSUFFICIENT_CREDITS` | same | Your balance ran out mid-session |
 | `API_KEY_BUDGET_EXCEEDED` | same | The API key reached its spend limit, or was revoked or expired, mid-session |
-| `SESSION_TIMEOUT` | `MAXIMUM_SESSION_LENGTH_REACHED` | The 2-hour session cap was reached |
+| `SESSION_TIMEOUT` | `MAXIMUM_SESSION_LENGTH_REACHED` | The 2-hour session cap, or your own `agent.max_duration_seconds`, was reached |
 | `IDLE_TIMEOUT` | `CLIENT_MESSAGE_TIMEOUT` | Nothing was received from your client for 2 minutes (see [Limits](#limits)) |
 | `NO_INPUT` | same | The caller stayed silent through every prompt (see [Caller silence](#caller-silence)) |
 | `AGENT_ERROR` | same | The voice engine could not continue |
@@ -468,7 +494,9 @@ Common `Warning` codes: `INVALID_UPDATE`, `THINK_UPDATE_FAILED`,
 `UNKNOWN_MESSAGE`, `DUPLICATE_SETTINGS` (native only), `INVALID_JSON`
 (`UNPARSABLE_CLIENT_MESSAGE` on converse), `MESSAGE_TOO_LARGE`,
 `AUDIO_CHUNK_TOO_LARGE` (the frame is dropped), `PROMPT_TOO_LONG`,
-`STACK_SUBSTITUTED`, `CONTEXT_TRUNCATED`, `IDLE_TIMEOUT_APPROACHING`,
+`STACK_SUBSTITUTED`, `CONTEXT_TRUNCATED`, `CONTEXT_TOO_LONG`,
+`CONTEXT_UPDATE_FAILED`, `BACKGROUND_SOUND_UNAVAILABLE`,
+`BACKCHANNEL_UNAVAILABLE`, `IDLE_TIMEOUT_APPROACHING`,
 `THINK_REQUEST_FAILED`, `SPEAK_REQUEST_FAILED`, `THINK_FALLBACK_UNAVAILABLE`,
 `SPEAK_FALLBACK_UNAVAILABLE`, `THINK_FALLBACKS_TRUNCATED`,
 `SPEAK_FALLBACKS_TRUNCATED`, `THINK_FALLBACK_IGNORED`, `SPEAK_FALLBACK_IGNORED`,
@@ -528,6 +556,7 @@ do not reply; a late `FunctionCallResponse` for it is dropped.
 | `UpdateThink` | `model`, optional `temperature`, `prompt`, `functions` | Switch the language model (and optionally the prompt). `functions` present replaces the tool set (`[]` removes every tool); absent keeps it | `ThinkUpdated` |
 | `UpdateListen` | `model`, optional `language` | Switch speech recognition | `ListenUpdated` |
 | `UpdateSpeak` | `model`, `voice`, optional `language` | Switch voice or text-to-speech model | `SpeakUpdated` |
+| `UpdateContext` | `content`, optional `id` | Tell the agent something it should know from now on, without it replying or being interrupted | `ContextUpdated` |
 | `InjectAgentMessage` | `message`, optional `behavior` | Make the agent say something now | `InjectionRefused` if refused |
 | `InjectUserMessage` | `content` | Inject text as if the caller said it | — |
 | `ForceEndTurn` | — | End the caller's turn now (push-to-talk release, a keypad press, your own end-of-speech detection); the agent replies. Ignored when the caller is not mid-turn | — |
@@ -546,6 +575,22 @@ is refused while either side is speaking, `queue` only while the caller is
 speaking, and `interrupt` is never refused: it cuts off whatever the agent is
 saying and speaks the new message instead. `queue` speaks after the current
 reply.
+
+`UpdateContext` is for facts that arrive mid-call: the caller opened a page,
+an order status changed, a lookup finished. The agent says nothing in response
+and uses the information from its next reply on.
+
+```json
+{ "type": "UpdateContext", "id": "cart", "content": "The cart holds 2 items, total 650 rupees." }
+```
+
+A later `UpdateContext` with the same `id` replaces the earlier note, so a
+changing value does not pile up; without an `id` each note is kept. `content`
+is at most 2,000 characters (longer is refused with `INVALID_UPDATE`, not cut).
+A session holds up to 50 notes, and the prompt and notes together at most
+25,000 characters; past that the note is refused with `CONTEXT_TOO_LONG`.
+Notes stay when you later send `UpdatePrompt`. It works the same on both
+endpoints.
 
 An `UpdateThink` fallback array applies its first entry only
 (`THINK_FALLBACK_IGNORED`); a `think.endpoint` in it is reported with
@@ -581,7 +626,7 @@ the rest with `LatencyReport`.
 
 | Limit | Value |
 | --- | --- |
-| Maximum session length | 2 hours |
+| Maximum session length | 2 hours, or `agent.max_duration_seconds` (30–7200) when you set it lower |
 | Time to send `Settings` | 15 seconds |
 | Tool response timeout | 30 seconds |
 | Prompt length | 25,000 characters |
@@ -623,6 +668,133 @@ few seconds. Otherwise a session keeps running, and keeps transcribing whatever
 audio you send, until you close the socket or it reaches the 2-hour cap, so
 close it when the conversation ends.
 
+### Interruptions
+
+The caller can interrupt the agent by speaking over it. Two `Settings` fields,
+on both endpoints, control how easily:
+
+- `agent.min_interruption_words` (0–5, default `1`): how many words the caller
+  must say before the agent stops talking. `0` stops it at any sound, including
+  a cough or line noise. `2` or more lets short replies like "okay" pass, but
+  the caller has to say more to cut in. A number outside the range is used as
+  the nearest end of it.
+  On a listening model that returns text only after the caller finishes a
+  phrase, including the default `saaras:v4`, the count is measured as speech
+  time: about 0.4 seconds of the caller's voice per word. On those models use
+  `2` or `3` if short sounds still cut the agent off.
+- `agent.allow_interruptions` (default `true`): `false` makes the agent finish
+  every sentence, for a script that must be heard in full.
+
+A wrong type fails `Settings` with `INVALID_SETTINGS`. Both are fixed for the
+session. `UserStartedSpeaking` is sent while the agent is speaking only once the
+caller has said enough to interrupt it, so a sound below the word count does not
+make your client drop its playback.
+
+A speech-to-speech model detects the caller itself: the word count does not
+apply and the caller can always interrupt. `agent.allow_interruptions: false`
+is reported there with a `SETTINGS_FIELDS_IGNORED` warning. These are the same
+settings as a saved agent's `min_interruption_words` and `allow_interruptions`.
+
+### Tuning
+
+Optional `Settings` fields, on both endpoints, that tune how the agent listens,
+takes turns and speaks. They are the same settings, with the same names and
+ranges, as a saved agent's (see [Voice agent](/docs/voice-agent)). Leave them
+unset unless you need them; unset keeps the default.
+
+| Field | Values | What it does |
+| --- | --- | --- |
+| `agent.min_endpointing_delay` | 0.2–1.5 s (default 0.3) | How long the agent waits after the caller stops before replying. |
+| `agent.endpointing_mode` | `fixed`, `dynamic` | `dynamic` learns how long this caller pauses mid-thought and waits that long. |
+| `agent.max_endpointing_delay` | 1.0–6.0 s | The longest the agent waits when the caller sounds unfinished. The ceiling for `dynamic`. |
+| `agent.stt_fast_endpointing` | `true`, `false` | `saaras:v4` only. Notices the end of the caller's speech sooner. May cut in on callers who pause mid-sentence. |
+| `agent.audio_turn_detector` | `true`, `false` | Listen to how the caller sounds at each pause, not only how long it is, and wait longer when they sound unfinished. English and Hindi sessions only; not on a listening model that detects the end of a turn itself (Flux, `ink-2`). |
+| `agent.flux_eot_threshold` | 0.5–0.9 (default 0.7) | Flux listening models only. How sure the model must be that the caller finished. |
+| `agent.flux_eager_eot_threshold` | 0.3–0.9 (default 0.4) | Flux listening models only. Start preparing the reply once this sure. |
+| `agent.stt_keyterms` | Up to 100 strings, 1–100 characters each | Names, products and jargon to bias transcription toward. Applied on listening models that support it. |
+| `agent.tts_speed` | Number; range depends on the speech model | Speaking pace, `1.0` is the voice's natural rate. |
+| `agent.tts_volume` | Number; range depends on the speech model | Loudness of the agent's voice. |
+| `agent.tts_emotion` | An emotion name, for example `calm` | Pins the delivery for the whole session, on speech models that support it. |
+| `agent.tts_temperature` | Number; range depends on the speech model | How much the voice varies its delivery. |
+| `agent.tts_instructions` | Text, up to 1,000 characters | Plain-English delivery direction, for voices that accept one. |
+| `agent.tts_normalize` | `true`, `false` | Speak numbers, dates, times, money and phone numbers the way a person reads them aloud. |
+| `agent.pronunciations` | Up to 100 entries of `{"word", "say_as"}` | Respellings so the voice says names and jargon correctly. The transcript keeps the original spelling. |
+| `agent.realtime_vad` | `server_vad`, `semantic_vad` | `gpt-realtime` models only. Reply after a set pause, or when the caller's words sound finished. |
+| `agent.realtime_eagerness` | `low`, `medium`, `high`, `auto` | `gpt-realtime` models with `semantic_vad`. How soon to reply. |
+| `agent.realtime_vad_threshold` | 0.0–1.0 (default 0.5) | `gpt-realtime` models with `server_vad`. How loud the caller must be to count as speech. |
+| `agent.realtime_silence_ms` | 200–2000 ms | `gpt-realtime` models with `server_vad`. The pause before the agent replies. |
+| `agent.realtime_noise_reduction` | `near_field`, `far_field` | `gpt-realtime` models only. Cleans the caller's audio before the model hears it. |
+| `agent.realtime_speed` | 0.25–1.5 | `gpt-realtime` models only. Speaking pace. |
+| `agent.gpt_live_delegation_recovery` | `true`, `false` | `gpt-live-1` sessions with function tools only. Check caller turns the model never handed to its backend and start that work; each check is billed as a short `gpt-6-luna` request. See [Full-duplex voice](/docs/full-duplex-voice#catching-missed-hand-offs). |
+
+A wrong type, or a choice that is not listed, fails `Settings` with
+`INVALID_SETTINGS`. A number outside its range is used as the nearest end of
+the range. A speaking setting the chosen speech model does not support has no
+effect. A `realtime_*` field on a session that is not on a `gpt-realtime`
+model (including `gpt-live-1`), or any other tuning field on a speech-to-speech
+model, is reported with a `SETTINGS_FIELDS_IGNORED` warning. So is
+`gpt_live_delegation_recovery` on anything but a `gpt-live-1` session with
+function tools. All are fixed for the session.
+
+### Sound and feel
+
+Optional `Settings` fields, on both endpoints. All are off unless you set
+them, and fixed for the session.
+
+**Background sound.** `agent.background_sound` plays a sound under the call:
+
+| Value | What the caller hears |
+| --- | --- |
+| `office`, `city`, `forest`, `crowded`, `hold_music` | A continuous ambience for the whole call, under the agent's voice. |
+| `keyboard`, `keyboard2` | Typing, only while the agent is working out its reply. |
+
+`agent.background_sound_volume` (0–1) sets the level; unset, each sound has
+its own quiet default. The sound arrives as audio frames on the same stream as
+the agent's speech, in the session's output format, including while the agent
+is silent, so keep playing what you receive. A call recording includes it.
+
+**Acknowledgements.** With `agent.backchannel: true` the agent says a short
+word such as "okay" or "right" while the caller is talking at length, without
+taking the turn. It waits for a short pause in the caller's voice, after about
+three seconds of talking and at most once every four seconds. It goes by
+timing, not by what was said. `agent.backchannel_frequency` (0–1, default
+`0.8`) is how often it does at each opening. English and Hindi sessions have default
+words; for any other language, or to choose your own, set
+`agent.backchannel_words`. The words are spoken in the session's voice and
+billed as speech once per voice. Acknowledgements are not sent on a
+speech-to-speech model. They are in a call recording, and not in the
+transcript.
+Your client needs echo cancellation, as for any call where the agent can be
+interrupted, or the caller's microphone can pick the word up.
+
+**Greeting delay.** `agent.greeting_delay_ms` (0–5000) waits before the
+greeting, for calls where the agent would otherwise start talking before the
+caller has the phone to their ear. If the caller speaks first and is answered
+within the delay, the greeting is skipped.
+
+A wrong type or an unknown sound fails `Settings` with `INVALID_SETTINGS`; a
+number outside its range is used as the nearest end of it.
+
+### Reasoning level
+
+`agent.llm.reasoning_effort` (`low`, `medium` or `high`; on
+`/v1/agent/converse`, `agent.think.provider.reasoning_mode`) lets a GPT
+reasoning model think before it replies. Unset, the model replies as fast as
+it can, which is right for most calls: every level above that adds delay
+before the agent starts speaking.
+
+It applies to GPT reasoning models (the `gpt-5` and `gpt-6` ids), on a session
+with no function tools: with tools, these models answer without thinking. On
+any other model, a session with tools, or any other value, you get a
+`SETTINGS_FIELDS_IGNORED` warning and the session runs as if it were unset
+(`none` and `minimal` mean unset and get no warning). The level follows the
+session through an `UpdateThink` model switch.
+
+If the model has not started its reply about 10 seconds into a turn, that turn
+is answered by the platform's backup model instead, so the caller is not left
+in silence. A session with a reasoning level gets a `THINK_REQUEST_FAILED`
+warning naming the model that answered, and the turn is billed for that model.
+
 ### Caller silence
 
 Off by default. Set `agent.nudge_max` (1–5) in `Settings` and, when nobody has
@@ -645,8 +817,9 @@ receive `API_KEY_BUDGET_EXCEEDED` and the socket closes.
 
 A session here is configured entirely by its `Settings` message; there is no
 `bot_id`. Features loaded from a saved agent are not applied: knowledge base,
-the built-in [agent tools](/docs/voice-agent-tools), pronunciations,
-`{{variables}}`, PII redaction, background sound and noise suppression (the
-no-input prompts are set in `Settings`, see [Caller silence](#caller-silence)).
+the built-in [agent tools](/docs/voice-agent-tools),
+`{{variables}}`, PII redaction and noise suppression (the
+no-input prompts, pronunciations, the other [tuning](#tuning) fields and the
+[background sound](#sound-and-feel) are set in `Settings`).
 For those, create the session with the
 [Voice Session API](/docs/voice-sessions-api) and a `bot_id`.
