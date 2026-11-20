@@ -1,13 +1,13 @@
 ---
 title: "Account MCP Server"
-description: "Give an AI agent 362 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
+description: "Give an AI agent 364 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key."
 slug: "agent-tools-mcp"
 breadcrumb: "Getting Started"
 ---
 
 # Account MCP Server
 
-Give an AI agent 362 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
+Give an AI agent 364 tools that act on your CallMissed account: draft, build and configure voice agents, set up call flows, menus and queues, place and review calls, run outbound calling campaigns end to end, work the inbox and the support desk, search and update the CRM with its pipelines, custom fields and lead scoring, send WhatsApp and email, sell from a WhatsApp catalog, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, manage webhooks and managed prompts, version and roll back agents, run evals and A/B experiments, and check credits, over the Model Context Protocol. Connect by signing in with your CallMissed account, or with an API key.
 
 :::cards
 /docs/mcp-server | Docs MCP Server | book | Searchable CallMissed docs inside your coding agent
@@ -16,7 +16,7 @@ Give an AI agent 362 tools that act on your CallMissed account: draft, build and
 
 ## Overview
 
-The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 362 tools: draft, build and configure voice agents end to end, set up how inbound calls are answered with flows, menus and queues, place and inspect phone calls, read transcripts, build and run outbound calling campaigns, work the shared inbox and the support desk, search and update the CRM and set up its pipelines, custom fields and lead scoring, summarise and score calls, send WhatsApp messages, catalog products and Flow forms, send email, generate images, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, wire up webhooks and managed prompts, version and roll back an agent, run evaluation suites and A/B experiments, and check what it all cost.
+The **Account MCP server** lets an AI agent take actions in your CallMissed account through the [Model Context Protocol](https://modelcontextprotocol.io). Point any MCP client at one URL, sign in with your CallMissed account or pass an API key, and the agent gets 364 tools: draft, build and configure voice agents end to end, set up how inbound calls are answered with flows, menus and queues, place and inspect phone calls, read transcripts, build and run outbound calling campaigns, work the shared inbox and the support desk, search and update the CRM and set up its pipelines, custom fields and lead scoring, summarise and score calls, send WhatsApp messages, catalog products and Flow forms, send email, connect and disconnect WhatsApp, Facebook, Instagram, integrations and knowledge sources, wire up webhooks and managed prompts, version and roll back an agent, run evaluation suites and A/B experiments, and check what it all cost.
 
 It is hosted, so there is nothing to install and nothing to run locally.
 
@@ -58,7 +58,7 @@ The consent screen offers five permission groups.
 | --- | --- | --- | --- |
 | **Read your data** | See your calls, contacts, companies, deals, leads, quotes, invoices, products, tasks, notes, conversations, agents and usage, plus how your CRM and support desk are set up: pipelines, custom fields, saved views, lead scores, tickets, SLA policies, macros, routing rules and satisfaction scores. Cannot change anything. Searching your knowledge base costs a small amount to read the question. | Yes | Yes |
 | **Read call transcripts** | Read what was said on your voice calls, and what each one cost. This also lets the connection use AI models on your account, which spends credits. | No | Yes |
-| **Take actions** | Create and update records — including leads, products, quotes and invoices — send WhatsApp messages and email — including catalog products, order updates and Flow forms — place and end calls, rent phone numbers, and generate images. It can also build outbound calling campaigns and start them, which dials everyone on the list, change how your CRM and support desk are set up — pipelines, custom fields, lead scoring, tickets, SLA policies, macros and routing — and open satisfaction surveys. Spends credits, and a rented number is a recurring charge. | No | Yes |
+| **Take actions** | Create and update records — including leads, products, quotes and invoices — send WhatsApp messages and email — including catalog products, order updates and Flow forms — place and end calls, and rent phone numbers. It can also build outbound calling campaigns and start them, which dials everyone on the list, change how your CRM and support desk are set up — pipelines, custom fields, lead scoring, tickets, SLA policies, macros and routing — and open satisfaction surveys. Spends credits, and a rented number is a recurring charge. | No | Yes |
 | **Set up and change your agents** | Create agents and change their instructions, voice, tools and knowledge, draft a new agent from a description, give them custom tools that call your own URLs, change how a team of agents hands callers between them, and run test suites and A/B experiments against them. Cannot send messages or place calls. Indexing a knowledge source, drafting an agent and running a test suite spend credits. | No | Yes |
 | **Configure your workspace** | Set up where your events are delivered and when you are alerted, connect an external service or a WhatsApp, Facebook or Instagram account by handing you a link to approve, choose which agent answers each connected number or account, disconnect them, create, edit or delete WhatsApp message templates, and manage the prompts the API resolves by name. Cannot read or write the credentials of a connected service. Publishing a prompt or pinning a model to one changes what your own API calls do and what they cost. | No | Yes |
 
@@ -125,7 +125,7 @@ Everything attached to the key still applies: its scopes, its spend budget, its 
 Two different gates decide whether a tool works, whether the connection came from signing in or from a key you made by hand:
 
 * **Resource scopes** such as `contacts:read` or `whatsapp:send`. Most tools use these, and the table below names the one each tool needs. A tool whose scope is missing returns a readable refusal naming the scope to add, so the agent can tell you what to fix.
-* **Service permissions** on the key. The three voice-session tools need a key with the `stt`, `tts` and `llm` permissions; the two image tools need the `image` permission. `get_credit_balance` needs nothing beyond a valid key.
+* **Service permissions** on the key. The three voice-session tools need a key with the `stt`, `tts` and `llm` permissions. `get_credit_balance` needs nothing beyond a valid key.
 
 Give each key only what its agent needs. A read-only key is a perfectly good way to let an agent look at the account without letting it spend anything or reach a real person.
 
@@ -135,7 +135,7 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 
 ## Tools
 
-362 tools in sixteen groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
+364 tools in fifteen groups. `Access` is the tool's own `readOnlyHint`. `Credits` marks the tools that draw down your balance. Every tool's full JSON Schema, including argument names, types and bounds, comes back from `tools/list`.
 
 ### Voice and calls
 
@@ -156,6 +156,8 @@ Give each key only what its agent needs. A read-only key is a perfectly good way
 | `attach_number_to_agent` | Point one of your numbers at an agent, so calls to it are answered by that agent. Pass `bot_id: null` to detach | Write | `telephony:write` | No |
 | `list_voice_sessions` | List voice agent sessions, newest first | Read | `stt` + `tts` + `llm` permissions | No |
 | `get_voice_session_transcript` | Get a session's full turn-by-turn transcript | Read | `stt` + `tts` + `llm` permissions | No |
+| `get_transcript_translation` | Get the stored Hindi or English translation of a session's transcript | Read | `stt` + `tts` + `llm` permissions | No |
+| `translate_call_transcript` | Translate a finished session's transcript into Hindi or English and store it; numbers written as digits are kept as they appear | Write | `stt` + `tts` + `llm` permissions | Yes |
 | `get_voice_session_cost` | Break down what one voice session cost in credits | Read | `stt` + `tts` + `llm` permissions | No |
 
 #### Call handling
@@ -468,13 +470,6 @@ Macros and rules are retired with `is_active: false` rather than deleted, so not
 | `place_whatsapp_call` | Call a customer on WhatsApp; the number's linked agent does the talking | Write | `whatsapp:send` | Yes |
 | `end_whatsapp_call` | Hang up a live WhatsApp call | Write, destructive | `whatsapp:send` | No |
 
-### Images
-
-| Tool | What it does | Access | Scope or permission | Credits |
-| --- | --- | --- | --- | --- |
-| `generate_image` | Generate an image from a prompt. `model` picks which image model draws it — its enum lists each model's strength. Returns the image itself, so the model can see it, plus a link to the full-size version. No image model is processed in India, so with India-only processing on it fails with `region_unavailable` | Write | `image` permission | Yes |
-| `list_generated_images` | List images made with this key, with fresh short-lived links | Read | `image` permission | No |
-
 ### Agents and knowledge
 
 | Tool | What it does | Access | Scope or permission | Credits |
@@ -506,12 +501,12 @@ Macros and rules are retired with `is_active: false` rather than deleted, so not
 
 #### After the call
 
-What an agent does on its own once a call is analysed: rules of "when these answers look like this, do these things" (update the contact, create a task or ticket, email a team member, send an approved WhatsApp template, add a Google Sheets row). Start from a recipe; test against a past call before saving. A WhatsApp send never reaches anyone who opted out, and marketing templates only go to contacts who agreed to WhatsApp messages.
+What an agent does on its own once a call is analysed: rules of "when these answers look like this, do these things" (update the contact, create a task or ticket, email a team member, send an approved WhatsApp template, add a Google Sheets row or a CSV row, call your own API, run a custom tool, ask the AI about the call, and more). A rule runs when all its conditions pass or when any one does (`match`). `create_post_call_rule` and `update_post_call_rule` accept `match` and the `http_request`, `run_custom_tool` and `ask_ai` actions; `draft_post_call_rule` and the AI steps take an optional `model`, billed per token like the LLM API. Start from a recipe; test against a past call before saving. A WhatsApp send never reaches anyone who opted out, and marketing templates only go to contacts who agreed to WhatsApp messages.
 
 | Tool | What it does | Access | Scope or permission | Credits |
 | --- | --- | --- | --- | --- |
 | `list_post_call_recipes` | One-click rules filled in from the agent's own answers (low rating, callback asked, happy customer, save to a sheet, save on the contact), with what is left to choose | Read | `bots:read` | No |
-| `get_post_call_options` | The building blocks for this agent: its answers and their types, operators, `{{tokens}}`, team, contact fields, sendable templates, shared spreadsheets | Read | `bots:read` | No |
+| `get_post_call_options` | The building blocks for this agent: its answers and their types, operators, `{{tokens}}`, team, contact fields, sendable templates, shared spreadsheets, the agent's custom tools (`custom_tools`), the models an AI step may use (`ai_models`, `default_ai_models`) and the rule limits (`limits`) | Read | `bots:read` | No |
 | `list_post_call_rules` | The agent's rules in order, plus the agent-wide on/off switch | Read | `bots:read` | No |
 | `create_post_call_rule_from_recipe` | Save a recipe as a rule, filling its blanks | Write | `bots:write` | No |
 | `create_post_call_rule` | Save a custom rule; checked against the agent's declared answers | Write | `bots:write` | No |
@@ -520,8 +515,11 @@ What an agent does on its own once a call is analysed: rules of "when these answ
 | `set_post_call_actions_enabled` | Turn all of an agent's after-the-call rules on or off | Write | `bots:write` | No |
 | `delete_post_call_rule` | **Permanently** delete a rule; what it already did stays in the call history | Write, destructive | `bots:write` | No |
 | `list_post_call_recent_calls` | The agent's latest analysed calls, to test rules on | Read | `bots:read` | No |
+| `draft_post_call_rule` | Describe what should happen after a call in plain words and get a draft rule back, built only from this agent's answers and your own team, templates and campaigns, with questions for what it could not tell. Saves and runs nothing; the draft is switched off | Write | `bots:write` | Yes |
 | `dry_run_post_call_rule` | Test rules on a past call: which conditions pass and what each action would do. Nothing is sent or saved | Read | `bots:read` | No |
+| `run_post_call_rule_on_call` | Run one saved rule on one past call for real (each action at most once per call); `force` runs it even if the conditions do not pass. Test with `dry_run_post_call_rule` first | Write | `bots:write` | No |
 | `list_post_call_action_runs` | What the rules did, for the agent or one call, with each action's status and reason | Read | `bots:read` | No |
+| `get_post_call_csv` | The CSV file an "Add a row to a CSV file" action keeps, as text: one row per call, the latest `limit` rows of a date range | Read | `bots:read` + `telephony:read` | No |
 
 #### Building an agent with these tools
 
@@ -699,7 +697,6 @@ Facebook Pages and Instagram accounts: publish and schedule posts, answer commen
 | `get_instagram_container_status` | Check whether Instagram has finished processing a post's media | Read | `whatsapp:send` | No |
 | `publish_instagram_container` | Publish a processed media container once its status is FINISHED | Write | `whatsapp:send` | No |
 | `get_instagram_publishing_limit` | How many posts the account has published in the last 24 hours against Instagram's cap | Read | `whatsapp:send` | No |
-| `generate_social_post` | Draft a ready-to-publish post: a caption, hashtags and, unless generate_image is false, an image link. Not available with India-only processing (`region_unavailable`) | Write | None | Yes |
 | `list_social_comments` | List comments on a Facebook post or Instagram media | Read | `whatsapp:read` | No |
 | `list_social_comment_replies` | List the replies under one comment | Read | `whatsapp:read` | No |
 | `reply_to_social_comment` | Post a public reply to a Facebook or Instagram comment as the Page or account | Write | `whatsapp:send` | No |
@@ -742,9 +739,9 @@ Step-by-step playbooks an assistant follows before it builds anything: it interv
 
 ### Calling tools are deployment-gated
 
-36 of the 362 tools are gated on whether calling is switched on for your account, in two independent groups.
+36 of the 364 tools are gated on whether calling is switched on for your account, in two independent groups.
 
-**23 telephony tools:** `place_call`, `list_calls`, `get_call`, `export_call_results`, `end_call`, `get_call_recording`, `click_to_call`, `list_phone_numbers`, `search_available_numbers`, `list_number_countries`, `get_number_requirements`, `provision_phone_number`, `attach_number_to_agent`, the four voicemail-message tools, `set_agent_voicemail_drop`, `get_number_reputation`, `update_number_call_settings`, `declare_number_for_ai_calls`, `list_telephony_compliance` and `callback_handoff`. With telephony off, `tools/list` returns the other 339.
+**23 telephony tools:** `place_call`, `list_calls`, `get_call`, `export_call_results`, `end_call`, `get_call_recording`, `click_to_call`, `list_phone_numbers`, `search_available_numbers`, `list_number_countries`, `get_number_requirements`, `provision_phone_number`, `attach_number_to_agent`, the four voicemail-message tools, `set_agent_voicemail_drop`, `get_number_reputation`, `update_number_call_settings`, `declare_number_for_ai_calls`, `list_telephony_compliance` and `callback_handoff`. With telephony off, `tools/list` returns the other 342.
 
 **13 campaign tools:** the whole **Calling campaigns** table above. With campaigns off, `tools/list` returns the other 349.
 
@@ -770,7 +767,7 @@ curl https://api.callmissed.com/api/v1/mcp/catalog
 {
   "serverUrl": "https://api.callmissed.com/api/v1/mcp",
   "protocolVersion": "2025-06-18",
-  "count": 362,
+  "count": 364,
   "categories": { "voice": "Voice and calls", "crm": "CRM" },
   "tools": [
     {
@@ -800,9 +797,8 @@ Some results render as an interactive view instead of a wall of JSON, using the 
 | `ui://callmissed/transcript` | A call's turns, caller and agent side by side | `get_voice_session_transcript` |
 | `ui://callmissed/inbox` | Conversations with previews and unread counts | `list_conversations`, `list_handoffs` |
 | `ui://callmissed/timeline` | A contact's history in one stream | `crm_timeline` |
-| `ui://callmissed/image-gallery` | Generated images | `generate_image`, `list_generated_images` |
 
-So five views across seven tools, or six tools where telephony is off.
+So four views across five tools, or four tools where telephony is off.
 
 **Where they render.** claude.ai, Claude Desktop, Claude mobile and Claude Cowork render MCP Apps, as do ChatGPT, VS Code Copilot and Cursor. The **Claude Code terminal does not**: it shows the text result instead. That is not a degraded mode. Every tool returns its full data as text and as `structuredContent` whether or not a view exists, so a client that ignores the extension loses nothing but the pictures.
 

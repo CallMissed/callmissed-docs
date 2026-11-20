@@ -134,6 +134,20 @@ Config file locations:
 
 After adding the config, restart your client. The CallMissed docs tools then appear automatically alongside your other tools.
 
+## Plain-text docs (no MCP)
+
+An agent that cannot run an MCP server can read the same documentation over HTTPS as markdown. All three are generated from this site on every deploy.
+
+| URL | What it is |
+| --- | --- |
+| `https://docs.callmissed.com/llms.txt` | Index of every page, with a one-line description each |
+| `https://docs.callmissed.com/llms-full.txt` | Every page in one markdown file |
+| `https://docs.callmissed.com/docs/<slug>.md` | One page as markdown: add `.md` to its URL, e.g. `https://docs.callmissed.com/docs/connect-your-crm.md` |
+
+```bash
+curl https://docs.callmissed.com/docs/connect-your-crm.md
+```
+
 ## Use via Context7
 
 [Context7](https://context7.com) aggregates library documentation for AI agents. CallMissed docs are indexed there under the library ID `/callmissed/callmissed-docs` — so if you already run the Context7 MCP server, you can pull CallMissed docs through it without installing a separate server.
