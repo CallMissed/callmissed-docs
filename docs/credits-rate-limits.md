@@ -58,6 +58,11 @@ Monthly caps counted per service, reset on the 1st. Only Free and Starter have c
 Caps are separate from credits. Exceeding a cap returns `429` even with credits
 in the balance; running out of credits returns `402` even under the cap.
 
+Only calls you make count toward a cap: your API requests and your voice agents'
+turns. Work CallMissed runs for you, such as post-call summaries, WhatsApp
+auto-replies and the dashboard assistant, is charged in credits but does not
+use up the cap. Failed requests do not count either.
+
 ## Request rate
 
 Per API key, requests per minute:
@@ -107,7 +112,7 @@ Do not retry. Top up first.
 ```json
 {
   "error": {
-    "message": "Plan limit exceeded: 100/100 llm calls this month. Upgrade your plan at console.callmissed.com/org/billing",
+    "message": "Plan limit exceeded: 100/100 AI (LLM) calls this month (free plan). Resets 1 Dec. Upgrade at console.callmissed.com/org/billing",
     "type": "insufficient_quota",
     "code": "quota_exceeded"
   }

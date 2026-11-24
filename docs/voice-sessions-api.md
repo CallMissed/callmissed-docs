@@ -220,6 +220,12 @@ curl "https://api.callmissed.com/v1/voice/sessions/{id}/transcript?format=json" 
 
 Transcripts are saved for every session, whether or not the call is recorded.
 
+`404 Session not found` for an unknown id. A `cm_` key reads the sessions it created itself; to read a session another key or the console created (every phone call, for example) it also needs the `telephony:read` scope, otherwise `403`. `422` when `format` is not `json`, `txt` or `srt`.
+
+For a phone call you can skip the session id: [`GET /api/v1/telephony/calls/{call_id}/transcript`](/docs/telephony-api#transcripts) returns the same transcript by call id and documents each turn field.
+
+To read a finished call in Hindi or English, see [Transcript Translation](/docs/transcript-translation): `POST /v1/voice/sessions/{id}/translations` translates and stores it, `GET /v1/voice/sessions/{id}/translations/{language}` reads it back.
+
 ## Get Recording
 
 A session's audio is recorded only when its agent has call recording turned on (`record_calls: true` in the agent's config; off by default). The agent then speaks a short recording notice before its greeting unless `recording_notice_enabled` is `false`; `recording_notice` sets the wording. The recording is one MP3 with both sides of the call, available a few seconds after the call ends. This covers every way the agent takes calls (phone in and out, WhatsApp, web) and every voice model. A [managed voice agent](/docs/managed-voice-agent) session is recorded when its `Settings` set `agent.record_calls: true`.
