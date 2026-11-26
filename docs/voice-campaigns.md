@@ -60,7 +60,7 @@ A brand-new campaign is a `draft`, and `draft` cannot jump straight to `running`
 | `from_number_id` | uuid | No | Which of your numbers to call from |
 | `caller_id_pool_id` | uuid | No | Dial from a [caller ID pool](/docs/caller-id-pools) instead. While the pool is enabled it replaces `from_number_id`. Send `null` on a patch to detach |
 | `scheduled_at` | timestamp | No | When the campaign should begin |
-| `timezone` | string | No | IANA zone the calling hours are read in. Default `Asia/Kolkata` |
+| `timezone` | string | No | IANA zone the calling hours are read in. Default: the workspace's saved time zone preference when it has one, otherwise `Asia/Kolkata`. Read at create time; an update keeps the stored value |
 | `quiet_hours_start` | integer 0–23 | No | Earliest local hour a call may be placed. Default `9` |
 | `quiet_hours_end` | integer 1–24 | No | Latest local hour. Must be after the start. Default `21` |
 | `max_attempts` | integer 1–5 | No | Retries per contact. Default `3` |
@@ -202,7 +202,7 @@ curl -X POST https://api.callmissed.com/api/v1/voice-campaigns/6d1e.../contacts 
 
 A row with no usable digits is counted in `skipped_invalid` rather than failing the whole batch. Numbers are deduplicated on their last 10 digits, against the contacts already on the campaign and within the request, so `+919000000001`, `919000000001` and `9000000001` are one person; repeats are counted in `skipped_duplicate` and are not called twice. `dnc_matches` counts the added numbers that are on your do-not-call list: they stay on the campaign but are never dialled. Adding to a campaign that is `running`, `completed` or `cancelled` returns `409`.
 
-On a campaign whose `timezone` is `Asia/Kolkata` (the default), an Indian mobile written without a leading `+` is saved in international format: `9000000001`, `09000000001` and `919000000001` all become `+919000000001`. A number that starts with `+` is saved as you sent it. In any other timezone, send numbers with their `+` country code.
+On a campaign whose `timezone` is `Asia/Kolkata` (the fallback when neither the request nor the workspace sets one), an Indian mobile written without a leading `+` is saved in international format: `9000000001`, `09000000001` and `919000000001` all become `+919000000001`. A number that starts with `+` is saved as you sent it. In any other timezone, send numbers with their `+` country code.
 
 ### Upload a CSV
 

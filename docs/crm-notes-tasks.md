@@ -86,6 +86,8 @@ Returns `201`. `404 Company not found` (or Contact / Deal) when the target is no
 
 `PATCH` edits **`body` only** — a note cannot be re-pointed at a different record, so the audit trail stays honest. `DELETE` returns `204`.
 
+Notes are read one record at a time, so there is no `updated_after` here. To follow notes across your whole account, subscribe a [webhook](/docs/webhooks#crm-record-events) to `note.created`, `note.updated` and `note.deleted`.
+
 ---
 
 # Tasks
@@ -131,13 +133,20 @@ Ordered by `due_at` ascending with undated tasks last, then newest first — so 
 | `overdue` | `boolean` | |
 | `due_before` | `datetime` | |
 | `due_after` | `datetime` | |
+| `updated_after` | `datetime` | ISO 8601, e.g. `2026-11-17T06:30:00Z` (no offset is read as UTC). Only records whose `updated_at` is later than this. The result is then ordered **oldest change first** (`updated_at` ascending, then `id`) and `sort` is ignored. See [incremental sync](/docs/connect-your-crm#3-catch-up-after-downtime) |
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
 
 ```bash
 curl "https://api.callmissed.com/api/v1/crm/tasks?status=open&overdue=true" \
   -H "Authorization: Bearer cm_your_api_key"
+
+# Tasks changed since your last sync, oldest change first
+curl "https://api.callmissed.com/api/v1/crm/tasks?updated_after=2026-11-17T06:30:00Z&limit=200" \
+  -H "Authorization: Bearer cm_your_api_key"
 ```
+
+Returns an array of task objects. A deleted task is not in the list; deletions reach you only as the [`task.deleted` webhook](/docs/webhooks#crm-record-events).
 
 ## POST `/api/v1/crm/tasks`
 
@@ -181,6 +190,10 @@ No body. Marks the task done and stamps `completed_at`.
 
 `DELETE` returns `204`. `404 Task not found`.
 
+## Webhooks
+
+Subscribe a [webhook](/docs/webhooks#crm-record-events) to `note.created`, `note.updated`, `note.deleted`, `task.created`, `task.updated` and `task.deleted` (an API key needs `crm_notes:read` for the note events and `crm_tasks:read` for the task events to subscribe). Completing a task sends `task.updated`. Created and updated events carry the note or task object above; a deleted event carries only `id`. Notes and tasks that are removed or moved because their parent record was deleted, merged or converted do not send their own events.
+
 ---
 
 ## Errors
@@ -189,6 +202,6 @@ No body. Marks the task done and stamps `completed_at`.
 | --- | --- |
 | `403` | Key is missing the matching `crm_notes:*` / `crm_tasks:*` scope |
 | `404` | Note or task not in your tenant, or (notes only) the record you attach a note to |
-| `422` | Blank body/title, unknown `entity_type` or `status`, an entity pair sent half-filled, a task's linked record or assignee outside your tenant |
+| `422` | Blank body/title, an `updated_after` that is not a date-time, unknown `entity_type` or `status`, an entity pair sent half-filled, a task's linked record or assignee outside your tenant |
 
 Nothing on this page consumes credits.

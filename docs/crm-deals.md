@@ -144,6 +144,7 @@ A list with repeats returns `422 stage_ids contains duplicates`; a list that mis
 | `closed_at` | `datetime \| null` | Stamped when the deal lands on a won or lost stage. Moving between won and lost keeps the original time; re-opening clears it |
 | `lost_reason` | `string \| null` | Why the deal was lost, up to 255 characters. Kept only while `status` is `lost`; cleared when the deal is re-opened or won |
 | `last_activity_at` | `datetime \| null` | Set on create and bumped on every update or move |
+| `updated_at` | `datetime` | When the deal last changed. `?updated_after=` filters on it |
 
 ## GET `/api/v1/crm/deals`
 
@@ -157,8 +158,17 @@ Newest first.
 | `owner_user_id` | `UUID` | |
 | `contact_id` | `UUID` | |
 | `company_id` | `UUID` | |
+| `updated_after` | `datetime` | ISO 8601, e.g. `2026-11-17T06:30:00Z` (no offset is read as UTC). Only records whose `updated_at` is later than this. The result is then ordered **oldest change first** (`updated_at` ascending, then `id`) and `sort` is ignored. See [incremental sync](/docs/connect-your-crm#3-catch-up-after-downtime) |
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
+
+```bash
+# Deals changed since your last sync, oldest change first
+curl "https://api.callmissed.com/api/v1/crm/deals?updated_after=2026-11-17T06:30:00Z&limit=200" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+Returns an array of deal objects. A deleted deal is not in the list; deletions reach you only as the [`deal.deleted` webhook](/docs/webhooks#crm-record-events).
 
 ## GET `/api/v1/crm/deals/summary`
 
@@ -258,6 +268,10 @@ So re-opening a deal is just moving it back to a working stage.
 
 `DELETE` returns `204`.
 
+## Webhooks
+
+Subscribe a [webhook](/docs/webhooks#crm-record-events) to `deal.created`, `deal.updated` and `deal.deleted` (an API key needs `crm_deals:read` to subscribe) to be told about every change, whoever made it. A [move](#post-apiv1crmdealsdeal_idmove) sends `deal.updated`. Created and updated events carry the deal object above; a deleted event carries only `id`. Pipelines and stages do not send events.
+
 ---
 
 ## Errors
@@ -267,6 +281,6 @@ So re-opening a deal is just moving it back to a working stage.
 | `403` | Key is missing `crm_deals:read` / `crm_deals:write` |
 | `404` | Deal, pipeline, stage, contact, company or owner not in your tenant |
 | `409` | Duplicate pipeline name, or a pipeline/stage that still holds deals |
-| `422` | Blank name/title, a stage outside the deal's pipeline, a stage flagged both won and lost, an incomplete `reorder` list, or an empty pipeline |
+| `422` | Blank name/title, an `updated_after` that is not a date-time, a stage outside the deal's pipeline, a stage flagged both won and lost, an incomplete `reorder` list, or an empty pipeline |
 
 Nothing on this page consumes credits.

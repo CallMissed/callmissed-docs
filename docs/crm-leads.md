@@ -1,13 +1,13 @@
 ---
 title: "Leads"
-description: "Capture and qualify prospects before they are customers, track follow-ups, and convert a lead into a contact, company and deal in one call."
+description: "Capture and qualify prospects before they are customers, create-or-update a lead by your own id (external_ref), track follow-ups, and convert a lead into a contact, company and deal in one call."
 slug: "crm-leads"
 breadcrumb: "API Reference"
 ---
 
 # Leads
 
-Capture and qualify prospects before they are customers, track follow-ups, and convert a lead into a contact, company and deal in one call.
+Capture and qualify prospects before they are customers, create-or-update a lead by your own id (external_ref), track follow-ups, and convert a lead into a contact, company and deal in one call.
 
 ## Overview
 
@@ -25,6 +25,7 @@ Authorization: Bearer cm_your_api_key
 | --- | --- |
 | List, get, stats | `crm_leads:read` |
 | Create, update, delete, convert | `crm_leads:write` |
+| Create-or-update | `crm_leads:write` **and** `crm_leads:read` (it returns the lead it matched) |
 
 ## The lead object
 
@@ -66,7 +67,7 @@ Authorization: Bearer cm_your_api_key
 | `estimated_value_minor` | `integer \| null` | **Integer minor units** of `currency` (paise for `INR`, cents for `USD`). `24000000` is INR 240,000.00 |
 | `currency` | `string` | ISO 4217, three letters, upper-cased. Default `INR` |
 | `score` | `integer` | `0` to `100`. Default `0` |
-| `external_ref` | `string \| null` | Your own de-duplication key, up to 64 characters. Set on create only. Unique per tenant when set |
+| `external_ref` | `string \| null` | Your own id for the enquiry, up to 64 characters. Set on create only. Unique per tenant when set. [Create-or-update](#post-apiv1crmleadsupsert) matches on it and `?external_ref=` finds a lead by it |
 | `attribution` | `object \| null` | Free-form JSON about where the lead came from |
 | `converted_*` | `UUID \| null` | Filled in by [convert](#convert-a-lead) |
 | `tags` | `string[]` | Your labels, in the order added. Up to 20, each at most 40 characters. See [tags](/docs/crm-import-export#tags) |
@@ -94,9 +95,23 @@ Newest first, unless you ask for `sort=score`.
 | `q` | `string` | Up to 320 characters. Case-insensitive substring match on name, email, phone and company name |
 | `follow_up_before` | `datetime` | Leads whose `next_follow_up_at` is at or before this time |
 | `tag` | `string` (repeatable) | Leads carrying **any** of these tags, e.g. `?tag=enterprise&tag=renewal`. Exact match. At most 20 |
+| `external_ref` | `string` | Up to 64 characters. Only the lead carrying exactly this `external_ref` |
 | `sort` | `string` | `newest` (default) or `score` (highest `score` first, then newest). Anything else is `422` |
+| `updated_after` | `datetime` | ISO 8601, e.g. `2026-11-17T06:30:00Z` (no offset is read as UTC). Only records whose `updated_at` is later than this. The result is then ordered **oldest change first** (`updated_at` ascending, then `id`) and `sort` is ignored. See [incremental sync](/docs/connect-your-crm#3-catch-up-after-downtime) |
 | `limit` | `integer` | `1 <= limit <= 200`, default `50` |
 | `offset` | `integer` | `0 <= offset <= 100000`, default `0` |
+
+```bash
+# One lead by your own id (an empty array means you have not sent it yet)
+curl "https://api.callmissed.com/api/v1/crm/leads?external_ref=form-88213" \
+  -H "Authorization: Bearer cm_your_api_key"
+
+# Leads changed since your last sync, oldest change first
+curl "https://api.callmissed.com/api/v1/crm/leads?updated_after=2026-11-17T06:30:00Z&limit=200" \
+  -H "Authorization: Bearer cm_your_api_key"
+```
+
+A deleted lead is not in the list. Deletions reach you only as the [`lead.deleted` webhook](/docs/webhooks#crm-record-events).
 
 ## GET `/api/v1/crm/leads/stats`
 
@@ -157,9 +172,88 @@ curl -X POST https://api.callmissed.com/api/v1/crm/leads \
 
 Returns `201` with the lead object. A reused `external_ref` returns `409`. An `owner_user_id` outside your tenant returns `404`.
 
+## POST `/api/v1/crm/leads/upsert`
+
+Create-or-update by `external_ref`. Scopes `crm_leads:write` and `crm_leads:read`, both required, because the call returns the lead it matched. The lead that already carries this `external_ref` is updated; when there is none, a new lead is created with it.
+
+`external_ref` is a lead's only identity. Two enquiries from the same phone number or email are two leads, so phone and email are never used to match, and there is no `match_on` here.
+
+| Field | Type | Required | Constraints |
+| --- | --- | --- | --- |
+| `external_ref` | `string` | Yes | 1–64 characters, not blank. Your own id for the enquiry |
+| `name` | `string` | Yes | 1–255 characters, not blank |
+| every other create field | | No | Same types and bounds as [create](#post-apiv1crmleads). On a match, only the fields you send are written |
+
+```bash
+curl -X POST https://api.callmissed.com/api/v1/crm/leads/upsert \
+  -H "Authorization: Bearer cm_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "external_ref": "form-88213",
+    "name": "Priya Nair",
+    "email": "priya@acme.example",
+    "phone": "+919800000000",
+    "company_name": "Acme Traders",
+    "source": "web_form",
+    "status": "contacted"
+  }'
+```
+
+`201` when a lead was created, `200` when one was updated. The response is the lead object plus `created` and `matched_on`:
+
+```json
+{
+  "id": "7a10b2c3-d4e5-4f60-8a7b-9c0d1e2f3a4b",
+  "tenant_id": "a0b1c2d3-4455-6677-8899-aabbccddeeff",
+  "name": "Priya Nair",
+  "email": "priya@acme.example",
+  "phone": "+919800000000",
+  "company_name": "Acme Traders",
+  "job_title": null,
+  "source": "web_form",
+  "status": "contacted",
+  "owner_user_id": null,
+  "score": 0,
+  "estimated_value_minor": null,
+  "currency": "INR",
+  "next_follow_up_at": null,
+  "last_contacted_at": "2026-11-17T06:31:10.412000Z",
+  "lost_reason": null,
+  "message": null,
+  "attribution": null,
+  "external_ref": "form-88213",
+  "converted_contact_id": null,
+  "converted_company_id": null,
+  "converted_deal_id": null,
+  "converted_at": null,
+  "tags": [],
+  "created_at": "2026-11-17T06:31:10.412000Z",
+  "updated_at": "2026-11-17T06:31:10.412000Z",
+  "created": true,
+  "matched_on": null
+}
+```
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `created` | `boolean` | `true` = a new lead was created (`201`). `false` = an existing lead was updated (`200`) |
+| `matched_on` | `string \| null` | `"external_ref"` on an update, `null` on a create |
+
+An update follows the [`PATCH`](#get--patch--delete-apiv1crmleadslead_id) rules: `status: "converted"` is `422`, and the status of a converted lead cannot be changed. Two upserts of the same `external_ref` sent at the same moment do not conflict: the second waits for the first, then updates the lead it created, so a retry after a timeout is safe.
+
+| Status | When | What to do next |
+| --- | --- | --- |
+| `403` | Key is missing `crm_leads:write` or `crm_leads:read` | The key needs both scopes. Add the missing one |
+| `404` | `owner_user_id` is not a user in your tenant | Send a valid user id, or leave the field out |
+| `422` | `external_ref` missing or blank, blank `name`, unknown `status` or `source`, `converted` as a status, a status change on a converted lead, or a value outside its bounds | Correct the field named in `detail` |
+
 ## GET / PATCH / DELETE `/api/v1/crm/leads/{lead_id}`
 
 `PATCH` accepts every create field except `external_ref`, all optional. Explicit `null` is `422` for `name`, `source`, `status`, `score` and `currency`. Moving a lead to `contacted` stamps `last_contacted_at` with the current time unless you send it. Changing the status of a `converted` lead is `422`. `tags` replaces the whole list (`null` or `[]` clears it); use [bulk tags](/docs/crm-import-export#post-apiv1crmbulkadd-tags) to add or remove one tag across many leads. `DELETE` permanently deletes the lead and returns `204`; contacts, companies and deals created by a conversion are kept.
+
+## Webhooks
+
+Subscribe a [webhook](/docs/webhooks#crm-record-events) to `lead.created`, `lead.updated` and `lead.deleted` (an API key needs `crm_leads:read` to subscribe) to be told about every change, whoever made it. Created and updated events carry the lead object above; a deleted event carries `id` and `external_ref`. [Converting](#convert-a-lead) a lead sends `lead.updated`, plus `contact.created` or `contact.updated`, `company.created` when a company was created, and `deal.created` when a deal was.
 
 ## Convert a lead
 
@@ -205,6 +299,6 @@ Converting a lead that is already `converted` returns `409`, as does a new conta
 | `403` | API key is missing `crm_leads:read` / `crm_leads:write` (dashboard logins are not scope-checked) |
 | `404` | Lead, owner, pipeline, stage or contact not in your tenant |
 | `409` | Duplicate `external_ref`, converting an already converted lead, or a phone/email collision on the new contact |
-| `422` | Blank name, unknown `status` or `source`, `converted` as a status, a null on a required field in `PATCH`, a convert problem listed above, more than 20 tags or a tag over 40 characters, or a value outside the bounds above |
+| `422` | Blank name, a missing or blank `external_ref` on create-or-update, an `updated_after` that is not a date-time, unknown `status` or `source`, `converted` as a status, a null on a required field in `PATCH`, a convert problem listed above, more than 20 tags or a tag over 40 characters, or a value outside the bounds above |
 
 Nothing on this page consumes credits.
